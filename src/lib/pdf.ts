@@ -1,0 +1,388 @@
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+
+import {
+  computeQty,
+  computeTotals,
+  fmt,
+  fmtPlain,
+  sectionTotal,
+  type BoqSnapshot,
+} from "./boq";
+
+export type Letterhead = {
+  name: string;
+  legalName: string;
+  addressLine: string;
+  pocName: string;
+  pocPhone: string;
+  pocEmail: string;
+};
+
+export type PdfMode = "client" | "internal";
+
+/**
+ * A jsPDF document with a Unicode-capable font registered.
+ *
+ * The built-in Helvetica is WinAnsi-encoded and has no ₹ — it rendered as a
+ * stray superscript and, worse, miscounted string widths so right-aligned
+ * subtotals ran off the page. The font module is imported dynamically so its
+ * ~60 KB only loads when someone actually exports.
+ */
+export async function createPdfDoc(): Promise<jsPDF> {
+  const { PDF_FONT_BOLD_BASE64, PDF_FONT_FAMILY, PDF_FONT_REGULAR_BASE64 } = await import("./pdf-font");
+  const doc = new jsPDF("p", "pt", "a4");
+
+  doc.addFileToVFS("DejaVuSans.ttf", PDF_FONT_REGULAR_BASE64);
+  doc.addFont("DejaVuSans.ttf", PDF_FONT_FAMILY, "normal");
+  doc.addFileToVFS("DejaVuSans-Bold.ttf", PDF_FONT_BOLD_BASE64);
+  doc.addFont("DejaVuSans-Bold.ttf", PDF_FONT_FAMILY, "bold");
+  // No oblique face in the subset — italic falls back to regular.
+  doc.addFont("DejaVuSans.ttf", PDF_FONT_FAMILY, "italic");
+  doc.setFont(PDF_FONT_FAMILY, "normal");
+
+  return doc;
+}
+
+export const PDF_FONT = "DejaVuSans";
+
+const INK: [number, number, number] = [33, 31, 26];
+const INK_SOFT: [number, number, number] = [90, 85, 70];
+const BRASS: [number, number, number] = [138, 107, 50];
+const BRASS_DARK: [number, number, number] = [110, 83, 31];
+const LINE: [number, number, number] = [214, 207, 187];
+const CHIP: [number, number, number] = [239, 235, 224];
+const GREEN: [number, number, number] = [70, 82, 65];
+
+function header(doc: jsPDF, title: string, snapshot: BoqSnapshot, letterhead: Letterhead): number {
+  const pageW = doc.internal.pageSize.getWidth();
+
+  doc.setFont(PDF_FONT, "bold");
+  doc.setFontSize(16);
+  doc.setTextColor(...INK);
+  doc.text(letterhead.name.toUpperCase(), 40, 46);
+
+  doc.setFont(PDF_FONT, "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(...INK_SOFT);
+  if (letterhead.addressLine) doc.text(letterhead.addressLine, 40, 60);
+  const poc = [
+    letterhead.pocName ? `POC: ${letterhead.pocName}` : "",
+    letterhead.pocPhone,
+    letterhead.pocEmail,
+  ]
+    .filter(Boolean)
+    .join("  ·  ");
+  if (poc) doc.text(poc, 40, 72);
+
+  doc.setDrawColor(...BRASS);
+  doc.setLineWidth(1.2);
+  doc.line(40, 82, pageW - 40, 82);
+
+  doc.setFont(PDF_FONT, "bold");
+  doc.setFontSize(12.5);
+  doc.setTextColor(...INK);
+  doc.text(title, 40, 102);
+
+  doc.setFont(PDF_FONT, "normal");
+  doc.setFontSize(9.5);
+  doc.setTextColor(50, 48, 42);
+  doc.text(`Client: ${snapshot.meta.client || "—"}`, 40, 118);
+  doc.text(`Property: ${snapshot.meta.property || "—"}`, 40, 130);
+  doc.text(`Prepared by: ${snapshot.meta.preparedBy || "—"}`, pageW - 40, 118, { align: "right" });
+  doc.text(`Date: ${snapshot.meta.date || "—"}`, pageW - 40, 130, { align: "right" });
+
+  return 148;
+}
+
+function ensureSpace(doc: jsPDF, y: number, needed: number): number {
+  const pageH = doc.internal.pageSize.getHeight();
+  if (y + needed > pageH - 50) {
+    doc.addPage();
+    return 50;
+  }
+  return y;
+}
+
+/**
+ * Client PDF: full line-item detail, no cost or margin anywhere, plus the
+ * terms & exclusions block and a reference-image appendix.
+ * Internal PDF: the same table with Cost and Margin columns and a margin
+ * summary. Layout ported from the prototype so the output the team already
+ * sends stays recognisable.
+ */
+export async function buildBoqPdf(
+  snapshot: BoqSnapshot,
+  letterhead: Letterhead,
+  mode: PdfMode,
+): Promise<jsPDF> {
+  const doc = await createPdfDoc();
+  const pageW = doc.internal.pageSize.getWidth();
+  const cols = snapshot.meta.cols;
+  const internal = mode === "internal";
+
+  let y = header(doc, internal ? "INTERNAL COST SHEET" : "TENTATIVE ESTIMATE", snapshot, letterhead);
+  let slNo = 1;
+  const scopeNotes: { section: string; desc: string; text: string }[] = [];
+
+  // Numbered over the sections that actually print, so an empty Wall Works
+  // section doesn't leave the client reading "1." followed by "4.".
+  let sectionNo = 0;
+
+  snapshot.sections.forEach((section) => {
+    if (section.items.length === 0) return;
+    sectionNo++;
+
+    y = ensureSpace(doc, y, 40);
+    doc.setFont(PDF_FONT, "bold");
+    doc.setFontSize(10.5);
+    doc.setTextColor(...BRASS_DARK);
+    doc.text(`${sectionNo}. ${section.name.toUpperCase()}`, 40, y);
+    y += 6;
+
+    const head = [
+      [
+        "Sl",
+        "Description",
+        ...(cols.material ? ["Material"] : []),
+        ...(cols.finish ? ["Finish"] : []),
+        ...(cols.unit ? ["Unit"] : []),
+        "Qty",
+        ...(cols.rate ? ["Rate"] : []),
+        ...(internal ? ["Cost"] : []),
+        "Amount",
+        ...(internal ? ["Margin"] : []),
+      ],
+    ];
+
+    const body = section.items.map((item) => {
+      const qty = computeQty(item);
+      const amount = qty * (item.rate || 0);
+      const margin = amount - qty * (item.cost || 0);
+      if (item.description.trim()) {
+        scopeNotes.push({
+          section: section.name,
+          desc: item.desc || "(custom item)",
+          text: item.description.trim(),
+        });
+      }
+      return [
+        String(slNo++),
+        item.desc,
+        ...(cols.material ? [item.material] : []),
+        ...(cols.finish ? [item.finish] : []),
+        ...(cols.unit ? [item.unit] : []),
+        String(qty || 0),
+        ...(cols.rate ? [fmtPlain(item.rate || 0)] : []),
+        ...(internal ? [fmtPlain(item.cost || 0)] : []),
+        fmtPlain(amount),
+        ...(internal ? [fmtPlain(margin)] : []),
+      ];
+    });
+
+    // Right-align every numeric column; which index that is depends on which
+    // optional columns the project has switched on.
+    let index = 2;
+    const numeric: number[] = [];
+    if (cols.material) index++;
+    if (cols.finish) index++;
+    if (cols.unit) index++;
+    numeric.push(index++);
+    if (cols.rate) numeric.push(index++);
+    if (internal) numeric.push(index++);
+    numeric.push(index++);
+    if (internal) numeric.push(index++);
+
+    const columnStyles: Record<number, { cellWidth?: number; halign?: "right" }> = { 0: { cellWidth: 20 } };
+    for (const i of numeric) columnStyles[i] = { halign: "right" };
+
+    autoTable(doc, {
+      startY: y,
+      head,
+      body,
+      theme: "grid",
+      styles: { font: PDF_FONT, fontSize: 8, cellPadding: 4, textColor: INK, lineColor: LINE },
+      headStyles: { font: PDF_FONT, fillColor: CHIP, textColor: [90, 85, 74], fontStyle: "bold" },
+      columnStyles,
+      margin: { left: 40, right: 40 },
+    });
+
+    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
+    doc.setFont(PDF_FONT, "italic");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...INK_SOFT);
+    doc.text(`${section.name} subtotal: ${fmt(sectionTotal(section))}`, pageW - 40, y, { align: "right" });
+    y += 18;
+  });
+
+  const totals = computeTotals(snapshot);
+  y = ensureSpace(doc, y, 130);
+  doc.setDrawColor(...INK);
+  doc.setLineWidth(1);
+  doc.line(pageW - 260, y, pageW - 40, y);
+  y += 16;
+
+  doc.setFont(PDF_FONT, "normal");
+  doc.setFontSize(9.5);
+  doc.setTextColor(50, 48, 42);
+  doc.text("Subtotal", pageW - 260, y);
+  doc.text(fmt(totals.subtotal), pageW - 40, y, { align: "right" });
+  y += 15;
+
+  if (totals.discountAmount > 0) {
+    doc.text("Discount", pageW - 260, y);
+    doc.text("−" + fmt(totals.discountAmount), pageW - 40, y, { align: "right" });
+    y += 15;
+  }
+  if (totals.gstOn) {
+    doc.text(`CGST @ ${totals.gstRate / 2}%`, pageW - 260, y);
+    doc.text(fmt(totals.cgst), pageW - 40, y, { align: "right" });
+    y += 15;
+    doc.text(`SGST @ ${totals.gstRate / 2}%`, pageW - 260, y);
+    doc.text(fmt(totals.sgst), pageW - 40, y, { align: "right" });
+    y += 15;
+  }
+
+  doc.setFont(PDF_FONT, "bold");
+  doc.setFontSize(11.5);
+  doc.text("Grand total", pageW - 260, y + 4);
+  doc.text(fmt(totals.grand), pageW - 40, y + 4, { align: "right" });
+  y += 26;
+
+  if (internal) {
+    doc.setFont(PDF_FONT, "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...GREEN);
+    doc.text("Internal cost", pageW - 260, y);
+    doc.text(fmt(totals.totalCost), pageW - 40, y, { align: "right" });
+    y += 15;
+    doc.setFont(PDF_FONT, "bold");
+    doc.text("Margin", pageW - 260, y);
+    doc.text(`${fmt(totals.margin)}  (${Math.round(totals.marginPct * 10) / 10}%)`, pageW - 40, y, {
+      align: "right",
+    });
+    y += 26;
+  } else {
+    const terms = snapshot.meta.terms;
+    if (terms.trim()) {
+      y = ensureSpace(doc, y, 90);
+      doc.setFont(PDF_FONT, "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(...INK);
+      doc.text("NOTES", 40, y);
+      y += 14;
+      doc.setFont(PDF_FONT, "normal");
+      doc.setFontSize(8.5);
+      doc.setTextColor(80, 76, 66);
+      for (const line of doc.splitTextToSize(terms, pageW - 80)) {
+        y = ensureSpace(doc, y, 14);
+        doc.text(line, 40, y);
+        y += 12;
+      }
+      y += 24;
+    }
+    y = ensureSpace(doc, y, 50);
+    doc.setFont(PDF_FONT, "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(...INK);
+    doc.text(`For ${letterhead.legalName || letterhead.name}`, pageW - 40, y, { align: "right" });
+    doc.text("Authorised Signatory", pageW - 40, y + 34, { align: "right" });
+  }
+
+  if (scopeNotes.length > 0) {
+    doc.addPage();
+    let ny = 50;
+    doc.setFont(PDF_FONT, "bold");
+    doc.setFontSize(12.5);
+    doc.setTextColor(...INK);
+    doc.text("SCOPE NOTES", 40, ny);
+    ny += 22;
+
+    let lastSection: string | null = null;
+    for (const note of scopeNotes) {
+      ny = ensureSpace(doc, ny, 40);
+      if (note.section !== lastSection) {
+        doc.setFont(PDF_FONT, "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(...BRASS_DARK);
+        doc.text(note.section.toUpperCase(), 40, ny);
+        ny += 14;
+        lastSection = note.section;
+      }
+      doc.setFont(PDF_FONT, "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(...INK);
+      doc.text(note.desc, 40, ny);
+      ny += 11;
+      doc.setFont(PDF_FONT, "normal");
+      doc.setFontSize(8.5);
+      doc.setTextColor(80, 76, 66);
+      for (const line of doc.splitTextToSize(note.text, pageW - 80)) {
+        ny = ensureSpace(doc, ny, 12);
+        doc.text(line, 40, ny);
+        ny += 11;
+      }
+      ny += 8;
+    }
+  }
+
+  const withImages = snapshot.sections.flatMap((section) =>
+    section.items.filter((item) => item.image).map((item) => ({ section: section.name, item })),
+  );
+
+  if (withImages.length > 0) {
+    doc.addPage();
+    let iy = 50;
+    doc.setFont(PDF_FONT, "bold");
+    doc.setFontSize(12.5);
+    doc.setTextColor(...INK);
+    doc.text("REFERENCE IMAGES", 40, iy);
+    iy += 20;
+
+    const imgW = 140;
+    const imgH = 105;
+    const gap = 16;
+    const perRow = 3;
+    let col = 0;
+
+    for (const { item } of withImages) {
+      if (iy + imgH + 30 > doc.internal.pageSize.getHeight() - 40) {
+        doc.addPage();
+        iy = 50;
+        col = 0;
+      }
+      const x = 40 + col * (imgW + gap);
+      try {
+        doc.addImage(item.image as string, "JPEG", x, iy, imgW, imgH);
+      } catch {
+        // A corrupt data URL shouldn't take the whole export down.
+      }
+      doc.setFont(PDF_FONT, "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(70, 68, 60);
+      const caption = [item.desc, item.material, item.finish].filter(Boolean).join(" · ");
+      doc.text(doc.splitTextToSize(caption, imgW).slice(0, 2), x, iy + imgH + 11);
+      col++;
+      if (col >= perRow) {
+        col = 0;
+        iy += imgH + 40;
+      }
+    }
+  }
+
+  return doc;
+}
+
+export function boqPdfFilename(snapshot: BoqSnapshot, mode: PdfMode): string {
+  const base = (snapshot.meta.property || snapshot.meta.client || "BOQ").replace(/\s+/g, "_");
+  return `${base}_${mode === "client" ? "Client_Estimate" : "Internal_Cost_Sheet"}.pdf`;
+}
+
+export async function downloadBoqPdf(
+  snapshot: BoqSnapshot,
+  letterhead: Letterhead,
+  mode: PdfMode,
+): Promise<void> {
+  const doc = await buildBoqPdf(snapshot, letterhead, mode);
+  doc.save(boqPdfFilename(snapshot, mode));
+}
