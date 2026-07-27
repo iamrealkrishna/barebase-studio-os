@@ -1,7 +1,13 @@
 node_modules/
-.next/
-out/
-build/
+
+# Build output. Anchored to the repo root on purpose: an unanchored "build/"
+# matches a directory named "build" at ANY depth, which silently swallowed the
+# App Router route at src/app/(app)/projects/[id]/build/. Route segments are
+# ordinary directory names, so anything here that isn't root-anchored is a trap.
+/.next/
+/out/
+/dist/
+
 .DS_Store
 *.pem
 npm-debug.log*
