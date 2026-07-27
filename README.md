@@ -1,75 +1,153 @@
-# Barebase BOQ Builder
+# Barebase BOQ Studio
 
-An internal tool for generating Bills of Quantities (BOQs) for Barebase
-projects — pulls from a shared rate card, calculates line-item and category
-totals, and exports both client-facing and internal cost-sheet PDFs.
+An internal tool for building Bills of Quantities for Barebase projects — pulls
+from a shared rate card, calculates line-item and section totals, exports
+client-facing and internal cost-sheet PDFs, and hands the client a link they can
+approve line by line.
 
-## Status
+Built as a real Next.js app with Postgres persistence and team auth, replacing
+the single-file prototype that relied on Claude's artifact storage.
 
-🚧 **Design finalized, moving into the real build.** The visual/UX design
-is done (Claude Design, "Warm Ledger" direction). Claude Code is building
-this out as a real deployed Next.js app — see `HANDOFF.md`,
-`APPROVALS_SPEC.md`, and `BOQ_BUILDER_V2_SPEC.md` for what's being built
-and why.
+## Stack
 
-## What it does
+| Piece | Choice |
+|---|---|
+| Framework | Next.js 16 (App Router, Server Actions), React 19, TypeScript |
+| Database | PostgreSQL via Prisma |
+| Auth | Email + password, bcrypt hashes, signed JWT in an httpOnly cookie (`jose`) |
+| PDFs | `jspdf` + `jspdf-autotable` as npm dependencies, generated client-side |
+| Styling | Plain CSS ported from the "Warm Ledger" design, no framework |
+| Hosting | Vercel |
 
-- Rate card of ~260 items across 17 categories (False Ceiling, Electrical,
-  Plumbing, Civil & Infra, Demolition, Kitchen/Living Room/Dining/
-  Bathroom/Bedroom/Wardrobe/Foyer/Puja/Utility furniture, Wall Paneling,
-  Décor & Styling), with **Description → Material → Finish** cascading
-  selection and **dimension-driven quantity** (Length×Breadth for SQFT,
-  single length for RFT, etc.) so nobody's typing area calculations by
-  hand.
-- BOQs are organized by **section**: fixed sections first (Electrical
-  Work, Wall Works, Other), then rooms (Living Room, Kitchen, etc.),
-  added via a single dropdown with a Custom option for anything
-  project-specific.
-- A single reusable **entry form** — fill it in, hit Enter, it collapses
-  into a compact row — instead of a page full of always-expanded item
-  cards.
-- **Version history** per project (Draft → Sent to Client → Approved),
-  internal-only, with the ability to reopen any past version.
-- A **Client View**: a clean, read-only page for the client with no cost/
-  margin data and no version history — but items new or changed since
-  the client's last Approved version are visually flagged, so they can
-  see exactly what's different without digging through anything.
-- Photo attachment per line item, editable per-project discount and GST
-  (5/12/18/28/custom, split CGST/SGST), and a **Client PDF** / **Internal
-  PDF** export — the client version omits cost/margin and adds a terms &
-  exclusions page plus a reference-images appendix; the internal version
-  adds full cost/margin breakdown.
+## What's in it
 
-Planned next (see `APPROVALS_SPEC.md` and `BOQ_BUILDER_V2_SPEC.md`):
-client-facing approvals with change orders, and a passive "Compare Quote"
-feature that lets the team see how Barebase's pricing stacks up against
-competitor quotes clients share, at a line-item level.
+**Build BOQ** (`/projects/[id]/build`)
+- Cascading **Category → Description → Material → Finish** dropdowns off the
+  shared rate card, auto-filling rate, internal cost and unit. "Custom item"
+  fallback at every level for anything the rate card doesn't cover.
+- **Dimension-driven quantity**: the unit decides which inputs appear — SQFT
+  gives Length × Breadth, RFT a single length, CFT Length × Breadth × Height,
+  and Nos./Lumpsum/Day/Person a plain typed quantity.
+- One reusable **entry form**: fill it, hit Enter in any field, it collapses
+  into a compact row and resets for the next item.
+- **Sections**: fixed ones first (Electrical Work, Wall Works, Other), then
+  rooms added from a dropdown with a Custom option. A section-jump dropdown
+  filters to one section — no tab strip that overflows at 7 rooms.
+- Long-form client-facing **scope of work** per item, plus a separate
+  internal-only note, plus a reference photo (compressed client-side).
+- Discount (₹ or %), GST toggle with 5/12/18/28/custom split into CGST/SGST,
+  and a **Cost & margin** toggle that's off by default and never leaves the org.
+- Autosaves as you work.
 
-## Files
+**PDF export** — Client PDF (line-item detail, section subtotals, discount/GST,
+terms & exclusions, scope notes, reference-image appendix, signature block; no
+cost or margin anywhere) and Internal PDF (the same plus Cost, Margin and a
+margin summary).
+
+**Versions** (`/projects/[id]`) — status-driven, not manual snapshots. One
+status per BOQ: **Draft → Sent to Client → Approved**. Full history with
+per-version totals, the ability to reopen any past version into the live BOQ,
+and an exportable audit log. Internal-only; the client never sees it.
+
+**Client View** — a read-only branded page. Items that are new or changed
+*since the version that client last approved* are highlighted; nothing else
+about the revision history is exposed.
+
+**Approvals & change orders** — each project gets client contacts with their
+own share link (no account, no login). A client can approve the whole estimate
+in one click or go line by line with approve / request change / reject /
+comment. Once an approved version exists, any later edit to an approved line
+automatically raises a **Change Order** recording old → new, and every action by
+either side lands in the audit trail.
+
+**Rate Card & Settings** (`/settings`) — the 253-item default rate card across
+17 categories, editable and shared team-wide (admin only), with letterhead and
+default terms, team member management, and password change.
+
+### Roles
+
+| Role | Can do |
+|---|---|
+| Admin | Everything, including rate card and organisation settings |
+| Team member | Build and version BOQs, manage client contacts; can't edit the rate card |
+| Client contact | Read + approve, scoped to one project. Never sees cost, margin, internal notes or version history. |
+
+## Running it locally
+
+```bash
+npm install
+cp .env.example .env          # then fill in DATABASE_URL and AUTH_SECRET
+npm run db:migrate            # apply migrations
+npm run db:seed               # create the org, first admin and default rate card
+npm run dev
+```
+
+`npm run db:seed` reads `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` from the
+environment. It's safe to re-run: the org and admin are upserted, and the rate
+card is only written when the org has none, so team edits are never stomped.
+
+## Deploying to Vercel
+
+1. Import the repo in Vercel. Framework preset: **Next.js** (auto-detected).
+2. Attach a Postgres database — the Neon or Vercel Postgres integration sets
+   `DATABASE_URL` for you. Any Postgres works.
+3. Set the remaining environment variables (Production and Preview):
+
+   | Variable | Value |
+   |---|---|
+   | `DATABASE_URL` | Postgres connection string |
+   | `AUTH_SECRET` | `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+   | `APP_URL` | Your deployment URL, e.g. `https://boq.barebase.in`. Optional — falls back to Vercel's own URL. Used to build client share links. |
+
+4. Deploy. The build script runs `prisma migrate deploy` before `next build`, so
+   the schema is applied automatically.
+5. Seed the first admin once, from your machine against the production database:
+
+   ```bash
+   DATABASE_URL="<production url>" \
+   SEED_ADMIN_EMAIL="you@barebase.in" \
+   SEED_ADMIN_PASSWORD="<a real password>" \
+   SEED_ADMIN_NAME="Your Name" \
+   npm run db:seed
+   ```
+
+   Then sign in and add the rest of the team under Rate Card & Settings.
+
+Set `APP_URL` to a stable domain before sending clients links — share links are
+absolute and built from it.
+
+## Known limitations
+
+- **Concurrent editing is last-write-wins.** Two people building the same BOQ at
+  the same time will overwrite each other. Auth means you now know who did it,
+  but there's no locking or merge.
+- **No email yet.** Share links are copied and sent by hand; approvals don't
+  notify anyone. `APPROVALS_SPEC.md` §5 wants email on both sides — the audit
+  events are already recorded, so this is a delivery layer on top.
+- **Compare Quote is not built** (`BOQ_BUILDER_V2_SPEC.md` §5).
+- **Reference photos are stored as data URLs in Postgres**, downscaled to 480px
+  JPEG. Fine at this volume; move to blob storage if projects get photo-heavy.
+- **Rate-card gaps from the source sheets are carried over as-is**, not silently
+  patched (per `HANDOFF.md` §3): several Wardrobe finish variants have no rate
+  and are absent; Beds, Puja back-panels and Dining carry their full spec text
+  in "Finish" with "Material" blank.
+
+## Reference material
 
 | File | Purpose |
 |---|---|
-| `Barebase BOQ.dc.html` | Finished visual design (Claude Design, "Warm Ledger" direction) — the reference for the app's final look and feel. |
-| `BOQ Redesign Directions.dc.html` | The three visual directions explored before landing on Warm Ledger — kept for reference. |
-| `barebase-boq-tool.html` | Earlier working prototype — reference implementation for interaction logic (cascading dropdowns, rate card, PDF export, versioning, Client View diffing). |
-| `HANDOFF.md` | What's built, what's missing, and the plan for the real deployed version (persistence, auth, PDF libs as npm deps). |
-| `APPROVALS_SPEC.md` | Client approvals module spec — line-item approval status, change orders, audit trail. |
-| `BOQ_BUILDER_V2_SPEC.md` | Full product spec from the structure/versioning/Compare Quote brainstorm — supersedes parts of the approvals spec with the section/room structure and versioning model. |
-| `support.js` | Claude Design export support file. |
-| `uploads/` | Supporting assets from the Claude Design export. |
+| `Barebase BOQ.dc.html` | Finished visual design (Claude Design, "Warm Ledger") — the reference for look and feel. |
+| `BOQ Redesign Directions.dc.html` | The three directions explored before Warm Ledger. |
+| `barebase-boq-tool.html` | Earlier working prototype — reference for interaction logic. |
+| `HANDOFF.md` | What the prototype did and the gaps this build closes. |
+| `APPROVALS_SPEC.md` | Client approvals spec — line-item status, change orders, audit trail. |
+| `BOQ_BUILDER_V2_SPEC.md` | Section/room restructure, versioning model, Compare Quote. |
+| `PDF_FONT_LICENSE.txt` | License for the DejaVu Sans subset embedded in PDFs. |
 
-## Using the design reference
+### A note on the PDF font
 
-`Barebase BOQ.dc.html` and `barebase-boq-tool.html` can both be opened
-directly in a browser — no build step needed. Note: the working
-prototype's shared rate card/project storage relies on Claude's artifact
-storage, so it only persists when opened through a Claude artifact, not
-as a standalone file. The Next.js rebuild replaces this with a real
-backend, per `HANDOFF.md`.
-
-## Roadmap
-
-Real backend persistence and auth, org/project/client-contact data model,
-status-driven internal versioning with client-relevant diff highlighting,
-client approvals with change orders, Compare Quote, deployed to Vercel.
-See the three spec docs for full detail.
+jsPDF's built-in Helvetica is WinAnsi-encoded and has no glyph for ₹ — the
+prototype's PDFs rendered it as a stray superscript and, because the width
+calculation was wrong, right-aligned subtotals ran off the page edge. This build
+embeds a subsetted DejaVu Sans (~22 KB per face, dynamically imported so it only
+loads on export) so amounts print correctly.
