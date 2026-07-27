@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#DDD8CC;font-family:"Instrument Sans",system-ui,sans-serif}
+a{color:#8A6B32;text-decoration:none} a:hover{color:#6E531F;text-decoration:underline}
+.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 13px/1.2 "Instrument Sans",sans-serif;color:#1a1a1a}
+.dv-intro{max-width:760px;font:13px/1.55 "Instrument Sans",sans-serif;color:rgba(0,0,0,.6);margin:0 0 24px}
+.dv-opts{display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.1);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 12px/1.4 "Instrument Sans",sans-serif;color:rgba(0,0,0,.6);max-width:1180px}
+.dv-olabel b{color:#1a1a1a;font-weight:600}
+.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden}
+.dv-opt:target .dv-oid{background:#8A6B32;color:#fff}
+.dv-next{margin:26px 0 0;font:12px/1.5 "Instrument Sans",sans-serif;color:rgba(0,0,0,.5)}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Build BOQ — three visual directions</span></div>
+<p class="dv-intro">All three keep the exact working structure of your prototype — section dropdown, one reusable entry form, compact confirmed rows, summary rail — and stay in the paper/charcoal/brass family. They differ in density and temperament: <a class="dv-oid" href="#1a">1a</a> is the closest evolution, <a class="dv-oid" href="#1b">1b</a> is denser and more technical (drafting-sheet), <a class="dv-oid" href="#1c">1c</a> is the most editorial and calm. Same sample data in each (Kitchen section, Heritage Firefly 3BHK) so they compare fairly.</p>
+<div class="dv-opts">
+
+<!-- ======================= 1a WARM LEDGER ======================= -->
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a><b>Warm Ledger</b> — refined evolution of the current build. Serif brand voice, cream cards, brass reserved for the one primary action, charcoal summary rail.</div>
+<div class="dv-card" style="width:1180px;background:#EDE9DE">
+  <!-- topbar -->
+  <div style="background:#211F1A;color:#EFEBE0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px">
+    <div style="display:flex;align-items:baseline;gap:10px">
+      <span style="font-family:'Instrument Serif',serif;font-size:20px;letter-spacing:0.04em">BAREBASE</span>
+      <span style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#96907C">BOQ Studio</span>
+    </div>
+    <div style="display:flex;gap:2px;background:#2C2A23;border-radius:999px;padding:3px">
+      <span style="padding:6px 16px;font-size:12px;color:#A9A28C;border-radius:999px">Project</span>
+      <span style="padding:6px 16px;font-size:12px;color:#211F1A;background:#C9A85C;border-radius:999px;font-weight:600">Build BOQ</span>
+      <span style="padding:6px 16px;font-size:12px;color:#A9A28C;border-radius:999px">Rate Card</span>
+      <span style="padding:6px 16px;font-size:12px;color:#A9A28C;border-radius:999px">Client View</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#A9A28C;padding-right:12px;border-right:1px solid #3B382F">
+        <span style="width:28px;height:16px;background:#3B382F;border-radius:999px;position:relative;display:inline-block"><span style="position:absolute;left:2px;top:2px;width:12px;height:12px;background:#96907C;border-radius:50%"></span></span>
+        Cost &amp; margin
+      </span>
+      <span style="font-size:12px;color:#EFEBE0;border:1px solid #4A463A;padding:6px 14px;border-radius:4px">Internal PDF</span>
+      <span style="font-size:12px;color:#211F1A;background:#EFEBE0;padding:6px 14px;border-radius:4px;font-weight:600">Client PDF</span>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 300px">
+    <!-- main -->
+    <div style="padding:22px 26px 30px">
+      <!-- section bar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="display:flex;align-items:center;gap:10px;background:#FBF9F2;border:1px solid #D6CFBB;border-radius:6px;padding:9px 14px;box-shadow:0 1px 2px rgba(33,31,26,.05)">
+            <span style="font-family:'Instrument Serif',serif;font-size:17px;color:#211F1A">Kitchen</span>
+            <span style="font-size:11px;color:#8A8471;background:#EFEBE0;border-radius:999px;padding:2px 8px">5 items</span>
+            <span style="color:#8A8471;font-size:10px">▾</span>
+          </div>
+          <span style="font-size:11.5px;color:#8A8471">Electrical Work · Wall Works · Other · Living Room · <span style="color:#8A6B32">+ Add room</span></span>
+        </div>
+        <div style="font-size:12px;color:#5A554A">Section subtotal&nbsp;&nbsp;<span style="font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:14px;color:#211F1A">₹2,25,250</span></div>
+      </div>
+      <!-- entry form -->
+      <div style="background:#FBF9F2;border:1px solid #D6CFBB;border-top:2px solid #C9A85C;border-radius:6px;padding:16px 18px 14px;box-shadow:0 1px 3px rgba(33,31,26,.06);margin-bottom:18px">
+        <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#8A6B32;font-weight:600;margin-bottom:12px">New item — Kitchen</div>
+        <div style="display:grid;grid-template-columns:1.2fr 1.4fr 1fr 1fr 76px;gap:10px;margin-bottom:12px">
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8471">Category</span><span style="border:1px solid #D6CFBB;background:#fff;border-radius:4px;padding:7px 9px;font-size:12.5px;color:#211F1A;display:flex;justify-content:space-between">Kitchen Furniture <span style="color:#B0A98F">▾</span></span></div>
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8471">Description</span><span style="border:1px solid #D6CFBB;background:#fff;border-radius:4px;padding:7px 9px;font-size:12.5px;color:#211F1A;display:flex;justify-content:space-between">Kitchen Bottom unit <span style="color:#B0A98F">▾</span></span></div>
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8471">Material</span><span style="border:1px solid #D6CFBB;background:#fff;border-radius:4px;padding:7px 9px;font-size:12.5px;color:#211F1A;display:flex;justify-content:space-between">BWP Plywood <span style="color:#B0A98F">▾</span></span></div>
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8471">Finish</span><span style="border:1px solid #D6CFBB;background:#fff;border-radius:4px;padding:7px 9px;font-size:12.5px;color:#211F1A;display:flex;justify-content:space-between">Laminate <span style="color:#B0A98F">▾</span></span></div>
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8471">Unit</span><span style="align-self:flex-start;font-size:11px;color:#5A554A;background:#EFEBE0;border:1px solid #D6CFBB;border-radius:999px;padding:5px 12px;margin-top:2px">SQFT</span></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <div style="display:flex;flex-direction:column;gap:4px;width:76px"><span style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8471">Length ft</span><span style="border:1px solid #D6CFBB;background:#fff;border-radius:4px;padding:7px 9px;font-size:12.5px;text-align:right;font-family:'IBM Plex Mono',monospace">12</span></div>
+          <span style="color:#B0A98F;padding-bottom:8px;font-size:12px">×</span>
+          <div style="display:flex;flex-direction:column;gap:4px;width:76px"><span style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8471">Breadth ft</span><span style="border:1px solid #D6CFBB;background:#fff;border-radius:4px;padding:7px 9px;font-size:12.5px;text-align:right;font-family:'IBM Plex Mono',monospace">2.75</span></div>
+          <div style="display:flex;flex-direction:column;gap:4px;width:92px"><span style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8471">Qty (SQFT)</span><span style="border:1px dashed #D6CFBB;background:#F3EFE3;border-radius:4px;padding:7px 9px;font-size:12.5px;text-align:right;color:#5A554A;font-family:'IBM Plex Mono',monospace">33</span></div>
+          <div style="display:flex;flex-direction:column;gap:4px;width:96px"><span style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8471">Rate ₹</span><span style="border:1px solid #D6CFBB;background:#fff;border-radius:4px;padding:7px 9px;font-size:12.5px;text-align:right;font-family:'IBM Plex Mono',monospace">1,950</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:4px"><span style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8471">Scope note · optional</span><span style="border:1px solid #D6CFBB;background:#fff;border-radius:4px;padding:7px 9px;font-size:12px;color:#8A8471">Base cabinets along both walls, soft-close…</span></div>
+          <div style="display:flex;align-items:center;gap:12px;padding-bottom:1px">
+            <span style="width:32px;height:32px;border:1px dashed #C4BCA3;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#8A8471">＋</span>
+            <div style="text-align:right"><div style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8471">Amount</div><div style="font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:17px;color:#211F1A">₹64,350</div></div>
+            <span style="background:#8A6B32;color:#fff;font-size:12.5px;font-weight:600;padding:9px 18px;border-radius:4px">Add item ↵</span>
+          </div>
+        </div>
+      </div>
+      <!-- compact list -->
+      <div style="background:#FBF9F2;border:1px solid #D6CFBB;border-radius:6px;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 16px;border-bottom:1px solid #EAE4D3;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#8A8471">
+          <span style="width:20px"></span><span style="flex:2">Item</span><span style="flex:0 0 150px;text-align:right">Qty @ rate</span><span style="flex:0 0 100px;text-align:right">Amount</span><span style="width:52px"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid #EAE4D3;font-size:13px">
+          <span style="width:20px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#B0A98F">01</span>
+          <span style="flex:2;min-width:0"><span style="font-weight:600;color:#211F1A">Kitchen Bottom unit</span><br><span style="font-size:11px;color:#8A8471">BWP Plywood · Laminate · 12 × 2.75 ft</span></span>
+          <span style="flex:0 0 150px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5A554A">33 SQFT @ 1,950</span>
+          <span style="flex:0 0 100px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#211F1A">₹64,350</span>
+          <span style="width:52px;display:flex;gap:8px;justify-content:flex-end;color:#B0A98F;font-size:12px"><span>✎</span><span>✕</span></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid #EAE4D3;font-size:13px">
+          <span style="width:20px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#B0A98F">02</span>
+          <span style="flex:2;min-width:0"><span style="font-weight:600;color:#211F1A">Kitchen Overhead unit</span> <span style="font-size:10px;color:#8A6B32;border:1px solid #D9C69A;border-radius:999px;padding:1px 6px;vertical-align:1px">photo</span><br><span style="font-size:11px;color:#8A8471">BWP Plywood · Acrylic · 10 × 2 ft</span></span>
+          <span style="flex:0 0 150px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5A554A">20 SQFT @ 2,150</span>
+          <span style="flex:0 0 100px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#211F1A">₹43,000</span>
+          <span style="width:52px;display:flex;gap:8px;justify-content:flex-end;color:#B0A98F;font-size:12px"><span>✎</span><span>✕</span></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid #EAE4D3;font-size:13px;background:#F6F2E7">
+          <span style="width:20px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#B0A98F">03</span>
+          <span style="flex:2;min-width:0"><span style="font-weight:600;color:#211F1A">Tall unit</span><br><span style="font-size:11px;color:#8A8471">BWP Plywood · PU · 4 × 7 ft</span></span>
+          <span style="flex:0 0 150px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5A554A">28 SQFT @ 2,550</span>
+          <span style="flex:0 0 100px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#211F1A">₹71,400</span>
+          <span style="width:52px;display:flex;gap:8px;justify-content:flex-end;color:#5A554A;font-size:12px"><span>✎</span><span style="color:#A8452F">✕</span></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid #EAE4D3;font-size:13px">
+          <span style="width:20px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#B0A98F">04</span>
+          <span style="flex:2;min-width:0"><span style="font-weight:600;color:#211F1A">Counter Top</span><br><span style="font-size:11px;color:#8A8471">Supply and installation, per sq ft</span></span>
+          <span style="flex:0 0 150px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5A554A">24 SQFT @ 750</span>
+          <span style="flex:0 0 100px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#211F1A">₹18,000</span>
+          <span style="width:52px;display:flex;gap:8px;justify-content:flex-end;color:#B0A98F;font-size:12px"><span>✎</span><span>✕</span></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;font-size:13px">
+          <span style="width:20px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#B0A98F">05</span>
+          <span style="flex:2;min-width:0"><span style="font-weight:600;color:#211F1A">Accessories</span><br><span style="font-size:11px;color:#8A8471">EBCO / HETTICH</span></span>
+          <span style="flex:0 0 150px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5A554A">1 Nos. @ 28,500</span>
+          <span style="flex:0 0 100px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#211F1A">₹28,500</span>
+          <span style="width:52px;display:flex;gap:8px;justify-content:flex-end;color:#B0A98F;font-size:12px"><span>✎</span><span>✕</span></span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid #D6CFBB">
+        <span style="background:#211F1A;color:#EFEBE0;font-size:12.5px;font-weight:600;padding:10px 20px;border-radius:4px">Save &amp; continue to Client View →</span>
+      </div>
+    </div>
+    <!-- summary rail -->
+    <div style="background:#211F1A;color:#EFEBE0;padding:22px 20px 26px">
+      <div style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#96907C;margin-bottom:14px">Summary</div>
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #35322A;font-size:12px"><span style="color:#C6C0AD">Electrical Work</span><span style="font-family:'IBM Plex Mono',monospace">₹48,600</span></div>
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #35322A;font-size:12px"><span style="color:#C6C0AD">Wall Works</span><span style="font-family:'IBM Plex Mono',monospace">₹36,000</span></div>
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #35322A;font-size:12px"><span style="color:#C6C0AD">Living Room</span><span style="font-family:'IBM Plex Mono',monospace">₹1,84,500</span></div>
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #35322A;font-size:12px"><span style="color:#EFEBE0;font-weight:600">Kitchen ·</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600">₹2,25,250</span></div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0 6px;font-size:12.5px"><span>Subtotal</span><span style="font-family:'IBM Plex Mono',monospace">₹4,94,350</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #35322A;font-size:12px;color:#C6C0AD"><span>Discount</span><span style="display:flex;gap:5px"><span style="background:#2C2A23;border:1px solid #45412F;border-radius:3px;padding:3px 8px;font-family:'IBM Plex Mono',monospace;font-size:11px">0</span><span style="background:#2C2A23;border:1px solid #45412F;border-radius:3px;padding:3px 7px;font-size:11px">%</span></span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 2px;font-size:12px;color:#C6C0AD"><span>GST</span><span style="background:#2C2A23;border:1px solid #45412F;border-radius:3px;padding:3px 8px;font-size:11px">18% ▾</span></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:11px;color:#96907C"><span>CGST @ 9%</span><span style="font-family:'IBM Plex Mono',monospace">₹44,491</span></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:11px;color:#96907C"><span>SGST @ 9%</span><span style="font-family:'IBM Plex Mono',monospace">₹44,492</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:12px;padding-top:14px;border-top:2px solid #C9A85C"><span style="font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:#C6C0AD">Grand total</span><span style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600">₹5,83,333</span></div>
+      <div style="margin-top:18px;display:flex;flex-direction:column;gap:8px">
+        <span style="border:1px solid #45412F;color:#C6C0AD;font-size:12px;text-align:center;padding:8px 0;border-radius:4px">Internal PDF</span>
+        <span style="background:#C9A85C;color:#211F1A;font-weight:600;font-size:12px;text-align:center;padding:8px 0;border-radius:4px">Client PDF</span>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================= 1b DRAFTING SHEET ======================= -->
+<div class="dv-opt" id="1b">
+<div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a><b>Drafting Sheet</b> — densest and most technical. Light chrome, hairline rules, mono numerals, entry form as a highlighted "insert row" fused to the top of a real table. Fastest-feeling for daily heavy use.</div>
+<div class="dv-card" style="width:1180px;background:#E8E4D9">
+  <!-- topbar -->
+  <div style="background:#F4F1E8;border-bottom:1px solid #C9C2AD;display:flex;align-items:stretch;justify-content:space-between;padding:0 24px;height:52px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:14px;font-weight:700;letter-spacing:0.18em;color:#211F1A">BAREBASE</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.1em;color:#8A8471;border:1px solid #C9C2AD;border-radius:2px;padding:2px 6px">BOQ / INTERNAL</span>
+    </div>
+    <div style="display:flex;gap:26px">
+      <span style="display:flex;align-items:center;font-size:12px;color:#8A8471">Project</span>
+      <span style="display:flex;align-items:center;font-size:12px;color:#211F1A;font-weight:600;border-bottom:2px solid #8A6B32;margin-bottom:-1px">Build BOQ</span>
+      <span style="display:flex;align-items:center;font-size:12px;color:#8A8471">Rate Card</span>
+      <span style="display:flex;align-items:center;font-size:12px;color:#8A8471">Client View</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A8471;letter-spacing:0.05em;padding-right:10px;border-right:1px solid #C9C2AD">COST/MARGIN&nbsp;&nbsp;<span style="color:#465241;font-weight:600">ON</span></span>
+      <span style="font-size:11.5px;color:#211F1A;border:1px solid #B9B29B;padding:5px 12px;border-radius:3px">Internal PDF</span>
+      <span style="font-size:11.5px;color:#F4F1E8;background:#211F1A;padding:5px 12px;border-radius:3px;font-weight:600">Client PDF</span>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 288px">
+    <div style="padding:18px 24px 26px">
+      <!-- section tabs strip -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:11.5px;color:#8A8471;background:#F4F1E8;border:1px solid #C9C2AD;border-radius:3px;padding:5px 10px">Electrical <span style="font-family:'IBM Plex Mono',monospace;font-size:10px">4</span></span>
+          <span style="font-size:11.5px;color:#8A8471;background:#F4F1E8;border:1px solid #C9C2AD;border-radius:3px;padding:5px 10px">Wall Works <span style="font-family:'IBM Plex Mono',monospace;font-size:10px">3</span></span>
+          <span style="font-size:11.5px;color:#8A8471;background:#F4F1E8;border:1px solid #C9C2AD;border-radius:3px;padding:5px 10px">Living Room <span style="font-family:'IBM Plex Mono',monospace;font-size:10px">6</span></span>
+          <span style="font-size:11.5px;color:#F4F1E8;background:#211F1A;border:1px solid #211F1A;border-radius:3px;padding:5px 10px;font-weight:600">Kitchen <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#C9A85C">5</span></span>
+          <span style="font-size:11.5px;color:#8A6B32;border:1px dashed #B9A87C;border-radius:3px;padding:5px 10px">+ Section ▾</span>
+        </div>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A554A">KITCHEN SUBTOTAL&nbsp;&nbsp;<span style="font-weight:600;font-size:13px;color:#211F1A">₹2,25,250</span></span>
+      </div>
+      <!-- table with fused entry row -->
+      <div style="background:#FBF9F2;border:1px solid #B9B29B;border-radius:3px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:34px 2.1fr 1.7fr 120px 110px 90px 100px 56px;border-bottom:1px solid #B9B29B;background:#EFEBDD">
+          <span style="padding:7px 8px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;color:#8A8471">SL</span>
+          <span style="padding:7px 8px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;color:#8A8471">ITEM</span>
+          <span style="padding:7px 8px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;color:#8A8471">SPEC</span>
+          <span style="padding:7px 8px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;color:#8A8471;text-align:right">DIMS FT</span>
+          <span style="padding:7px 8px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;color:#8A8471;text-align:right">QTY</span>
+          <span style="padding:7px 8px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;color:#8A8471;text-align:right">RATE</span>
+          <span style="padding:7px 8px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;color:#8A8471;text-align:right">AMOUNT</span>
+          <span></span>
+        </div>
+        <!-- insert (entry) row -->
+        <div style="border-bottom:1px solid #B9B29B;background:#FDF6E3;border-left:3px solid #C9A85C;padding:10px 12px 12px">
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <span style="flex:1.1;border:1px solid #C9C2AD;background:#fff;border-radius:3px;padding:6px 8px;font-size:12px;display:flex;justify-content:space-between">Kitchen Furniture <span style="color:#B0A98F">▾</span></span>
+            <span style="flex:1.4;border:1px solid #C9C2AD;background:#fff;border-radius:3px;padding:6px 8px;font-size:12px;display:flex;justify-content:space-between">Kitchen Bottom unit <span style="color:#B0A98F">▾</span></span>
+            <span style="flex:1;border:1px solid #C9C2AD;background:#fff;border-radius:3px;padding:6px 8px;font-size:12px;display:flex;justify-content:space-between">BWP Plywood <span style="color:#B0A98F">▾</span></span>
+            <span style="flex:1;border:1px solid #C9C2AD;background:#fff;border-radius:3px;padding:6px 8px;font-size:12px;display:flex;justify-content:space-between">Laminate <span style="color:#B0A98F">▾</span></span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A554A;background:#EFEBDD;border:1px solid #C9C2AD;border-radius:2px;padding:7px 8px">SQFT</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span style="width:64px;border:1px solid #C9C2AD;background:#fff;border-radius:3px;padding:6px 8px;font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:right">12</span>
+            <span style="color:#8A8471;font-size:11px">×</span>
+            <span style="width:64px;border:1px solid #C9C2AD;background:#fff;border-radius:3px;padding:6px 8px;font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:right">2.75</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A554A">= 33 SQFT</span>
+            <span style="width:80px;border:1px solid #C9C2AD;background:#fff;border-radius:3px;padding:6px 8px;font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:right">1,950</span>
+            <span style="flex:1;border:1px solid #C9C2AD;background:#fff;border-radius:3px;padding:6px 8px;font-size:11.5px;color:#8A8471">Scope note…</span>
+            <span style="width:26px;height:26px;border:1px dashed #B9B29B;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#8A8471">＋</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:#211F1A">₹64,350</span>
+            <span style="background:#211F1A;color:#F4F1E8;font-size:11.5px;font-weight:600;padding:7px 14px;border-radius:3px">Add ↵</span>
+          </div>
+        </div>
+        <!-- data rows -->
+        <div style="display:grid;grid-template-columns:34px 2.1fr 1.7fr 120px 110px 90px 100px 56px;border-bottom:1px solid #E4DECC;font-size:12px;align-items:center">
+          <span style="padding:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#B0A98F">01</span>
+          <span style="padding:8px;font-weight:600;color:#211F1A">Kitchen Bottom unit</span>
+          <span style="padding:8px;font-size:11px;color:#8A8471">BWP Plywood · Laminate</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A8471">12 × 2.75</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5A554A">33 SQFT</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5A554A">1,950</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#211F1A">64,350</span>
+          <span style="padding:8px;display:flex;gap:7px;justify-content:flex-end;color:#B0A98F;font-size:11px"><span>✎</span><span>✕</span></span>
+        </div>
+        <div style="display:grid;grid-template-columns:34px 2.1fr 1.7fr 120px 110px 90px 100px 56px;border-bottom:1px solid #E4DECC;font-size:12px;align-items:center">
+          <span style="padding:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#B0A98F">02</span>
+          <span style="padding:8px;font-weight:600;color:#211F1A">Kitchen Overhead unit <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#8A6B32;border:1px solid #D9C69A;border-radius:2px;padding:0 4px">IMG</span></span>
+          <span style="padding:8px;font-size:11px;color:#8A8471">BWP Plywood · Acrylic</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A8471">10 × 2</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5A554A">20 SQFT</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5A554A">2,150</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#211F1A">43,000</span>
+          <span style="padding:8px;display:flex;gap:7px;justify-content:flex-end;color:#B0A98F;font-size:11px"><span>✎</span><span>✕</span></span>
+        </div>
+        <div style="display:grid;grid-template-columns:34px 2.1fr 1.7fr 120px 110px 90px 100px 56px;border-bottom:1px solid #E4DECC;font-size:12px;align-items:center">
+          <span style="padding:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#B0A98F">03</span>
+          <span style="padding:8px;font-weight:600;color:#211F1A">Tall unit</span>
+          <span style="padding:8px;font-size:11px;color:#8A8471">BWP Plywood · PU</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A8471">4 × 7</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5A554A">28 SQFT</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5A554A">2,550</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#211F1A">71,400</span>
+          <span style="padding:8px;display:flex;gap:7px;justify-content:flex-end;color:#B0A98F;font-size:11px"><span>✎</span><span>✕</span></span>
+        </div>
+        <div style="display:grid;grid-template-columns:34px 2.1fr 1.7fr 120px 110px 90px 100px 56px;border-bottom:1px solid #E4DECC;font-size:12px;align-items:center">
+          <span style="padding:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#B0A98F">04</span>
+          <span style="padding:8px;font-weight:600;color:#211F1A">Counter Top</span>
+          <span style="padding:8px;font-size:11px;color:#8A8471">Supply and installation</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A8471">—</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5A554A">24 SQFT</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5A554A">750</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#211F1A">18,000</span>
+          <span style="padding:8px;display:flex;gap:7px;justify-content:flex-end;color:#B0A98F;font-size:11px"><span>✎</span><span>✕</span></span>
+        </div>
+        <div style="display:grid;grid-template-columns:34px 2.1fr 1.7fr 120px 110px 90px 100px 56px;font-size:12px;align-items:center">
+          <span style="padding:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#B0A98F">05</span>
+          <span style="padding:8px;font-weight:600;color:#211F1A">Accessories</span>
+          <span style="padding:8px;font-size:11px;color:#8A8471">EBCO / HETTICH</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A8471">—</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5A554A">1 Nos.</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5A554A">28,500</span>
+          <span style="padding:8px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#211F1A">28,500</span>
+          <span style="padding:8px;display:flex;gap:7px;justify-content:flex-end;color:#B0A98F;font-size:11px"><span>✎</span><span>✕</span></span>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:20px;padding:8px 12px;border-top:1px solid #B9B29B;background:#EFEBDD;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A554A">
+          <span>5 ITEMS</span><span style="font-weight:600;color:#211F1A">SECTION ₹2,25,250</span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:16px">
+        <span style="background:#8A6B32;color:#fff;font-size:12px;font-weight:600;padding:9px 18px;border-radius:3px">Save &amp; continue to Client View →</span>
+      </div>
+    </div>
+    <!-- summary rail (light) -->
+    <div style="background:#F4F1E8;border-left:1px solid #C9C2AD;padding:18px 18px 24px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.12em;color:#8A8471;margin-bottom:12px">SUMMARY SHEET</div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #E0DAC7;font-size:12px"><span style="color:#5A554A">Electrical Work</span><span style="font-family:'IBM Plex Mono',monospace">48,600</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #E0DAC7;font-size:12px"><span style="color:#5A554A">Wall Works</span><span style="font-family:'IBM Plex Mono',monospace">36,000</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #E0DAC7;font-size:12px"><span style="color:#5A554A">Living Room</span><span style="font-family:'IBM Plex Mono',monospace">1,84,500</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #E0DAC7;font-size:12px;background:#FDF6E3;margin:0 -6px;padding-left:6px;padding-right:6px"><span style="color:#211F1A;font-weight:600">Kitchen</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600">2,25,250</span></div>
+      <div style="display:flex;justify-content:space-between;padding:9px 0 5px;font-size:12.5px;font-weight:600"><span>Subtotal</span><span style="font-family:'IBM Plex Mono',monospace">₹4,94,350</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:11.5px;color:#5A554A"><span>Discount</span><span style="display:flex;gap:4px"><span style="border:1px solid #C9C2AD;background:#fff;border-radius:2px;padding:2px 8px;font-family:'IBM Plex Mono',monospace;font-size:11px">0</span><span style="border:1px solid #C9C2AD;background:#fff;border-radius:2px;padding:2px 6px;font-size:10.5px">%</span></span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:11.5px;color:#5A554A"><span>GST</span><span style="border:1px solid #C9C2AD;background:#fff;border-radius:2px;padding:2px 8px;font-size:10.5px">18% ▾</span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:11px;color:#8A8471"><span>CGST @ 9%</span><span style="font-family:'IBM Plex Mono',monospace">44,491</span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:11px;color:#8A8471"><span>SGST @ 9%</span><span style="font-family:'IBM Plex Mono',monospace">44,492</span></div>
+      <div style="background:#211F1A;color:#F4F1E8;border-radius:3px;padding:12px 14px;margin-top:12px;display:flex;justify-content:space-between;align-items:baseline"><span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.1em;color:#96907C">GRAND TOTAL</span><span style="font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600">₹5,83,333</span></div>
+      <div style="border:1px solid #C0CBB6;background:#EEF2E8;border-radius:3px;padding:10px 12px;margin-top:12px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;color:#465241;margin-bottom:6px">COST &amp; MARGIN — INTERNAL</div>
+        <div style="display:flex;justify-content:space-between;font-size:11.5px;color:#5A554A;padding:2px 0"><span>Internal cost</span><span style="font-family:'IBM Plex Mono',monospace">3,61,400</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:11.5px;color:#465241;font-weight:600;padding:2px 0"><span>Margin</span><span style="font-family:'IBM Plex Mono',monospace">1,32,950 · 26.9%</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================= 1c STUDIO FOLIO ======================= -->
+<div class="dv-opt" id="1c">
+<div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a><b>Studio Folio</b> — most editorial. Big serif section heading, borderless underline fields, ruled list with hanging numerals, summary as a floating paper card. Calmest to look at; slightly lower density.</div>
+<div class="dv-card" style="width:1180px;background:#F1ECDF">
+  <!-- topbar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 34px 0">
+    <div style="display:flex;align-items:baseline;gap:12px">
+      <span style="font-family:'Instrument Serif',serif;font-size:22px;color:#211F1A">Barebase</span>
+      <span style="font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#9A937D">Bill of Quantities</span>
+    </div>
+    <div style="display:flex;gap:24px;font-size:12.5px">
+      <span style="color:#9A937D">Project</span>
+      <span style="color:#211F1A;font-weight:600;border-bottom:1px solid #8A6B32;padding-bottom:3px">Build BOQ</span>
+      <span style="color:#9A937D">Rate Card</span>
+      <span style="color:#9A937D">Client View</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <span style="font-size:11px;color:#9A937D">Cost &amp; margin&nbsp;·&nbsp;off</span>
+      <span style="font-size:12px;color:#211F1A;border:1px solid #C6BFA8;padding:6px 14px;border-radius:999px">Internal PDF</span>
+      <span style="font-size:12px;color:#F1ECDF;background:#211F1A;padding:6px 14px;border-radius:999px">Client PDF</span>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 320px;gap:28px;padding:26px 34px 34px">
+    <div>
+      <!-- section heading -->
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid #211F1A;padding-bottom:14px;margin-bottom:18px">
+        <div style="display:flex;align-items:baseline;gap:14px">
+          <span style="font-family:'Instrument Serif',serif;font-size:38px;line-height:1;color:#211F1A">Kitchen</span>
+          <span style="font-size:11px;color:#9A937D;border:1px solid #C6BFA8;border-radius:999px;padding:3px 10px">Switch section ▾</span>
+        </div>
+        <div style="text-align:right"><div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#9A937D">Section subtotal</div><div style="font-family:'Instrument Serif',serif;font-size:22px;color:#211F1A">₹2,25,250</div></div>
+      </div>
+      <!-- entry panel -->
+      <div style="background:#FAF7EE;border-radius:8px;padding:18px 22px 16px;box-shadow:0 1px 4px rgba(33,31,26,.07);margin-bottom:22px">
+        <div style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8A6B32;margin-bottom:14px">Add to Kitchen</div>
+        <div style="display:grid;grid-template-columns:1.1fr 1.4fr 1fr 1fr 64px;gap:18px;margin-bottom:16px">
+          <div><div style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#9A937D;margin-bottom:5px">Category</div><div style="border-bottom:1px solid #C6BFA8;padding-bottom:5px;font-size:13px;color:#211F1A;display:flex;justify-content:space-between">Kitchen Furniture <span style="color:#C6BFA8">▾</span></div></div>
+          <div><div style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#9A937D;margin-bottom:5px">Description</div><div style="border-bottom:1px solid #C6BFA8;padding-bottom:5px;font-size:13px;color:#211F1A;display:flex;justify-content:space-between">Kitchen Bottom unit <span style="color:#C6BFA8">▾</span></div></div>
+          <div><div style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#9A937D;margin-bottom:5px">Material</div><div style="border-bottom:1px solid #C6BFA8;padding-bottom:5px;font-size:13px;color:#211F1A;display:flex;justify-content:space-between">BWP Plywood <span style="color:#C6BFA8">▾</span></div></div>
+          <div><div style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#9A937D;margin-bottom:5px">Finish</div><div style="border-bottom:1px solid #C6BFA8;padding-bottom:5px;font-size:13px;color:#211F1A;display:flex;justify-content:space-between">Laminate <span style="color:#C6BFA8">▾</span></div></div>
+          <div><div style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#9A937D;margin-bottom:5px">Unit</div><div style="font-size:12px;color:#5A554A;padding-top:2px">SQFT</div></div>
+        </div>
+        <div style="display:flex;gap:18px;align-items:flex-end">
+          <div style="width:64px"><div style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#9A937D;margin-bottom:5px">L ft</div><div style="border-bottom:1px solid #C6BFA8;padding-bottom:5px;font-size:13px;text-align:right;font-variant-numeric:tabular-nums">12</div></div>
+          <div style="width:64px"><div style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#9A937D;margin-bottom:5px">B ft</div><div style="border-bottom:1px solid #C6BFA8;padding-bottom:5px;font-size:13px;text-align:right;font-variant-numeric:tabular-nums">2.75</div></div>
+          <div style="width:88px"><div style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#9A937D;margin-bottom:5px">Qty</div><div style="padding-bottom:5px;font-size:13px;text-align:right;color:#5A554A;font-variant-numeric:tabular-nums">33 SQFT</div></div>
+          <div style="width:88px"><div style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#9A937D;margin-bottom:5px">Rate ₹</div><div style="border-bottom:1px solid #C6BFA8;padding-bottom:5px;font-size:13px;text-align:right;font-variant-numeric:tabular-nums">1,950</div></div>
+          <div style="flex:1"><div style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#9A937D;margin-bottom:5px">Scope note</div><div style="border-bottom:1px solid #E2DCC8;padding-bottom:5px;font-size:12.5px;color:#9A937D">Base cabinets along both walls…</div></div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <span style="font-size:12px;color:#9A937D">📷</span>
+            <div style="text-align:right"><div style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#9A937D">Amount</div><div style="font-family:'Instrument Serif',serif;font-size:20px;color:#211F1A">₹64,350</div></div>
+            <span style="background:#211F1A;color:#F1ECDF;font-size:12px;padding:9px 20px;border-radius:999px">Add ↵</span>
+          </div>
+        </div>
+      </div>
+      <!-- ruled list -->
+      <div>
+        <div style="display:flex;align-items:baseline;gap:14px;padding:10px 0;border-bottom:1px solid #DCD5C0">
+          <span style="width:26px;font-family:'Instrument Serif',serif;font-style:italic;color:#8A6B32;font-size:14px">1</span>
+          <span style="flex:2"><span style="font-size:13.5px;font-weight:600;color:#211F1A">Kitchen Bottom unit</span><span style="font-size:12px;color:#9A937D">&nbsp;&nbsp;BWP Plywood · Laminate</span></span>
+          <span style="flex:0 0 170px;text-align:right;font-size:11.5px;color:#9A937D;font-variant-numeric:tabular-nums">12 × 2.75 → 33 SQFT @ 1,950</span>
+          <span style="flex:0 0 96px;text-align:right;font-size:13.5px;color:#211F1A;font-variant-numeric:tabular-nums;font-weight:600">₹64,350</span>
+          <span style="width:44px;display:flex;gap:8px;justify-content:flex-end;color:#C6BFA8;font-size:12px"><span>✎</span><span>✕</span></span>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:14px;padding:10px 0;border-bottom:1px solid #DCD5C0">
+          <span style="width:26px;font-family:'Instrument Serif',serif;font-style:italic;color:#8A6B32;font-size:14px">2</span>
+          <span style="flex:2"><span style="font-size:13.5px;font-weight:600;color:#211F1A">Kitchen Overhead unit</span><span style="font-size:12px;color:#9A937D">&nbsp;&nbsp;BWP Plywood · Acrylic · 1 photo</span></span>
+          <span style="flex:0 0 170px;text-align:right;font-size:11.5px;color:#9A937D;font-variant-numeric:tabular-nums">10 × 2 → 20 SQFT @ 2,150</span>
+          <span style="flex:0 0 96px;text-align:right;font-size:13.5px;color:#211F1A;font-variant-numeric:tabular-nums;font-weight:600">₹43,000</span>
+          <span style="width:44px;display:flex;gap:8px;justify-content:flex-end;color:#C6BFA8;font-size:12px"><span>✎</span><span>✕</span></span>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:14px;padding:10px 0;border-bottom:1px solid #DCD5C0">
+          <span style="width:26px;font-family:'Instrument Serif',serif;font-style:italic;color:#8A6B32;font-size:14px">3</span>
+          <span style="flex:2"><span style="font-size:13.5px;font-weight:600;color:#211F1A">Tall unit</span><span style="font-size:12px;color:#9A937D">&nbsp;&nbsp;BWP Plywood · PU</span></span>
+          <span style="flex:0 0 170px;text-align:right;font-size:11.5px;color:#9A937D;font-variant-numeric:tabular-nums">4 × 7 → 28 SQFT @ 2,550</span>
+          <span style="flex:0 0 96px;text-align:right;font-size:13.5px;color:#211F1A;font-variant-numeric:tabular-nums;font-weight:600">₹71,400</span>
+          <span style="width:44px;display:flex;gap:8px;justify-content:flex-end;color:#C6BFA8;font-size:12px"><span>✎</span><span>✕</span></span>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:14px;padding:10px 0;border-bottom:1px solid #DCD5C0">
+          <span style="width:26px;font-family:'Instrument Serif',serif;font-style:italic;color:#8A6B32;font-size:14px">4</span>
+          <span style="flex:2"><span style="font-size:13.5px;font-weight:600;color:#211F1A">Counter Top</span><span style="font-size:12px;color:#9A937D">&nbsp;&nbsp;Supply and installation</span></span>
+          <span style="flex:0 0 170px;text-align:right;font-size:11.5px;color:#9A937D;font-variant-numeric:tabular-nums">24 SQFT @ 750</span>
+          <span style="flex:0 0 96px;text-align:right;font-size:13.5px;color:#211F1A;font-variant-numeric:tabular-nums;font-weight:600">₹18,000</span>
+          <span style="width:44px;display:flex;gap:8px;justify-content:flex-end;color:#C6BFA8;font-size:12px"><span>✎</span><span>✕</span></span>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:14px;padding:10px 0">
+          <span style="width:26px;font-family:'Instrument Serif',serif;font-style:italic;color:#8A6B32;font-size:14px">5</span>
+          <span style="flex:2"><span style="font-size:13.5px;font-weight:600;color:#211F1A">Accessories</span><span style="font-size:12px;color:#9A937D">&nbsp;&nbsp;EBCO / HETTICH</span></span>
+          <span style="flex:0 0 170px;text-align:right;font-size:11.5px;color:#9A937D;font-variant-numeric:tabular-nums">1 Nos. @ 28,500</span>
+          <span style="flex:0 0 96px;text-align:right;font-size:13.5px;color:#211F1A;font-variant-numeric:tabular-nums;font-weight:600">₹28,500</span>
+          <span style="width:44px;display:flex;gap:8px;justify-content:flex-end;color:#C6BFA8;font-size:12px"><span>✎</span><span>✕</span></span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:24px">
+        <span style="background:#8A6B32;color:#fff;font-size:12.5px;padding:10px 22px;border-radius:999px">Save &amp; continue to Client View →</span>
+      </div>
+    </div>
+    <!-- floating summary card -->
+    <div>
+      <div style="background:#FAF7EE;border-radius:10px;box-shadow:0 8px 28px rgba(33,31,26,.12);padding:22px 22px 24px;position:sticky;top:20px">
+        <div style="font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#9A937D;margin-bottom:4px">Heritage Firefly · 3BHK</div>
+        <div style="font-family:'Instrument Serif',serif;font-size:19px;color:#211F1A;margin-bottom:14px">Estimate summary</div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #EAE4D1;font-size:12.5px"><span style="color:#5A554A">Electrical Work</span><span style="font-variant-numeric:tabular-nums">₹48,600</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #EAE4D1;font-size:12.5px"><span style="color:#5A554A">Wall Works</span><span style="font-variant-numeric:tabular-nums">₹36,000</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #EAE4D1;font-size:12.5px"><span style="color:#5A554A">Living Room</span><span style="font-variant-numeric:tabular-nums">₹1,84,500</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #EAE4D1;font-size:12.5px"><span style="color:#211F1A;font-weight:600">Kitchen</span><span style="font-variant-numeric:tabular-nums;font-weight:600">₹2,25,250</span></div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0 4px;font-size:13px"><span>Subtotal</span><span style="font-variant-numeric:tabular-nums">₹4,94,350</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;color:#5A554A"><span>Discount</span><span style="display:flex;gap:5px"><span style="border-bottom:1px solid #C6BFA8;padding:0 8px;font-variant-numeric:tabular-nums">0</span><span style="color:#9A937D">%</span></span></div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px;color:#5A554A"><span>GST · 18% ▾</span><span></span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11.5px;color:#9A937D"><span>CGST @ 9%</span><span style="font-variant-numeric:tabular-nums">₹44,491</span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11.5px;color:#9A937D"><span>SGST @ 9%</span><span style="font-variant-numeric:tabular-nums">₹44,492</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;padding-top:14px;border-top:1px solid #211F1A"><span style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#5A554A">Grand total</span><span style="font-family:'Instrument Serif',serif;font-size:24px;color:#211F1A">₹5,83,333</span></div>
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
+          <span style="border:1px solid #C6BFA8;color:#211F1A;font-size:12px;text-align:center;padding:8px 0;border-radius:999px">Internal PDF</span>
+          <span style="background:#8A6B32;color:#fff;font-size:12px;text-align:center;padding:8px 0;border-radius:999px">Client PDF</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Try next: "build the full working app in <a class="dv-oid" href="#1b">1b</a>" · "<a class="dv-oid" href="#1a">1a</a> but with <a class="dv-oid" href="#1c">1c</a>'s serif section heading" · "show me the Project page / version history in one of these"</p>
+</section>
+
+</x-dc>
+</body>
+</html>
