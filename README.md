@@ -86,6 +86,35 @@ npm run dev
 environment. It's safe to re-run: the org and admin are upserted, and the rate
 card is only written when the org has none, so team edits are never stomped.
 
+### Windows on ARM
+
+Prisma has no Windows ARM64 engine — `windows` is its only Windows binary
+target, and it's x64. On an ARM64-native Node install that engine can't be
+loaded in-process, which surfaces as **"not a valid Win32 application"**.
+Adding `windows-arm64` to `binaryTargets` does not fix this: it isn't a target
+Prisma recognises, and `prisma generate` fails outright with *"Unknown binary
+target"* — which would break `npm install` (it runs in `postinstall`) and the
+Vercel build along with it.
+
+Pick whichever of these fits, in rough order of least friction:
+
+1. **Run the seed somewhere else.** It's a one-off against the production
+   database — any x64 machine, WSL2, or a CI shell will do. Nothing about the
+   deployed app cares which machine seeded it.
+2. **Use WSL2 for local dev.** Prisma ships proper `linux-arm64` engines, so
+   everything runs natively with no emulation.
+3. **Install the x64 build of Node.js** (via nvm-windows, or the x64 installer).
+   The x64 engine then matches the process loading it, and Windows emulates the
+   lot.
+4. **Switch to the binary engine**, which spawns the x64 engine as a separate
+   emulated process instead of loading it into Node. Put this in your local
+   `.env` — which is gitignored, so production keeps the faster library engine:
+
+   ```
+   PRISMA_CLIENT_ENGINE_TYPE=binary
+   PRISMA_CLI_QUERY_ENGINE_TYPE=binary
+   ```
+
 ## Deploying to Vercel
 
 1. Import the repo in Vercel. Framework preset: **Next.js** (auto-detected).
