@@ -61,16 +61,36 @@ automatically raises a **Change Order** recording old → new, and every action 
 either side lands in the audit trail.
 
 **Rate Card & Settings** (`/settings`) — the 253-item default rate card across
-17 categories, editable and shared team-wide (admin only), with letterhead and
-default terms, team member management, and password change.
+17 categories, editable in-place and shared team-wide (admin only), with
+letterhead, default terms and your own password.
+
+**Bulk rate card edit** (admin only) — download the whole rate card as CSV, edit
+it in Excel, upload it back. Rows are matched on **Item ID** when the exported
+column is still there, and on **Category + Description + Material + Finish**
+otherwise. Nothing is written on upload: you get a preview first showing every
+update as old → new per field, every new item, and every row that couldn't be
+read — bad rows are listed with a reason and skipped, they don't block the rest.
+Only after you confirm is anything saved, and each update is re-checked against
+the value the preview was built from, so a colleague's edit made in the meantime
+is left alone and reported rather than silently overwritten.
+
+**Team** (`/team`, admin only) — list everyone with their role, add a member by
+setting their initial password directly, promote/demote between Admin and Team
+Member, reset a password, and deactivate or restore access. Deactivating blocks
+sign-in immediately (including any session already open) while keeping every
+project, version and audit entry that person authored. The last active Admin
+can't be demoted or deactivated, and you can't deactivate yourself.
 
 ### Roles
 
 | Role | Can do |
 |---|---|
-| Admin | Everything, including rate card and organisation settings |
-| Team member | Build and version BOQs, manage client contacts; can't edit the rate card |
+| Admin | Everything, including the rate card, bulk import, organisation settings and the Team page |
+| Team member | Build and version BOQs, manage client contacts; can't edit the rate card and can't reach `/team` |
 | Client contact | Read + approve, scoped to one project. Never sees cost, margin, internal notes or version history. |
+
+Role checks run server-side on every entry point — hiding a nav link is never
+the thing keeping someone out.
 
 ## Running it locally
 
@@ -150,9 +170,18 @@ absolute and built from it.
 - **Concurrent editing is last-write-wins.** Two people building the same BOQ at
   the same time will overwrite each other. Auth means you now know who did it,
   but there's no locking or merge.
-- **No email yet.** Share links are copied and sent by hand; approvals don't
-  notify anyone. `APPROVALS_SPEC.md` §5 wants email on both sides — the audit
-  events are already recorded, so this is a delivery layer on top.
+- **No email yet.** Share links are copied and sent by hand, approvals don't
+  notify anyone, and new team members are given their password directly by an
+  admin rather than invited. `APPROVALS_SPEC.md` §5 wants email on both sides —
+  the audit events are already recorded, so this is a delivery layer on top.
+- **Bulk edit is CSV, not `.xlsx`.** CSV opens and saves natively in Excel and
+  needs no parsing dependency; a real `.xlsx` reader would.
+- **53 rate card rows share a match key with another row.** Category +
+  Description + Material + Finish doesn't tell them apart — there are five
+  distinct "Accessories · Brand - EBCO/HETTICH" products, Loft at two heights,
+  and so on, all from the source sheets. Keep the Item ID column and the
+  importer matches them exactly; drop it and those rows are reported as
+  ambiguous and skipped rather than guessed at.
 - **Compare Quote is not built** (`BOQ_BUILDER_V2_SPEC.md` §5).
 - **Reference photos are stored as data URLs in Postgres**, downscaled to 480px
   JPEG. Fine at this volume; move to blob storage if projects get photo-heavy.

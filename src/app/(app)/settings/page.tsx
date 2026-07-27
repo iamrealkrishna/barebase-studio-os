@@ -1,6 +1,6 @@
 import OrgSettingsForm from "@/components/OrgSettingsForm";
+import OwnPasswordForm from "@/components/OwnPasswordForm";
 import RateCardEditor from "@/components/RateCardEditor";
-import TeamSettings from "@/components/TeamSettings";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
@@ -9,16 +9,11 @@ export const dynamic = "force-dynamic";
 export default async function SettingsPage() {
   const user = await requireUser();
 
-  const [org, rateItems, team] = await Promise.all([
+  const [org, rateItems] = await Promise.all([
     prisma.organization.findUniqueOrThrow({ where: { id: user.orgId } }),
     prisma.rateItem.findMany({
       where: { orgId: user.orgId },
       orderBy: [{ category: "asc" }, { position: "asc" }],
-    }),
-    prisma.user.findMany({
-      where: { orgId: user.orgId },
-      orderBy: { createdAt: "asc" },
-      select: { id: true, name: true, email: true, role: true, createdAt: true },
     }),
   ]);
 
@@ -52,6 +47,7 @@ export default async function SettingsPage() {
 
       <RateCardEditor
         canEdit={isAdmin}
+        orgName={org.name}
         initialEntries={rateItems.map((item) => ({
           id: item.id,
           category: item.category,
@@ -64,7 +60,7 @@ export default async function SettingsPage() {
         }))}
       />
 
-      <TeamSettings canEdit={isAdmin} currentUserId={user.id} members={team} />
+      <OwnPasswordForm />
     </div>
   );
 }

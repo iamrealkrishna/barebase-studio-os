@@ -10,6 +10,8 @@ export default function TopBar({ user }: { user: SessionUser }) {
   const pathname = usePathname() ?? "";
   const onProjects = pathname.startsWith("/projects");
   const onSettings = pathname.startsWith("/settings");
+  const onTeam = pathname.startsWith("/team");
+  const isAdmin = user.role === "ADMIN";
 
   return (
     <div className="topbar">
@@ -25,6 +27,12 @@ export default function TopBar({ user }: { user: SessionUser }) {
         <Link href="/settings" className={`nav-link${onSettings ? " active" : ""}`}>
           Rate Card &amp; Settings
         </Link>
+        {/* Admin-only. The page itself calls requireAdmin, so this is presentation. */}
+        {isAdmin ? (
+          <Link href="/team" className={`nav-link${onTeam ? " active" : ""}`}>
+            Team
+          </Link>
+        ) : null}
       </nav>
 
       <div className="topbar-user">
