@@ -160,9 +160,14 @@ export default function RateCardBulkEdit({
       <p className="hint-text" style={{ marginTop: 0 }}>
         CSV, opens directly in Excel. Keep the header row — and keep the <b>Item ID</b> column, which is what lets
         you reword a Description without the importer losing track of the item. Rows carrying an ID are matched on
-        it and can have any field edited; rows without one fall back to matching on{" "}
-        <b>Category + Description + Material + Finish</b> and are treated as new if nothing matches. Nothing is
-        written until you review and confirm the preview.
+        it and can have any field edited.
+        <br />
+        <b>Adding new rows? Leave Item ID blank</b>{" "}
+        — as many as you like. A blank ID means &ldquo;this is new&rdquo;, and the app generates a permanent one on
+        import, which appears the next time you download. Blank-ID rows are matched on{" "}
+        <b>Category + Description + Material + Finish</b> first, so if one happens to match an item you
+        already have, it&apos;s treated as an edit rather than a duplicate. Nothing is written until you review and
+        confirm the preview.
       </p>
 
       {parseError ? <div className="flash err">{parseError}</div> : null}

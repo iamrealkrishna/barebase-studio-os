@@ -16,6 +16,31 @@ function uniq(values: string[]): string[] {
 }
 
 /**
+ * Units offered in the rate card dropdown.
+ *
+ * The first three drive the entry form's dimension inputs (see `dimsForUnit`);
+ * everything else takes a typed quantity. Anything already stored on an item is
+ * merged in on top of this, and a Custom option lets a new one be typed — so
+ * this list is a convenience, never a restriction.
+ */
+export const STANDARD_UNITS = ["SQFT", "RFT", "CFT", "Nos.", "Set", "Lumpsum", "Day", "Person", "Kg", "Litre"];
+
+/** How a unit behaves, for the dropdown label. */
+export function unitHint(unit: string): string {
+  const u = unit.trim().toUpperCase();
+  if (u === "SQFT") return "length × breadth";
+  if (u === "RFT") return "single length";
+  if (u === "CFT") return "length × breadth × height";
+  return "typed quantity";
+}
+
+/** Standard units plus whatever the rate card already uses, in a stable order. */
+export function unitOptions(entries: { unit: string }[]): string[] {
+  const used = entries.map((e) => e.unit.trim()).filter(Boolean);
+  return uniq([...STANDARD_UNITS, ...used.sort((a, b) => a.localeCompare(b))]);
+}
+
+/**
  * Categories in the order the team expects them, with any category they've
  * since added in Settings appended rather than dropped.
  */

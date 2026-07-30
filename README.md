@@ -90,7 +90,12 @@ either side lands in the audit trail.
 
 **Rate Card & Settings** (`/settings`) — the 253-item default rate card across
 17 categories, editable in-place and shared team-wide (admin only), with
-letterhead, default terms and your own password.
+letterhead, default terms and your own password. **Unit** is a dropdown rather
+than a free-text box, labelled with what each one does to the entry form —
+"SQFT — length × breadth", "Nos. — typed quantity" — so the dimension behaviour
+is visible at the point of choosing. It lists the standard units plus any the
+card already uses, and a **Custom unit…** option swaps the cell for a text box;
+whatever you type is offered on every other row immediately.
 
 **Bulk rate card edit** (admin only) — download the whole rate card as CSV, edit
 it in Excel, upload it back. Every row carries a stable **Item ID**; rows that
