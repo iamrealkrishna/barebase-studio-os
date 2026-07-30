@@ -13,7 +13,15 @@ import { Toast, useToast } from "@/components/Toast";
 import { parseRateCardCsv, toRateCardCsv } from "@/lib/rate-card-csv";
 import type { RateEntry } from "@/lib/rate-card";
 
-const FIELD_LABEL: Record<string, string> = { rate: "Rate", cost: "Cost", unit: "Unit" };
+const FIELD_LABEL: Record<string, string> = {
+  category: "Category",
+  name: "Description",
+  material: "Material",
+  finish: "Finish",
+  unit: "Unit",
+  rate: "Rate",
+  cost: "Cost",
+};
 
 export default function RateCardBulkEdit({
   entries,
@@ -150,9 +158,11 @@ export default function RateCardBulkEdit({
       ) : null}
 
       <p className="hint-text" style={{ marginTop: 0 }}>
-        CSV, opens directly in Excel. Keep the header row. Rows are matched on <b>Item ID</b>{" "}
-        when it&apos;s present, otherwise on <b>Category + Description + Material + Finish</b>. Nothing is written
-        until you review and confirm the preview.
+        CSV, opens directly in Excel. Keep the header row — and keep the <b>Item ID</b> column, which is what lets
+        you reword a Description without the importer losing track of the item. Rows carrying an ID are matched on
+        it and can have any field edited; rows without one fall back to matching on{" "}
+        <b>Category + Description + Material + Finish</b> and are treated as new if nothing matches. Nothing is
+        written until you review and confirm the preview.
       </p>
 
       {parseError ? <div className="flash err">{parseError}</div> : null}

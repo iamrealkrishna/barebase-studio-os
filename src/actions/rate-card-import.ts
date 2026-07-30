@@ -6,7 +6,11 @@ import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { matchKey, parseMoney, type RawCsvRow } from "@/lib/rate-card-csv";
 
-export type FieldDelta = { field: "rate" | "cost" | "unit"; from: string; to: string };
+export type FieldDelta = {
+  field: "category" | "name" | "material" | "finish" | "unit" | "rate" | "cost";
+  from: string;
+  to: string;
+};
 
 export type PlannedUpdate = {
   line: number;
@@ -17,8 +21,8 @@ export type PlannedUpdate = {
   finish: string;
   changes: FieldDelta[];
   /** What the DB held when the preview was built — re-checked before writing. */
-  expected: { rate: number; cost: number; unit: string };
-  next: { rate: number; cost: number; unit: string };
+  expected: { rate: number; cost: number; unit: string; category: string; name: string; material: string; finish: string };
+  next: { rate: number; cost: number; unit: string; category: string; name: string; material: string; finish: string };
 };
 
 export type PlannedInsert = {
@@ -188,10 +192,25 @@ export async function previewRateCardImport(rows: RawCsvRow[]): Promise<ImportPl
     const item = matches[0];
     // A blank Unit cell leaves the stored unit alone rather than wiping it.
     const unit = row.unit.trim() === "" ? item.unit : row.unit;
+
+    // Wording is editable too, but only for rows still carrying their Item ID.
+    // Without an ID the four columns ARE the identity, so a reworded row is a
+    // different item — renaming it there would mean overwriting whatever
+    // unrelated item happened to share the old wording.
+    const matchedById = Boolean(target);
+    const category = matchedById ? row.category : item.category;
+    const name = matchedById ? row.name : item.name;
+    const material = matchedById ? row.material : item.material;
+    const finish = matchedById ? row.finish : item.finish;
+
     const changes: FieldDelta[] = [];
+    if (item.category !== category) changes.push({ field: "category", from: item.category, to: category });
+    if (item.name !== name) changes.push({ field: "name", from: item.name, to: name });
+    if (item.material !== material) changes.push({ field: "material", from: item.material || "—", to: material || "—" });
+    if (item.finish !== finish) changes.push({ field: "finish", from: item.finish || "—", to: finish || "—" });
+    if (item.unit !== unit) changes.push({ field: "unit", from: item.unit || "—", to: unit || "—" });
     if (item.rate !== rate) changes.push({ field: "rate", from: String(item.rate), to: String(rate) });
     if (item.cost !== cost) changes.push({ field: "cost", from: String(item.cost), to: String(cost) });
-    if (item.unit !== unit) changes.push({ field: "unit", from: item.unit || "—", to: unit || "—" });
 
     if (changes.length === 0) {
       unchanged++;
@@ -206,8 +225,16 @@ export async function previewRateCardImport(rows: RawCsvRow[]): Promise<ImportPl
       material: item.material,
       finish: item.finish,
       changes,
-      expected: { rate: item.rate, cost: item.cost, unit: item.unit },
-      next: { rate, cost, unit },
+      expected: {
+        rate: item.rate,
+        cost: item.cost,
+        unit: item.unit,
+        category: item.category,
+        name: item.name,
+        material: item.material,
+        finish: item.finish,
+      },
+      next: { rate, cost, unit, category, name, material, finish },
     });
   }
 
@@ -260,6 +287,10 @@ export async function commitRateCardImport(plan: ImportPlan): Promise<CommitResu
         if (item.rate !== update.expected.rate) drifted.push(`rate is now ${item.rate}, preview showed ${update.expected.rate}`);
         if (item.cost !== update.expected.cost) drifted.push(`cost is now ${item.cost}, preview showed ${update.expected.cost}`);
         if (item.unit !== update.expected.unit) drifted.push(`unit is now "${item.unit}", preview showed "${update.expected.unit}"`);
+        if (item.category !== update.expected.category) drifted.push(`category is now "${item.category}"`);
+        if (item.name !== update.expected.name) drifted.push(`description is now "${item.name}"`);
+        if (item.material !== update.expected.material) drifted.push(`material is now "${item.material}"`);
+        if (item.finish !== update.expected.finish) drifted.push(`finish is now "${item.finish}"`);
 
         if (drifted.length > 0) {
           conflicts.push({ label: name, reason: `Changed by someone else — ${drifted.join("; ")}. Left as-is.` });
@@ -268,7 +299,15 @@ export async function commitRateCardImport(plan: ImportPlan): Promise<CommitResu
 
         await tx.rateItem.update({
           where: { id: item.id },
-          data: { rate: update.next.rate, cost: update.next.cost, unit: update.next.unit },
+          data: {
+            rate: update.next.rate,
+            cost: update.next.cost,
+            unit: update.next.unit,
+            category: update.next.category,
+            name: update.next.name,
+            material: update.next.material,
+            finish: update.next.finish,
+          },
         });
         updated++;
       }

@@ -168,6 +168,10 @@ model LineItem {
   dimH Float?
   /// Manually entered quantity for Nos./Lumpsum items; derived from dims otherwise.
   qty  Float  @default(0)
+  /// Set when the team typed a quantity over a dimension-driven one — an
+  /// oddly-shaped area where they already know the total. While true, `qty` is
+  /// authoritative and L×B is ignored.
+  qtyOverride Boolean @default(false)
 
   /// Long-form, client-facing scope of work (BOQ_BUILDER_V2_SPEC §1).
   scope String @default("")

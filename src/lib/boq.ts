@@ -24,8 +24,13 @@ export type BoqItem = {
   /** Internal cost. Stripped before anything reaches a client. */
   cost: number;
   dims: { l: string; b: string; h: string };
-  /** Only meaningful for unit-less items (Nos./Lumpsum); derived otherwise. */
+  /** The quantity. Derived from dims unless `qtyOverride` is set. */
   qty: number;
+  /**
+   * True when someone typed a quantity over a dimension-driven unit. Dimensions
+   * stop driving the total until they clear it or touch a dimension again.
+   */
+  qtyOverride: boolean;
   /** Long-form, client-facing scope of work. */
   description: string;
   /** Short internal aside. Never client-visible. */
@@ -59,6 +64,14 @@ export type BoqSnapshot = {
   meta: BoqMeta;
   sections: BoqSection[];
 };
+
+/** Category value stored for items typed in by hand rather than picked off the rate card. */
+export const CUSTOM_CATEGORY = "__custom__";
+
+/** Never show the raw sentinel in the UI. */
+export function categoryLabel(category: string): string {
+  return category === CUSTOM_CATEGORY ? "Custom item" : category;
+}
 
 export const FIXED_SECTIONS = ["Electrical Work", "Wall Works", "Other"];
 
@@ -97,7 +110,9 @@ export function dimsForUnit(unit: string | undefined): Dim[] {
   return [];
 }
 
-export function computeQty(item: Pick<BoqItem, "unit" | "dims" | "qty">): number {
+export function computeQty(item: Pick<BoqItem, "unit" | "dims" | "qty"> & { qtyOverride?: boolean }): number {
+  // A typed quantity wins over the dimensions until it's cleared.
+  if (item.qtyOverride) return item.qty || 0;
   const dims = dimsForUnit(item.unit);
   if (dims.length === 0) return item.qty || 0;
   const l = parseFloat(item.dims?.l ?? "") || 0;
@@ -110,6 +125,24 @@ export function computeQty(item: Pick<BoqItem, "unit" | "dims" | "qty">): number
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
+}
+
+/**
+ * Apply a typed quantity.
+ *
+ * Clearing the box hands control back to the dimensions; typing anything else
+ * pins the quantity until a dimension is edited (see `setDimension`).
+ */
+export function setTypedQty<T extends BoqItem>(item: T, raw: string): T {
+  if (raw.trim() === "") {
+    return { ...item, qty: 0, qtyOverride: false };
+  }
+  return { ...item, qty: parseFloat(raw) || 0, qtyOverride: dimsForUnit(item.unit).length > 0 };
+}
+
+/** Editing any dimension resumes L×B driving the quantity. */
+export function setDimension<T extends BoqItem>(item: T, axis: "l" | "b" | "h", value: string): T {
+  return { ...item, dims: { ...item.dims, [axis]: value }, qtyOverride: false };
 }
 
 export function itemAmount(item: BoqItem): number {
@@ -204,6 +237,9 @@ export function fmtDate(value: string | Date | null | undefined): string {
 }
 
 export function dimSummary(item: BoqItem): string {
+  // With a typed quantity the dimensions no longer describe it, so showing
+  // "10 × 12 ft · 150 SQFT" would just be a contradiction on the page.
+  if (item.qtyOverride) return "";
   const dims = dimsForUnit(item.unit);
   if (dims.length === 3 && (item.dims.l || item.dims.b || item.dims.h)) {
     return `${item.dims.l || 0} × ${item.dims.b || 0} × ${item.dims.h || 0} ft`;

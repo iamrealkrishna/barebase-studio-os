@@ -2,11 +2,22 @@
 
 import { useState } from "react";
 
-import { computeQty, dimsForUnit, dimSummary, fieldLabel, fmt, fmtPlain, type BoqItem, type FieldChange } from "@/lib/boq";
+import {
+  categoryLabel,
+  computeQty,
+  CUSTOM_CATEGORY,
+  dimsForUnit,
+  dimSummary,
+  fieldLabel,
+  fmt,
+  fmtPlain,
+  setDimension,
+  setTypedQty,
+  type BoqItem,
+  type FieldChange,
+} from "@/lib/boq";
 import { readAndCompressImage } from "@/lib/image";
 import { descOptions, finishOptions, findRateRow, materialOptions, type RateEntry } from "@/lib/rate-card";
-
-export const CUSTOM_CATEGORY = "__custom__";
 
 /**
  * A row in the compact list, which expands in place when edited.
@@ -76,7 +87,7 @@ export default function InlineItemRow({
             ) : null}
           </div>
           <div className="sub-line">
-            {[row.category, spec, dimText].filter(Boolean).join(" · ")}
+            {[categoryLabel(row.category), spec, dimText].filter(Boolean).join(" · ")}
             {row.note ? ` · note: ${row.note}` : ""}
           </div>
         </div>
@@ -224,7 +235,7 @@ export default function InlineItemRow({
                 step="0.01"
                 className="num"
                 value={row.dims.l}
-                onChange={(e) => patch({ dims: { ...row.dims, l: e.target.value } })}
+                onChange={(e) => onChange(setDimension(row, "l", e.target.value))}
               />
             </div>
           ) : null}
@@ -237,7 +248,7 @@ export default function InlineItemRow({
                 step="0.01"
                 className="num"
                 value={row.dims.b}
-                onChange={(e) => patch({ dims: { ...row.dims, b: e.target.value } })}
+                onChange={(e) => onChange(setDimension(row, "b", e.target.value))}
               />
             </div>
           ) : null}
@@ -250,25 +261,29 @@ export default function InlineItemRow({
                 step="0.01"
                 className="num"
                 value={row.dims.h}
-                onChange={(e) => patch({ dims: { ...row.dims, h: e.target.value } })}
+                onChange={(e) => onChange(setDimension(row, "h", e.target.value))}
               />
             </div>
           ) : null}
 
-          <div className="item-field dim" style={{ flex: "0 0 92px", minWidth: 92 }}>
-            <label>Qty{row.unit ? ` (${row.unit})` : ""}</label>
-            {dims.length > 0 ? (
-              <input type="text" className="num qty-computed" value={qty || 0} readOnly tabIndex={-1} />
-            ) : (
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                className="num"
-                value={row.qty || ""}
-                onChange={(e) => patch({ qty: parseFloat(e.target.value) || 0 })}
-              />
-            )}
+          <div className="item-field dim" style={{ flex: "0 0 104px", minWidth: 104 }}>
+            <label>
+              Qty{row.unit ? ` (${row.unit})` : ""}
+              {dims.length > 0 && row.qtyOverride ? <span className="qty-manual-flag">typed</span> : null}
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              className={`num${dims.length > 0 && !row.qtyOverride ? " qty-computed" : ""}`}
+              value={row.qtyOverride || dims.length === 0 ? (row.qty || "") : qty || 0}
+              title={
+                dims.length > 0 && !row.qtyOverride
+                  ? "Calculated from the dimensions — type here to override it"
+                  : undefined
+              }
+              onChange={(e) => onChange(setTypedQty(row, e.target.value))}
+            />
           </div>
 
           <div className="item-field dim" style={{ flex: "0 0 96px", minWidth: 96 }}>
@@ -307,7 +322,7 @@ export default function InlineItemRow({
               long way from here when you're part-way down a long BOQ. */}
           <div className="inline-edit-actions">
             <button className="cv-mini-btn" onClick={() => setShowDetails(!showDetails)}>
-              {showDetails ? "Hide details" : "Details"}
+              {showDetails ? "Hide scope & notes" : row.description || row.note || row.image ? "Scope & notes •" : "Scope & notes"}
             </button>
             <button className="cv-mini-btn" title="Discard this row's edits" onClick={onDiscard}>
               Cancel
