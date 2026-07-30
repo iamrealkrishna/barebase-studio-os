@@ -20,6 +20,9 @@ export async function signIn(_prev: SignInState, formData: FormData): Promise<Si
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     return { error: "That email and password don't match." };
   }
+  if (!user.active) {
+    return { error: "That account has been deactivated. Ask a Barebase admin to restore it." };
+  }
 
   await createSession(user.id);
   redirect("/projects");

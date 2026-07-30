@@ -49,7 +49,9 @@ export type BoqMeta = {
   discountValue: number;
   gstOn: boolean;
   gstRate: number;
-  cols: { material: boolean; finish: boolean; unit: boolean; rate: boolean };
+  /** Which per-line details a client is allowed to see. `qty` covers the
+   *  quantity and its unit together — a unit with no quantity says nothing. */
+  cols: { material: boolean; finish: boolean; qty: boolean; rate: boolean };
 };
 
 /** Everything needed to render a BOQ, and exactly what a Version stores. */
@@ -351,7 +353,7 @@ export function emptySnapshot(overrides: Partial<BoqMeta> = {}): BoqSnapshot {
       discountValue: 0,
       gstOn: false,
       gstRate: 18,
-      cols: { material: true, finish: true, unit: true, rate: true },
+      cols: { material: true, finish: true, qty: true, rate: true },
       ...overrides,
     },
     sections: FIXED_SECTIONS.map((name) => ({ name, items: [] })),

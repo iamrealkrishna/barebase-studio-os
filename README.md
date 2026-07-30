@@ -28,8 +28,18 @@ the single-file prototype that relied on Claude's artifact storage.
 - **Dimension-driven quantity**: the unit decides which inputs appear — SQFT
   gives Length × Breadth, RFT a single length, CFT Length × Breadth × Height,
   and Nos./Lumpsum/Day/Person a plain typed quantity.
-- One reusable **entry form**: fill it, hit Enter in any field, it collapses
-  into a compact row and resets for the next item.
+- One reusable **entry form** for adding: fill it, hit Enter in any field, it
+  collapses into a compact row and resets for the next item.
+- **Inline editing** of existing rows: the pencil opens that row in place with
+  the full cascade — including **Category**, which re-drives Description,
+  Material, Finish and the rate exactly as it does for a new item. Several rows
+  can be open at once. Each row has its own **✓ Save** and **Cancel** right
+  where you're working; a bar at the bottom of the screen additionally offers
+  **Save all N rows** / **Discard all** when several are open.
+- **Import from project**: pull sections or individual lines out of any other
+  project in the org, all at once or cherry-picked from a checklist. Items are
+  copied, never linked, so editing one afterwards can't touch the original.
+  Matching section names merge; the rest are added as new sections.
 - **Sections**: fixed ones first (Electrical Work, Wall Works, Other), then
   rooms added from a dropdown with a Custom option. A section-jump dropdown
   filters to one section — no tab strip that overflows at 7 rooms.
@@ -37,12 +47,24 @@ the single-file prototype that relied on Claude's artifact storage.
   internal-only note, plus a reference photo (compressed client-side).
 - Discount (₹ or %), GST toggle with 5/12/18/28/custom split into CGST/SGST,
   and a **Cost & margin** toggle that's off by default and never leaves the org.
+- **Client-facing column toggles** — Material, Finish, Qty and Rate per unit.
+  Per-project, and honoured identically by the Client View page, the Client PDF
+  and the Internal PDF: switch Rate off and it's gone from all three. Qty covers
+  the quantity, its unit and the dimension summary together, since a bare "SQFT"
+  with no number beside it tells a client nothing. The same controls appear in
+  the Build BOQ Summary panel and at the top of the Client View page, so you can
+  set them while looking at exactly what the client will get.
 - Autosaves as you work.
 
 **PDF export** — Client PDF (line-item detail, section subtotals, discount/GST,
 terms & exclusions, scope notes, reference-image appendix, signature block; no
 cost or margin anywhere) and Internal PDF (the same plus Cost, Margin and a
 margin summary).
+
+**Projects list** — every project with its client, version count, current value
+and status, plus **Duplicate** to clone one whole project (sections, items,
+terms, discount and GST) as a fresh Draft. The copy shares no rows with the
+original, and carries none of its versions, client links or approvals.
 
 **Versions** (`/projects/[id]`) — status-driven, not manual snapshots. One
 status per BOQ: **Draft → Sent to Client → Approved**. Full history with
@@ -61,16 +83,36 @@ automatically raises a **Change Order** recording old → new, and every action 
 either side lands in the audit trail.
 
 **Rate Card & Settings** (`/settings`) — the 253-item default rate card across
-17 categories, editable and shared team-wide (admin only), with letterhead and
-default terms, team member management, and password change.
+17 categories, editable in-place and shared team-wide (admin only), with
+letterhead, default terms and your own password.
+
+**Bulk rate card edit** (admin only) — download the whole rate card as CSV, edit
+it in Excel, upload it back. Rows are matched on **Item ID** when the exported
+column is still there, and on **Category + Description + Material + Finish**
+otherwise. Nothing is written on upload: you get a preview first showing every
+update as old → new per field, every new item, and every row that couldn't be
+read — bad rows are listed with a reason and skipped, they don't block the rest.
+Only after you confirm is anything saved, and each update is re-checked against
+the value the preview was built from, so a colleague's edit made in the meantime
+is left alone and reported rather than silently overwritten.
+
+**Team** (`/team`, admin only) — list everyone with their role, add a member by
+setting their initial password directly, promote/demote between Admin and Team
+Member, reset a password, and deactivate or restore access. Deactivating blocks
+sign-in immediately (including any session already open) while keeping every
+project, version and audit entry that person authored. The last active Admin
+can't be demoted or deactivated, and you can't deactivate yourself.
 
 ### Roles
 
 | Role | Can do |
 |---|---|
-| Admin | Everything, including rate card and organisation settings |
-| Team member | Build and version BOQs, manage client contacts; can't edit the rate card |
+| Admin | Everything, including the rate card, bulk import, organisation settings and the Team page |
+| Team member | Build and version BOQs, manage client contacts; can't edit the rate card and can't reach `/team` |
 | Client contact | Read + approve, scoped to one project. Never sees cost, margin, internal notes or version history. |
+
+Role checks run server-side on every entry point — hiding a nav link is never
+the thing keeping someone out.
 
 ## Running it locally
 
@@ -147,12 +189,23 @@ absolute and built from it.
 
 ## Known limitations
 
-- **Concurrent editing is last-write-wins.** Two people building the same BOQ at
-  the same time will overwrite each other. Auth means you now know who did it,
-  but there's no locking or merge.
-- **No email yet.** Share links are copied and sent by hand; approvals don't
-  notify anyone. `APPROVALS_SPEC.md` §5 wants email on both sides — the audit
-  events are already recorded, so this is a delivery layer on top.
+- **Concurrent editing is guarded, not merged.** Every autosave carries the
+  `updatedAt` the tab was opened with; if the BOQ has moved on — another tab, a
+  teammate, a restored version — the save is refused and the tab shows a reload
+  banner rather than overwriting. Nobody loses work, but there's no merge: the
+  second person reloads and redoes their edit.
+- **No email yet.** Share links are copied and sent by hand, approvals don't
+  notify anyone, and new team members are given their password directly by an
+  admin rather than invited. `APPROVALS_SPEC.md` §5 wants email on both sides —
+  the audit events are already recorded, so this is a delivery layer on top.
+- **Bulk edit is CSV, not `.xlsx`.** CSV opens and saves natively in Excel and
+  needs no parsing dependency; a real `.xlsx` reader would.
+- **53 rate card rows share a match key with another row.** Category +
+  Description + Material + Finish doesn't tell them apart — there are five
+  distinct "Accessories · Brand - EBCO/HETTICH" products, Loft at two heights,
+  and so on, all from the source sheets. Keep the Item ID column and the
+  importer matches them exactly; drop it and those rows are reported as
+  ambiguous and skipped rather than guessed at.
 - **Compare Quote is not built** (`BOQ_BUILDER_V2_SPEC.md` §5).
 - **Reference photos are stored as data URLs in Postgres**, downscaled to 480px
   JPEG. Fine at this volume; move to blob storage if projects get photo-heavy.

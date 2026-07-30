@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 
 import { resetRateCard, saveRateCard } from "@/actions/rate-card";
+import RateCardBulkEdit from "@/components/RateCardBulkEdit";
 import { Toast, useToast } from "@/components/Toast";
 import { categoryList, type RateEntry } from "@/lib/rate-card";
 
@@ -11,9 +12,11 @@ const ALL = "__all__";
 export default function RateCardEditor({
   canEdit,
   initialEntries,
+  orgName,
 }: {
   canEdit: boolean;
   initialEntries: RateEntry[];
+  orgName: string;
 }) {
   const { message, toast } = useToast();
   const [entries, setEntries] = useState<RateEntry[]>(initialEntries);
@@ -93,6 +96,7 @@ export default function RateCardEditor({
   };
 
   return (
+    <>
     <div className="settings-section">
       <h3>
         Rate card{" "}
@@ -204,5 +208,8 @@ export default function RateCardEditor({
 
       <Toast message={message} />
     </div>
+
+    {canEdit ? <RateCardBulkEdit entries={entries} orgName={orgName} dirty={dirty} /> : null}
+    </>
   );
 }

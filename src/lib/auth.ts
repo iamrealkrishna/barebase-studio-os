@@ -74,20 +74,30 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, orgId: true, email: true, name: true, role: true },
+    select: { id: true, orgId: true, email: true, name: true, role: true, active: true },
   });
+  // Checked on every request, not just at sign-in, so deactivating someone
+  // kills the session they already have rather than waiting for it to expire.
+  if (!user || !user.active) return null;
+
+  const { active: _active, ...session } = user;
+  return session;
+}
+
+/** Use in any page or action that team members must be signed in to reach. */
+export async function requireUser(): Promise<SessionUser> {
+  const user = await getSessionUser();
+  if (!user) redirect("/login");
   return user;
 }
 
 /**
- * Use in any page or action that team members must be signed in to reach.
- *
- * Admin-only capabilities (rate card, org settings, team management) are
- * enforced per-action by checking `user.role`, since those live alongside
- * member-accessible things on the same page rather than behind their own route.
+ * Use for anything only an Admin may reach — the Team page, rate card writes,
+ * org settings. Enforced server-side on every entry point, so hiding a nav link
+ * is never the thing keeping a member out.
  */
-export async function requireUser(): Promise<SessionUser> {
-  const user = await getSessionUser();
-  if (!user) redirect("/login");
+export async function requireAdmin(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (user.role !== "ADMIN") redirect("/projects");
   return user;
 }

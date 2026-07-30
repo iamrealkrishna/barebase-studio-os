@@ -49,6 +49,12 @@ model User {
   passwordHash String
   role         Role   @default(MEMBER)
 
+  /// Deactivated users keep every project, version and audit entry they
+  /// authored — they just can't sign in. Deleting them would tear holes in the
+  /// audit trail, which is the one thing it can't afford.
+  active        Boolean   @default(true)
+  deactivatedAt DateTime?
+
   org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   projects Project[]    @relation("ProjectCreatedBy")
   versions Version[]
@@ -110,7 +116,7 @@ model Project {
   // Which columns the client is allowed to see.
   colMaterial Boolean @default(true)
   colFinish   Boolean @default(true)
-  colUnit     Boolean @default(true)
+  colQty      Boolean @default(true)
   colRate     Boolean @default(true)
 
   /// One clear status per BOQ (BOQ_BUILDER_V2_SPEC §4 — no parallel status badges).

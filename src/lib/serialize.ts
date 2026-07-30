@@ -45,7 +45,7 @@ export function toSnapshot(project: ProjectWithBoq): BoqSnapshot {
       cols: {
         material: project.colMaterial,
         finish: project.colFinish,
-        unit: project.colUnit,
+        qty: project.colQty,
         rate: project.colRate,
       },
     },
@@ -120,7 +120,9 @@ export function parseSnapshot(value: unknown): BoqSnapshot {
       cols: {
         material: cols.material !== false,
         finish: cols.finish !== false,
-        unit: cols.unit !== false,
+        // Snapshots written before this toggle became "qty" stored it as
+        // "unit"; fall back so old versions still render as they were saved.
+        qty: cols.qty !== undefined ? cols.qty !== false : cols.unit !== false,
         rate: cols.rate !== false,
       },
     },

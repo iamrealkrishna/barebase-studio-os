@@ -78,8 +78,57 @@ export async function updateProjectMeta(input: ProjectMetaInput): Promise<{ ok: 
   return { ok: result.count > 0 };
 }
 
+export type ClientColumns = { material: boolean; finish: boolean; qty: boolean; rate: boolean };
+
+/**
+ * Set which per-line details the client sees, from the Client View page.
+ *
+ * Separate from the builder's autosave so it can be changed while looking at
+ * exactly what the client will get. Both write the same per-project fields; a
+ * builder tab left open elsewhere will notice via the updatedAt check and ask
+ * to reload rather than quietly putting the old values back.
+ */
+export async function updateClientColumns(
+  projectId: string,
+  cols: ClientColumns,
+): Promise<{ ok: boolean }> {
+  const user = await requireUser();
+  const result = await prisma.project.updateMany({
+    where: { id: projectId, orgId: user.orgId },
+    data: {
+      colMaterial: cols.material,
+      colFinish: cols.finish,
+      colQty: cols.qty,
+      colRate: cols.rate,
+    },
+  });
+
+  revalidatePath(`/projects/${projectId}/client-view`);
+  return { ok: result.count > 0 };
+}
+
+export type LoadedBoq = { snapshot: import("@/lib/boq").BoqSnapshot; updatedAt: string };
+
+/**
+ * Read the live BOQ straight from the database.
+ *
+ * The builder calls this on mount to check the props it was rendered with are
+ * actually current. Next's client router cache can replay a stale RSC payload
+ * on a back/forward navigation, and without this the builder would sit there
+ * showing an out-of-date BOQ — then autosave it over the real one.
+ */
+export async function loadBoq(projectId: string): Promise<LoadedBoq | null> {
+  const user = await requireUser();
+  const project = await loadProject(projectId, user.orgId);
+  if (!project) return null;
+  const { toSnapshot } = await import("@/lib/serialize");
+  return { snapshot: toSnapshot(project), updatedAt: project.updatedAt.toISOString() };
+}
+
 export type SaveBoqInput = {
   projectId: string;
+  /** project.updatedAt the client last saw. Guards against writing over newer data. */
+  expectedUpdatedAt: string;
   meta: {
     client: string;
     property: string;
@@ -90,9 +139,19 @@ export type SaveBoqInput = {
     discountValue: number;
     gstOn: boolean;
     gstRate: number;
-    cols: { material: boolean; finish: boolean; unit: boolean; rate: boolean };
+    cols: { material: boolean; finish: boolean; qty: boolean; rate: boolean };
   };
   sections: { name: string; items: BoqItem[] }[];
+};
+
+export type SaveBoqResult = {
+  ok: boolean;
+  idMap: Record<string, string>;
+  /** New project.updatedAt to carry into the next save. */
+  updatedAt?: string;
+  /** The client's view was out of date; nothing was written. */
+  conflict?: boolean;
+  error?: string;
 };
 
 /**
@@ -102,15 +161,29 @@ export type SaveBoqInput = {
  * last save) and rewritten to real cuids here. Keeping ids stable across saves
  * is what makes version diffing — and therefore change orders — work at all,
  * so existing rows are updated in place rather than deleted and recreated.
+ *
+ * The write is refused outright unless the caller's `expectedUpdatedAt` still
+ * matches the row. This save deletes any line the payload omits, so a client
+ * holding a stale snapshot — a replayed router-cache payload, a second tab, a
+ * colleague mid-edit — would otherwise wipe work it never saw.
  */
-export async function saveBoq(input: SaveBoqInput): Promise<{ ok: boolean; idMap: Record<string, string> }> {
+export async function saveBoq(input: SaveBoqInput): Promise<SaveBoqResult> {
   const user = await requireUser();
 
   const project = await prisma.project.findFirst({
     where: { id: input.projectId, orgId: user.orgId },
     include: { sections: { include: { items: { select: { id: true } } } } },
   });
-  if (!project) return { ok: false, idMap: {} };
+  if (!project) return { ok: false, idMap: {}, error: "Project not found." };
+
+  if (input.expectedUpdatedAt && project.updatedAt.toISOString() !== input.expectedUpdatedAt) {
+    return {
+      ok: false,
+      idMap: {},
+      conflict: true,
+      error: "This BOQ changed somewhere else since it was opened here.",
+    };
+  }
 
   const knownItemIds = new Set(project.sections.flatMap((s) => s.items.map((i) => i.id)));
   const idMap: Record<string, string> = {};
@@ -130,7 +203,7 @@ export async function saveBoq(input: SaveBoqInput): Promise<{ ok: boolean; idMap
         gstRate: input.meta.gstRate,
         colMaterial: input.meta.cols.material,
         colFinish: input.meta.cols.finish,
-        colUnit: input.meta.cols.unit,
+        colQty: input.meta.cols.qty,
         colRate: input.meta.cols.rate,
       },
     });
@@ -167,17 +240,22 @@ export async function saveBoq(input: SaveBoqInput): Promise<{ ok: boolean; idMap
     });
   });
 
+  const saved = await prisma.project.findUnique({
+    where: { id: project.id },
+    select: { updatedAt: true },
+  });
+
   // Deliberately no revalidatePath: this fires on every autosave, and the
   // builder already holds the authoritative state. Other routes are
   // force-dynamic, so they pick up the new data when navigated to.
-  return { ok: true, idMap };
+  return { ok: true, idMap, updatedAt: saved?.updatedAt.toISOString() };
 }
 
 export async function saveVersion(
   projectId: string,
   status: BoqStatus,
   note?: string,
-): Promise<{ ok: boolean; number?: number; error?: string }> {
+): Promise<{ ok: boolean; number?: number; updatedAt?: string; error?: string }> {
   const user = await requireUser();
   const project = await loadProject(projectId, user.orgId);
   if (!project) return { ok: false, error: "Project not found." };
@@ -193,8 +271,12 @@ export async function saveVersion(
     note: note ?? null,
   });
 
+  // Versioning moves the project's status, which bumps updatedAt — hand the new
+  // value back so the builder's next autosave doesn't read as a conflict.
+  const saved = await prisma.project.findUnique({ where: { id: projectId }, select: { updatedAt: true } });
+
   revalidatePath(`/projects/${projectId}`);
-  return { ok: true, number: version.number };
+  return { ok: true, number: version.number, updatedAt: saved?.updatedAt.toISOString() };
 }
 
 /** Copy an old version's snapshot back over the live BOQ. */
@@ -225,7 +307,7 @@ export async function restoreVersion(formData: FormData): Promise<void> {
         gstRate: snapshot.meta.gstRate,
         colMaterial: snapshot.meta.cols.material,
         colFinish: snapshot.meta.cols.finish,
-        colUnit: snapshot.meta.cols.unit,
+        colQty: snapshot.meta.cols.qty,
         colRate: snapshot.meta.cols.rate,
       },
     });

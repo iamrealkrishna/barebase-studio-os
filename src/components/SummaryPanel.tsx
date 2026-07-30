@@ -1,5 +1,6 @@
 "use client";
 
+import ClientColumnToggles from "@/components/ClientColumnToggles";
 import { computeTotals, fmt, fmtSigned, sectionTotal, type BoqMeta, type BoqSnapshot } from "@/lib/boq";
 
 const GST_PRESETS = ["5", "12", "18", "28"];
@@ -125,6 +126,15 @@ export default function SummaryPanel({
       <div className="sum-row total">
         <span>Grand total</span>
         <span className="amt tabular">{fmt(totals.grand)}</span>
+      </div>
+
+      {/* Governs the Client View page and both PDF exports alike. Lives here,
+          with discount and GST, because it's a per-project decision and this is
+          the panel that autosaves it. */}
+      <div className="panel-block">
+        <h4>Client-facing columns</h4>
+        <ClientColumnToggles cols={snapshot.meta.cols} onChange={(cols) => onMetaChange({ cols })} />
+        <p className="col-toggle-note">Applies to Client View, the Client PDF and the Internal PDF.</p>
       </div>
 
       {showCost ? (

@@ -361,3 +361,83 @@ table.ratecard input.r-num{text-align:right;font-family:var(--font-mono),monospa
   .audit-row{flex-wrap:wrap}
   .audit-row .a-when,.audit-row .a-who{flex:0 0 auto}
 }
+
+/* ---------------------------------------------------------------------------
+   Inline row editing, import-from-project, duplicate, client column toggles.
+--------------------------------------------------------------------------- */
+
+.compact-row.editing-row{align-items:flex-start;background:var(--card-soft);box-shadow:inset 3px 0 0 var(--brass-bright);padding:12px 16px}
+.compact-row.editing-row:hover{background:var(--card-soft)}
+.inline-edit{flex:1;min-width:0;display:flex;flex-direction:column;gap:9px}
+.inline-edit-line{display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end}
+.inline-edit .item-field{gap:3px}
+.inline-edit .item-field label{font-size:9px}
+.inline-edit .item-field select,.inline-edit .item-field input{padding:6px 8px;font-size:12px}
+.inline-edit .amount-block{min-width:92px}
+.inline-edit .amount-block .amt{font-size:15px}
+.inline-edit-actions{display:flex;gap:5px;align-items:center;padding-bottom:2px}
+.inline-edit-details{display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end;border-top:1px dashed var(--line);padding-top:9px}
+.inline-edit-details textarea{width:100%;padding:6px 9px;border:1px solid var(--line);background:#fff;border-radius:4px;font-size:12px;color:var(--ink);resize:vertical}
+.inline-edit-details textarea:focus{outline:none;border-color:var(--brass-bright)}
+
+.edit-bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;
+  display:flex;align-items:center;gap:10px;justify-content:flex-end;
+  background:var(--ink);color:var(--dark-paper);
+  padding:11px 22px;border-top:2px solid var(--brass-bright);
+  box-shadow:0 -4px 16px rgba(23,21,17,.22)
+}
+/* Keep the last rows clear of the fixed bar. */
+.layout.has-edit-bar .main{padding-bottom:96px}
+.layout.has-edit-bar .summary{padding-bottom:96px}
+.edit-bar-count{margin-right:auto;font-size:12.5px;color:var(--brass-bright);font-weight:600}
+
+.import-section{border:1px solid var(--line-soft);border-radius:6px;margin-bottom:10px;overflow:hidden}
+.import-section-head{display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--chip);border-bottom:1px solid var(--line-soft);cursor:pointer;flex-wrap:wrap}
+.import-section-head .sec-name{font-family:var(--font-serif),serif;font-size:15px}
+.import-merge-note{margin-left:auto;font-size:10.5px;color:var(--muted);font-style:italic}
+.import-item{display:flex;align-items:center;gap:9px;padding:7px 12px;border-bottom:1px solid var(--line-soft);font-size:12.5px;cursor:pointer}
+.import-item:last-child{border-bottom:none}
+.import-item:hover{background:var(--card-soft)}
+.import-item-desc{flex:1;min-width:0;display:flex;flex-direction:column}
+.import-item-desc .sub-line{font-size:11px;color:var(--muted)}
+.import-item-qty{flex:0 0 90px;text-align:right;font-size:11.5px;color:var(--ink-soft)}
+.import-item-amt{flex:0 0 90px;text-align:right;font-weight:600}
+
+.col-toggle-row{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--dark-text);padding:3px 0;cursor:pointer}
+.col-toggle-note{font-size:10.5px;color:var(--dark-muted);margin:6px 0 0;line-height:1.45}
+
+.proj-row-main{display:flex;gap:14px;align-items:center;flex:1;min-width:0;text-decoration:none}
+.proj-row-main:hover{text-decoration:none}
+.pc-actions{flex:0 0 88px;text-align:right}
+
+@media (max-width:700px){
+  .inline-edit-line .item-field{min-width:90px}
+  .pc-actions{flex:0 0 auto}
+  .proj-row-main{flex-wrap:wrap;gap:6px}
+}
+
+.conflict-banner{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  background:#F6E3DE;border-bottom:2px solid var(--danger);color:#6E2A1C;
+  padding:11px 22px;font-size:12.5px;line-height:1.5
+}
+.conflict-banner span{flex:1;min-width:240px}
+
+/* Same treatment as .cost-summary-block, but it isn't about cost — kept
+   separate so "cost block visible" never accidentally means this one. */
+.panel-block{margin-top:14px;padding-top:12px;border-top:1px solid var(--dark-line)}
+.panel-block h4{font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--dark-muted);margin:0 0 7px}
+
+/* Internal controls on the Client View page — visually distinct from the
+   client-facing card below so it's obvious the client never sees this. */
+.cv-controls{background:var(--card-soft);border:1px dashed var(--line);border-radius:6px;padding:14px 18px;margin-bottom:18px}
+.cv-controls-head{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--brass);font-weight:600;margin-bottom:9px;display:flex;gap:10px;align-items:center}
+.cv-controls-saving{font-size:10px;letter-spacing:.04em;text-transform:none;color:var(--muted);font-weight:400}
+.col-toggles-light{display:flex;gap:20px;flex-wrap:wrap}
+.col-toggles-light .col-toggle-row{color:var(--ink);font-size:12.5px}
+.cv-controls .col-toggle-note{color:var(--muted);margin-top:8px}
+
+/* The row's own save — the control you reach for while looking at the row,
+   rather than the bar pinned to the bottom of the screen. */
+.inline-edit-actions .row-save{padding:5px 14px;font-size:12px;white-space:nowrap}
