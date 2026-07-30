@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import { resetRateCard, saveRateCard } from "@/actions/rate-card";
 import RateCardBulkEdit from "@/components/RateCardBulkEdit";
 import { Toast, useToast } from "@/components/Toast";
-import { categoryList, type RateEntry } from "@/lib/rate-card";
+import { categoryList, unitHint, unitOptions, type RateEntry } from "@/lib/rate-card";
 
 const ALL = "__all__";
+const CUSTOM_UNIT = "__custom_unit__";
 
 export default function RateCardEditor({
   canEdit,
@@ -23,11 +24,31 @@ export default function RateCardEditor({
   const [dirty, setDirty] = useState(false);
   const [pending, startTransition] = useTransition();
 
+  /**
+   * Adopt fresh server data — after a CSV import, say, which calls
+   * router.refresh(). Without this the table kept its first render forever:
+   * imported rows never appeared, and worse, "Save rate card" from that stale
+   * list would have deleted them, since a save replaces the whole card with
+   * whatever the client is holding. Unsaved edits always win over the refresh.
+   */
+  const lastServerEntries = useRef(initialEntries);
+  useEffect(() => {
+    if (initialEntries === lastServerEntries.current) return;
+    lastServerEntries.current = initialEntries;
+    if (!dirty) setEntries(initialEntries);
+  }, [initialEntries, dirty]);
+
   const categories = useMemo(() => categoryList(entries), [entries]);
   // Default to the first category rather than all 250-odd rows — the whole card
   // at once is a lot of live inputs for a screen the team edits daily.
   const [category, setCategory] = useState<string>(categories[0] ?? ALL);
   const [search, setSearch] = useState("");
+  /** Row currently typing a unit that isn't in the list yet. */
+  const [customUnitRow, setCustomUnitRow] = useState<number | null>(null);
+
+  // Recomputed from the live entries, so a unit typed on one row is offered on
+  // every other row straight away.
+  const units = useMemo(() => unitOptions(entries), [entries]);
 
   const visible = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -168,7 +189,44 @@ export default function RateCardEditor({
                   <input value={entry.finish} disabled={!canEdit} onChange={(e) => patch(index, { finish: e.target.value })} />
                 </td>
                 <td>
-                  <input value={entry.unit} disabled={!canEdit} onChange={(e) => patch(index, { unit: e.target.value })} />
+                  {customUnitRow === index ? (
+                    <input
+                      autoFocus
+                      value={entry.unit}
+                      placeholder="e.g. Sqm"
+                      disabled={!canEdit}
+                      onChange={(e) => patch(index, { unit: e.target.value })}
+                      onBlur={() => setCustomUnitRow(null)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === "Escape") {
+                          e.preventDefault();
+                          setCustomUnitRow(null);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <select
+                      value={entry.unit}
+                      disabled={!canEdit}
+                      onChange={(e) => {
+                        if (e.target.value === CUSTOM_UNIT) {
+                          // Clear it so the field opens empty and ready to type.
+                          patch(index, { unit: "" });
+                          setCustomUnitRow(index);
+                          return;
+                        }
+                        patch(index, { unit: e.target.value });
+                      }}
+                    >
+                      {entry.unit.trim() === "" ? <option value="">—</option> : null}
+                      {units.map((u) => (
+                        <option key={u} value={u}>
+                          {u} — {unitHint(u)}
+                        </option>
+                      ))}
+                      <option value={CUSTOM_UNIT}>Custom unit…</option>
+                    </select>
+                  )}
                 </td>
                 <td>
                   <input
@@ -203,7 +261,8 @@ export default function RateCardEditor({
 
       <p className="hint-text">
         Unit drives the entry form: SQFT asks for length × breadth, RFT for a single length, CFT for length ×
-        breadth × height. Anything else (Nos., Lumpsum, Day, Person) takes a typed quantity.
+        breadth × height. Everything else takes a typed quantity. Pick <b>Custom unit…</b>{" "}
+        to add one that isn&apos;t listed — it then shows up in the dropdown on every other row.
       </p>
 
       <Toast message={message} />

@@ -16,7 +16,11 @@ export default async function ProjectsPage() {
     orderBy: { updatedAt: "desc" },
     include: {
       sections: {
-        select: { items: { select: { rate: true, qty: true, unit: true, dimL: true, dimB: true, dimH: true } } },
+        select: {
+          items: {
+            select: { rate: true, qty: true, qtyOverride: true, unit: true, dimL: true, dimB: true, dimH: true },
+          },
+        },
       },
       _count: { select: { versions: true } },
       versions: { where: { status: "APPROVED" }, orderBy: { number: "desc" }, take: 1 },
@@ -30,6 +34,7 @@ export default async function ProjectsPage() {
         const qty = computeQty({
           unit: item.unit,
           qty: item.qty,
+          qtyOverride: item.qtyOverride,
           dims: {
             l: item.dimL === null ? "" : String(item.dimL),
             b: item.dimB === null ? "" : String(item.dimB),

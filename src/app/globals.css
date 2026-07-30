@@ -441,3 +441,6 @@ table.ratecard input.r-num{text-align:right;font-family:var(--font-mono),monospa
 /* The row's own save — the control you reach for while looking at the row,
    rather than the bar pinned to the bottom of the screen. */
 .inline-edit-actions .row-save{padding:5px 14px;font-size:12px;white-space:nowrap}
+
+/* Marks a quantity that was typed over a dimension-driven unit. */
+.qty-manual-flag{margin-left:5px;font-size:8px;letter-spacing:.06em;text-transform:uppercase;color:var(--brass);border:1px solid #D9C69A;border-radius:999px;padding:0 5px;vertical-align:1px}

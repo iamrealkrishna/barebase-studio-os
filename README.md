@@ -27,13 +27,19 @@ the single-file prototype that relied on Claude's artifact storage.
   fallback at every level for anything the rate card doesn't cover.
 - **Dimension-driven quantity**: the unit decides which inputs appear — SQFT
   gives Length × Breadth, RFT a single length, CFT Length × Breadth × Height,
-  and Nos./Lumpsum/Day/Person a plain typed quantity.
+  and Nos./Lumpsum/Day/Person a plain typed quantity. The quantity can always
+  be **typed over** the calculated one for an oddly-shaped area where the total
+  is already known; it's flagged "typed", and the dimensions stop driving it
+  until the box is cleared or a dimension is edited again.
 - One reusable **entry form** for adding: fill it, hit Enter in any field, it
   collapses into a compact row and resets for the next item.
 - **Inline editing** of existing rows: the pencil opens that row in place with
   the full cascade — including **Category**, which re-drives Description,
   Material, Finish and the rate exactly as it does for a new item. Several rows
-  can be open at once. Each row has its own **✓ Save** and **Cancel** right
+  can be open at once, with a **Scope & notes** expander for the long-form
+  client-facing scope, the internal note and the reference photo — the same
+  scope text that feeds the Client PDF's Scope Notes appendix. Each row has its
+  own **✓ Save** and **Cancel** right
   where you're working; a bar at the bottom of the screen additionally offers
   **Save all N rows** / **Discard all** when several are open.
 - **Import from project**: pull sections or individual lines out of any other
@@ -84,12 +90,20 @@ either side lands in the audit trail.
 
 **Rate Card & Settings** (`/settings`) — the 253-item default rate card across
 17 categories, editable in-place and shared team-wide (admin only), with
-letterhead, default terms and your own password.
+letterhead, default terms and your own password. **Unit** is a dropdown rather
+than a free-text box, labelled with what each one does to the entry form —
+"SQFT — length × breadth", "Nos. — typed quantity" — so the dimension behaviour
+is visible at the point of choosing. It lists the standard units plus any the
+card already uses, and a **Custom unit…** option swaps the cell for a text box;
+whatever you type is offered on every other row immediately.
 
 **Bulk rate card edit** (admin only) — download the whole rate card as CSV, edit
-it in Excel, upload it back. Rows are matched on **Item ID** when the exported
-column is still there, and on **Category + Description + Material + Finish**
-otherwise. Nothing is written on upload: you get a preview first showing every
+it in Excel, upload it back. Every row carries a stable **Item ID**; rows that
+still have it are matched on it and can have *any* field edited, so rewording a
+Description in Excel updates that item rather than losing track of it or adding
+a duplicate. Rows without an ID fall back to **Category + Description +
+Material + Finish** and are added as new when nothing matches — for those the
+four columns are the identity, so their wording is left alone. Nothing is written on upload: you get a preview first showing every
 update as old → new per field, every new item, and every row that couldn't be
 read — bad rows are listed with a reason and skipped, they don't block the rest.
 Only after you confirm is anything saved, and each update is re-checked against

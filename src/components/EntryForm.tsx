@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 
-import { computeQty, dimsForUnit, fmt, type BoqItem } from "@/lib/boq";
+import { computeQty, dimsForUnit, fmt, setDimension, setTypedQty, type BoqItem } from "@/lib/boq";
 import { readAndCompressImage } from "@/lib/image";
 import {
   descOptions,
@@ -33,6 +33,7 @@ export function freshDraft(entries: RateEntry[], categories: string[]): BoqItem 
     unit: first?.unit ?? "",
     dims: { l: "", b: "", h: "" },
     qty: 0,
+    qtyOverride: false,
     description: "",
     note: "",
     image: null,
@@ -279,7 +280,7 @@ export default function EntryForm({
               className="num"
               value={draft.dims.l}
               placeholder="0"
-              onChange={(e) => patch({ dims: { ...draft.dims, l: e.target.value } })}
+              onChange={(e) => onChange(setDimension(draft, "l", e.target.value))}
               onKeyDown={onKeyDown}
             />
           </div>
@@ -294,7 +295,7 @@ export default function EntryForm({
               className="num"
               value={draft.dims.b}
               placeholder="0"
-              onChange={(e) => patch({ dims: { ...draft.dims, b: e.target.value } })}
+              onChange={(e) => onChange(setDimension(draft, "b", e.target.value))}
               onKeyDown={onKeyDown}
             />
           </div>
@@ -309,28 +310,32 @@ export default function EntryForm({
               className="num"
               value={draft.dims.h}
               placeholder="0"
-              onChange={(e) => patch({ dims: { ...draft.dims, h: e.target.value } })}
+              onChange={(e) => onChange(setDimension(draft, "h", e.target.value))}
               onKeyDown={onKeyDown}
             />
           </div>
         ) : null}
 
-        <div className="item-field dim" style={{ flex: "0 0 92px", minWidth: 92 }}>
-          <label>Qty{draft.unit ? ` (${draft.unit})` : ""}</label>
-          {dims.length > 0 ? (
-            <input type="text" className="num qty-computed" value={qty || 0} readOnly tabIndex={-1} />
-          ) : (
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              className="num"
-              value={draft.qty || ""}
-              placeholder="0"
-              onChange={(e) => patch({ qty: parseFloat(e.target.value) || 0 })}
-              onKeyDown={onKeyDown}
-            />
-          )}
+        <div className="item-field dim" style={{ flex: "0 0 104px", minWidth: 104 }}>
+          <label>
+            Qty{draft.unit ? ` (${draft.unit})` : ""}
+            {dims.length > 0 && draft.qtyOverride ? <span className="qty-manual-flag">typed</span> : null}
+          </label>
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            className={`num${dims.length > 0 && !draft.qtyOverride ? " qty-computed" : ""}`}
+            value={draft.qtyOverride || dims.length === 0 ? draft.qty || "" : qty || 0}
+            placeholder="0"
+            title={
+              dims.length > 0 && !draft.qtyOverride
+                ? "Calculated from the dimensions — type here to override it"
+                : undefined
+            }
+            onChange={(e) => onChange(setTypedQty(draft, e.target.value))}
+            onKeyDown={onKeyDown}
+          />
         </div>
 
         <div className="item-field dim" style={{ flex: "0 0 96px", minWidth: 96 }}>
