@@ -116,7 +116,7 @@ model Project {
   // Which columns the client is allowed to see.
   colMaterial Boolean @default(true)
   colFinish   Boolean @default(true)
-  colUnit     Boolean @default(true)
+  colQty      Boolean @default(true)
   colRate     Boolean @default(true)
 
   /// One clear status per BOQ (BOQ_BUILDER_V2_SPEC §4 — no parallel status badges).

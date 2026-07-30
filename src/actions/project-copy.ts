@@ -106,7 +106,7 @@ export async function duplicateProject(formData: FormData): Promise<void> {
         gstRate: source.gstRate,
         colMaterial: source.colMaterial,
         colFinish: source.colFinish,
-        colUnit: source.colUnit,
+        colQty: source.colQty,
         colRate: source.colRate,
         createdById: user.id,
         // A duplicate starts as a fresh Draft with no versions, no client

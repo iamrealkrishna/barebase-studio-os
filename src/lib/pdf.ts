@@ -140,14 +140,15 @@ export async function buildBoqPdf(
     doc.text(`${sectionNo}. ${section.name.toUpperCase()}`, 40, y);
     y += 6;
 
+    // Unit rides with Qty: "SQFT" on its own, with no quantity beside it, tells
+    // a client nothing, so one toggle governs the pair.
     const head = [
       [
         "Sl",
         "Description",
         ...(cols.material ? ["Material"] : []),
         ...(cols.finish ? ["Finish"] : []),
-        ...(cols.unit ? ["Unit"] : []),
-        "Qty",
+        ...(cols.qty ? ["Unit", "Qty"] : []),
         ...(cols.rate ? ["Rate"] : []),
         ...(internal ? ["Cost"] : []),
         "Amount",
@@ -171,8 +172,7 @@ export async function buildBoqPdf(
         item.desc,
         ...(cols.material ? [item.material] : []),
         ...(cols.finish ? [item.finish] : []),
-        ...(cols.unit ? [item.unit] : []),
-        String(qty || 0),
+        ...(cols.qty ? [item.unit, String(qty || 0)] : []),
         ...(cols.rate ? [fmtPlain(item.rate || 0)] : []),
         ...(internal ? [fmtPlain(item.cost || 0)] : []),
         fmtPlain(amount),
@@ -186,8 +186,10 @@ export async function buildBoqPdf(
     const numeric: number[] = [];
     if (cols.material) index++;
     if (cols.finish) index++;
-    if (cols.unit) index++;
-    numeric.push(index++);
+    if (cols.qty) {
+      index++; // Unit — left-aligned, like the other text columns.
+      numeric.push(index++); // Qty
+    }
     if (cols.rate) numeric.push(index++);
     if (internal) numeric.push(index++);
     numeric.push(index++);

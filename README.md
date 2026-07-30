@@ -46,10 +46,13 @@ the single-file prototype that relied on Claude's artifact storage.
   internal-only note, plus a reference photo (compressed client-side).
 - Discount (₹ or %), GST toggle with 5/12/18/28/custom split into CGST/SGST,
   and a **Cost & margin** toggle that's off by default and never leaves the org.
-- **Client-facing column toggles** (Material / Finish / Unit / Rate) in the
-  Summary panel. Per-project, and honoured identically by the Client View page,
-  the Client PDF and the Internal PDF — switch Rate off and it's gone from all
-  three.
+- **Client-facing column toggles** — Material, Finish, Qty and Rate per unit.
+  Per-project, and honoured identically by the Client View page, the Client PDF
+  and the Internal PDF: switch Rate off and it's gone from all three. Qty covers
+  the quantity, its unit and the dimension summary together, since a bare "SQFT"
+  with no number beside it tells a client nothing. The same controls appear in
+  the Build BOQ Summary panel and at the top of the Client View page, so you can
+  set them while looking at exactly what the client will get.
 - Autosaves as you work.
 
 **PDF export** — Client PDF (line-item detail, section subtotals, discount/GST,

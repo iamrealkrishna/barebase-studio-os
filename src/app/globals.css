@@ -428,3 +428,12 @@ table.ratecard input.r-num{text-align:right;font-family:var(--font-mono),monospa
    separate so "cost block visible" never accidentally means this one. */
 .panel-block{margin-top:14px;padding-top:12px;border-top:1px solid var(--dark-line)}
 .panel-block h4{font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--dark-muted);margin:0 0 7px}
+
+/* Internal controls on the Client View page — visually distinct from the
+   client-facing card below so it's obvious the client never sees this. */
+.cv-controls{background:var(--card-soft);border:1px dashed var(--line);border-radius:6px;padding:14px 18px;margin-bottom:18px}
+.cv-controls-head{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--brass);font-weight:600;margin-bottom:9px;display:flex;gap:10px;align-items:center}
+.cv-controls-saving{font-size:10px;letter-spacing:.04em;text-transform:none;color:var(--muted);font-weight:400}
+.col-toggles-light{display:flex;gap:20px;flex-wrap:wrap}
+.col-toggles-light .col-toggle-row{color:var(--ink);font-size:12.5px}
+.cv-controls .col-toggle-note{color:var(--muted);margin-top:8px}

@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useTransition } from "react";
 
+import { updateClientColumns } from "@/actions/projects";
 import ClientBoqView from "@/components/ClientBoqView";
+import ClientColumnToggles from "@/components/ClientColumnToggles";
 import { PdfButton } from "@/components/PdfButtons";
 import ProjectBar from "@/components/ProjectBar";
 import { Toast, useToast } from "@/components/Toast";
@@ -27,7 +30,21 @@ export default function ClientViewPreview({
   shareLinks: { id: string; name: string; email: string; url: string }[];
 }) {
   const { message, toast } = useToast();
-  const diff = diffSnapshots(snapshot, approvedSnapshot, CLIENT_VISIBLE_FIELDS);
+  const [pendingCols, startColsTransition] = useTransition();
+  // Held locally so the preview below re-renders the moment a box is ticked,
+  // rather than waiting on the round trip.
+  const [cols, setCols] = useState(snapshot.meta.cols);
+
+  const applyCols = (next: typeof cols) => {
+    setCols(next);
+    startColsTransition(async () => {
+      const result = await updateClientColumns(projectId, next);
+      toast(result.ok ? "Client columns updated" : "Could not save that — try again");
+    });
+  };
+
+  const shown: BoqSnapshot = { ...snapshot, meta: { ...snapshot.meta, cols } };
+  const diff = diffSnapshots(shown, approvedSnapshot, CLIENT_VISIBLE_FIELDS);
 
   const copy = async (url: string) => {
     try {
@@ -46,7 +63,7 @@ export default function ClientViewPreview({
         active="clientview"
         right={
           <PdfButton
-            snapshot={snapshot}
+            snapshot={shown}
             letterhead={letterhead}
             mode="client"
             label="Client PDF"
@@ -57,7 +74,7 @@ export default function ClientViewPreview({
       />
 
       <ClientBoqView
-        snapshot={snapshot}
+        snapshot={shown}
         letterhead={letterhead}
         diff={approvedSnapshot ? diff : null}
         banner={
@@ -71,6 +88,18 @@ export default function ClientViewPreview({
             <Link href={`/projects/${projectId}`} className="btn small" style={{ whiteSpace: "nowrap" }}>
               Manage client access →
             </Link>
+          </div>
+        }
+        beforeContent={
+          <div className="cv-controls">
+            <div className="cv-controls-head">
+              What the client can see
+              {pendingCols ? <span className="cv-controls-saving">saving…</span> : null}
+            </div>
+            <ClientColumnToggles cols={cols} onChange={applyCols} variant="light" disabled={pendingCols} />
+            <p className="col-toggle-note">
+              Same setting as the Summary panel on Build BOQ — applies here, to the Client PDF and to the Internal PDF.
+            </p>
           </div>
         }
         footer={

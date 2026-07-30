@@ -24,6 +24,7 @@ export default function ClientBoqView({
   letterhead,
   diff,
   banner,
+  beforeContent,
   renderItemActions,
   footer,
 }: {
@@ -31,6 +32,8 @@ export default function ClientBoqView({
   letterhead: Letterhead;
   diff: SnapshotDiff | null;
   banner?: React.ReactNode;
+  /** Internal-only controls shown above the client-facing content. */
+  beforeContent?: React.ReactNode;
   renderItemActions?: (item: BoqItem, sectionName: string) => React.ReactNode;
   footer?: React.ReactNode;
 }) {
@@ -44,6 +47,7 @@ export default function ClientBoqView({
   return (
     <div className="clientview-wrap">
       {banner}
+      {beforeContent}
 
       <div className="cv-header">
         <div className="co">{letterhead.name.toUpperCase()}</div>
@@ -105,8 +109,10 @@ export default function ClientBoqView({
                   if (cols.material && item.material) spec.push(item.material);
                   if (cols.finish && item.finish) spec.push(item.finish);
                   const dimText = dimSummary(item);
-                  if (dimText) spec.push(dimText);
-                  spec.push(cols.unit ? `${qty} ${item.unit}`.trim() : String(qty));
+                  // Dimensions are the quantity written out longhand, so they
+                  // follow the same toggle.
+                  if (cols.qty && dimText) spec.push(dimText);
+                  if (cols.qty) spec.push(`${qty} ${item.unit}`.trim());
                   if (cols.rate) spec.push(`Rate ${fmt(item.rate || 0)}`);
 
                   return (

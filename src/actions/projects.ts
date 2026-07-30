@@ -78,6 +78,35 @@ export async function updateProjectMeta(input: ProjectMetaInput): Promise<{ ok: 
   return { ok: result.count > 0 };
 }
 
+export type ClientColumns = { material: boolean; finish: boolean; qty: boolean; rate: boolean };
+
+/**
+ * Set which per-line details the client sees, from the Client View page.
+ *
+ * Separate from the builder's autosave so it can be changed while looking at
+ * exactly what the client will get. Both write the same per-project fields; a
+ * builder tab left open elsewhere will notice via the updatedAt check and ask
+ * to reload rather than quietly putting the old values back.
+ */
+export async function updateClientColumns(
+  projectId: string,
+  cols: ClientColumns,
+): Promise<{ ok: boolean }> {
+  const user = await requireUser();
+  const result = await prisma.project.updateMany({
+    where: { id: projectId, orgId: user.orgId },
+    data: {
+      colMaterial: cols.material,
+      colFinish: cols.finish,
+      colQty: cols.qty,
+      colRate: cols.rate,
+    },
+  });
+
+  revalidatePath(`/projects/${projectId}/client-view`);
+  return { ok: result.count > 0 };
+}
+
 export type LoadedBoq = { snapshot: import("@/lib/boq").BoqSnapshot; updatedAt: string };
 
 /**
@@ -110,7 +139,7 @@ export type SaveBoqInput = {
     discountValue: number;
     gstOn: boolean;
     gstRate: number;
-    cols: { material: boolean; finish: boolean; unit: boolean; rate: boolean };
+    cols: { material: boolean; finish: boolean; qty: boolean; rate: boolean };
   };
   sections: { name: string; items: BoqItem[] }[];
 };
@@ -174,7 +203,7 @@ export async function saveBoq(input: SaveBoqInput): Promise<SaveBoqResult> {
         gstRate: input.meta.gstRate,
         colMaterial: input.meta.cols.material,
         colFinish: input.meta.cols.finish,
-        colUnit: input.meta.cols.unit,
+        colQty: input.meta.cols.qty,
         colRate: input.meta.cols.rate,
       },
     });
@@ -278,7 +307,7 @@ export async function restoreVersion(formData: FormData): Promise<void> {
         gstRate: snapshot.meta.gstRate,
         colMaterial: snapshot.meta.cols.material,
         colFinish: snapshot.meta.cols.finish,
-        colUnit: snapshot.meta.cols.unit,
+        colQty: snapshot.meta.cols.qty,
         colRate: snapshot.meta.cols.rate,
       },
     });

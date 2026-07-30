@@ -1,5 +1,6 @@
 "use client";
 
+import ClientColumnToggles from "@/components/ClientColumnToggles";
 import { computeTotals, fmt, fmtSigned, sectionTotal, type BoqMeta, type BoqSnapshot } from "@/lib/boq";
 
 const GST_PRESETS = ["5", "12", "18", "28"];
@@ -132,23 +133,7 @@ export default function SummaryPanel({
           the panel that autosaves it. */}
       <div className="panel-block">
         <h4>Client-facing columns</h4>
-        {(
-          [
-            ["material", "Material"],
-            ["finish", "Finish"],
-            ["unit", "Unit"],
-            ["rate", "Rate per unit"],
-          ] as const
-        ).map(([key, label]) => (
-          <label className="col-toggle-row" key={key}>
-            <input
-              type="checkbox"
-              checked={snapshot.meta.cols[key]}
-              onChange={(e) => onMetaChange({ cols: { ...snapshot.meta.cols, [key]: e.target.checked } })}
-            />
-            {label}
-          </label>
-        ))}
+        <ClientColumnToggles cols={snapshot.meta.cols} onChange={(cols) => onMetaChange({ cols })} />
         <p className="col-toggle-note">Applies to Client View, the Client PDF and the Internal PDF.</p>
       </div>
 
