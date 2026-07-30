@@ -28,8 +28,17 @@ the single-file prototype that relied on Claude's artifact storage.
 - **Dimension-driven quantity**: the unit decides which inputs appear — SQFT
   gives Length × Breadth, RFT a single length, CFT Length × Breadth × Height,
   and Nos./Lumpsum/Day/Person a plain typed quantity.
-- One reusable **entry form**: fill it, hit Enter in any field, it collapses
-  into a compact row and resets for the next item.
+- One reusable **entry form** for adding: fill it, hit Enter in any field, it
+  collapses into a compact row and resets for the next item.
+- **Inline editing** of existing rows: the pencil opens that row in place with
+  the full cascade — including **Category**, which re-drives Description,
+  Material, Finish and the rate exactly as it does for a new item. Several rows
+  can be open at once; one **Save changes** commits them all and **Cancel**
+  discards the lot.
+- **Import from project**: pull sections or individual lines out of any other
+  project in the org, all at once or cherry-picked from a checklist. Items are
+  copied, never linked, so editing one afterwards can't touch the original.
+  Matching section names merge; the rest are added as new sections.
 - **Sections**: fixed ones first (Electrical Work, Wall Works, Other), then
   rooms added from a dropdown with a Custom option. A section-jump dropdown
   filters to one section — no tab strip that overflows at 7 rooms.
@@ -37,12 +46,21 @@ the single-file prototype that relied on Claude's artifact storage.
   internal-only note, plus a reference photo (compressed client-side).
 - Discount (₹ or %), GST toggle with 5/12/18/28/custom split into CGST/SGST,
   and a **Cost & margin** toggle that's off by default and never leaves the org.
+- **Client-facing column toggles** (Material / Finish / Unit / Rate) in the
+  Summary panel. Per-project, and honoured identically by the Client View page,
+  the Client PDF and the Internal PDF — switch Rate off and it's gone from all
+  three.
 - Autosaves as you work.
 
 **PDF export** — Client PDF (line-item detail, section subtotals, discount/GST,
 terms & exclusions, scope notes, reference-image appendix, signature block; no
 cost or margin anywhere) and Internal PDF (the same plus Cost, Margin and a
 margin summary).
+
+**Projects list** — every project with its client, version count, current value
+and status, plus **Duplicate** to clone one whole project (sections, items,
+terms, discount and GST) as a fresh Draft. The copy shares no rows with the
+original, and carries none of its versions, client links or approvals.
 
 **Versions** (`/projects/[id]`) — status-driven, not manual snapshots. One
 status per BOQ: **Draft → Sent to Client → Approved**. Full history with
@@ -167,9 +185,11 @@ absolute and built from it.
 
 ## Known limitations
 
-- **Concurrent editing is last-write-wins.** Two people building the same BOQ at
-  the same time will overwrite each other. Auth means you now know who did it,
-  but there's no locking or merge.
+- **Concurrent editing is guarded, not merged.** Every autosave carries the
+  `updatedAt` the tab was opened with; if the BOQ has moved on — another tab, a
+  teammate, a restored version — the save is refused and the tab shows a reload
+  banner rather than overwriting. Nobody loses work, but there's no merge: the
+  second person reloads and redoes their edit.
 - **No email yet.** Share links are copied and sent by hand, approvals don't
   notify anyone, and new team members are given their password directly by an
   admin rather than invited. `APPROVALS_SPEC.md` §5 wants email on both sides —

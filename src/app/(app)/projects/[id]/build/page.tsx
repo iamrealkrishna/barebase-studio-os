@@ -22,6 +22,7 @@ export default async function BuildPage({ params }: { params: Promise<{ id: stri
     <BoqBuilder
       projectId={project.id}
       initialSnapshot={toSnapshot(project)}
+      initialUpdatedAt={project.updatedAt.toISOString()}
       rateEntries={rateItems.map((item) => ({
         id: item.id,
         category: item.category,

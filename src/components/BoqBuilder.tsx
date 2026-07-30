@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { saveBoq, saveVersion } from "@/actions/projects";
+import { loadBoq, saveBoq, saveVersion } from "@/actions/projects";
 import EntryForm, { CUSTOM_CATEGORY, freshDraft } from "@/components/EntryForm";
+import ImportFromProject from "@/components/ImportFromProject";
+import InlineItemRow from "@/components/InlineItemRow";
 import { PdfButton } from "@/components/PdfButtons";
 import ProjectBar from "@/components/ProjectBar";
 import SummaryPanel from "@/components/SummaryPanel";
@@ -13,10 +15,7 @@ import {
   CLIENT_VISIBLE_FIELDS,
   computeQty,
   diffSnapshots,
-  dimSummary,
-  fieldLabel,
   fmt,
-  fmtPlain,
   PRESET_ROOMS,
   sectionTotal,
   type BoqItem,
@@ -26,7 +25,7 @@ import {
 import type { Letterhead } from "@/lib/pdf";
 import { categoryList, type RateEntry } from "@/lib/rate-card";
 
-type SaveState = "saved" | "dirty" | "saving" | "error";
+type SaveState = "saved" | "dirty" | "saving" | "error" | "conflict";
 
 function remapIds(snapshot: BoqSnapshot, idMap: Record<string, string>): BoqSnapshot {
   return {
@@ -41,6 +40,7 @@ function remapIds(snapshot: BoqSnapshot, idMap: Record<string, string>): BoqSnap
 export default function BoqBuilder({
   projectId,
   initialSnapshot,
+  initialUpdatedAt,
   rateEntries,
   letterhead,
   approvedSnapshot,
@@ -48,6 +48,7 @@ export default function BoqBuilder({
 }: {
   projectId: string;
   initialSnapshot: BoqSnapshot;
+  initialUpdatedAt: string;
   rateEntries: RateEntry[];
   letterhead: Letterhead;
   approvedSnapshot: BoqSnapshot | null;
@@ -60,13 +61,23 @@ export default function BoqBuilder({
   const [activeSection, setActiveSection] = useState<string | null>(initialSnapshot.sections[0]?.name ?? null);
   const [formOpen, setFormOpen] = useState(false);
   const [draft, setDraft] = useState<BoqItem | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [showCost, setShowCost] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("saved");
   const [visibleSection, setVisibleSection] = useState<string>("__all__");
   const [customSectionOpen, setCustomSectionOpen] = useState(false);
   const [customSectionName, setCustomSectionName] = useState("");
   const [sending, setSending] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+
+  /**
+   * Rows opened for inline editing, keyed by item id.
+   *
+   * Deliberately kept out of `snapshot` so autosave can't pick them up: edits
+   * stay pending until "Save changes" commits every open row at once, and
+   * "Cancel" drops the lot.
+   */
+  const [pendingEdits, setPendingEdits] = useState<Record<string, BoqItem>>({});
+  const editCount = Object.keys(pendingEdits).length;
 
   const categories = useMemo(() => categoryList(rateEntries), [rateEntries]);
 
@@ -76,6 +87,11 @@ export default function BoqBuilder({
   const savedRevision = useRef(0);
   const inFlight = useRef(false);
   const queued = useRef(false);
+
+  /** project.updatedAt this tab is working from; every save checks it. */
+  const baseUpdatedAt = useRef(initialUpdatedAt);
+  /** Autosave stays parked until the props have been checked against the DB. */
+  const [synced, setSynced] = useState(false);
 
   /** Every user-driven mutation goes through here so autosave knows to fire. */
   const update = useCallback((fn: (prev: BoqSnapshot) => BoqSnapshot) => {
@@ -96,9 +112,23 @@ export default function BoqBuilder({
     setSaveState("saving");
     try {
       const current = snapshotRef.current;
-      const result = await saveBoq({ projectId, meta: current.meta, sections: current.sections });
-      if (!result.ok) throw new Error("save rejected");
+      const result = await saveBoq({
+        projectId,
+        expectedUpdatedAt: baseUpdatedAt.current,
+        meta: current.meta,
+        sections: current.sections,
+      });
+
+      if (result.conflict) {
+        // Someone (or some other tab) has moved this BOQ on. Stop writing —
+        // retrying would overwrite whatever they did.
+        setSaveState("conflict");
+        return;
+      }
+      if (!result.ok) throw new Error(result.error ?? "save rejected");
+
       savedRevision.current = at;
+      if (result.updatedAt) baseUpdatedAt.current = result.updatedAt;
       if (Object.keys(result.idMap).length > 0) {
         setSnapshot((prev) => remapIds(prev, result.idMap));
       }
@@ -114,22 +144,57 @@ export default function BoqBuilder({
     }
   }, [projectId]);
 
+  /**
+   * Confirm the server-rendered props are current before touching anything.
+   *
+   * A back/forward navigation can replay a cached RSC payload from before items
+   * were added; mounting on that and autosaving would delete them.
+   */
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const fresh = await loadBoq(projectId);
+        if (cancelled || !fresh) return;
+        if (fresh.updatedAt !== baseUpdatedAt.current) {
+          if (revision.current === savedRevision.current) {
+            // Nothing typed yet — quietly adopt the real state.
+            setSnapshot(fresh.snapshot);
+            baseUpdatedAt.current = fresh.updatedAt;
+          } else {
+            setSaveState("conflict");
+          }
+        }
+      } catch {
+        // Offline or the action failed; the save-time check still protects us.
+      } finally {
+        if (!cancelled) setSynced(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
   // Debounced autosave. Typing a rate shouldn't cost a round trip per keystroke.
   // A failed save backs off and tries again rather than sitting there dead —
   // losing a section of typed items to a dropped connection is not acceptable.
   useEffect(() => {
+    if (!synced) return;
     if (saveState !== "dirty" && saveState !== "error") return;
     const timer = setTimeout(() => void flush(), saveState === "error" ? 5000 : 900);
     return () => clearTimeout(timer);
-  }, [saveState, snapshot, flush]);
+  }, [synced, saveState, snapshot, flush]);
 
+  // Uncommitted inline edits count as unsaved work too — they only exist in
+  // this tab until "Save changes" is pressed.
   useEffect(() => {
     const onBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (revision.current !== savedRevision.current) event.preventDefault();
+      if (revision.current !== savedRevision.current || editCount > 0) event.preventDefault();
     };
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, []);
+  }, [editCount]);
 
   // What's moved since the client last approved — surfaced inline so nobody
   // edits approved scope without noticing it raises a change order.
@@ -145,15 +210,14 @@ export default function BoqBuilder({
     setActiveSection(sectionName);
     setFormOpen(true);
     setDraft(freshDraft(rateEntries, categories));
-    setEditingId(null);
   };
 
   const closeForm = () => {
     setFormOpen(false);
     setDraft(null);
-    setEditingId(null);
   };
 
+  /** The entry form only ever adds; existing rows are edited in place below. */
   const confirmEntry = () => {
     if (!draft || !activeSection) return;
     if (!draft.desc.trim()) {
@@ -164,28 +228,53 @@ export default function BoqBuilder({
 
     update((prev) => ({
       ...prev,
-      sections: prev.sections.map((section) => {
-        if (section.name !== activeSection) return section;
-        if (editingId) {
-          return { ...section, items: section.items.map((row) => (row.id === editingId ? item : row)) };
-        }
-        return { ...section, items: [...section.items, item] };
-      }),
+      sections: prev.sections.map((section) =>
+        section.name === activeSection ? { ...section, items: [...section.items, item] } : section,
+      ),
     }));
 
-    toast(editingId ? "Item updated" : "Item added");
+    toast("Item added");
     // Straight back to a blank form so the next item can be typed immediately.
     setDraft(freshDraft(rateEntries, categories));
-    setEditingId(null);
   };
 
-  const editItem = (sectionName: string, id: string) => {
-    const item = snapshot.sections.find((s) => s.name === sectionName)?.items.find((r) => r.id === id);
-    if (!item) return;
-    setActiveSection(sectionName);
-    setFormOpen(true);
-    setDraft(structuredClone(item));
-    setEditingId(id);
+  // ------------------------------------------------------- inline row edits
+
+  const startEdit = (item: BoqItem) => {
+    setPendingEdits((prev) => (prev[item.id] ? prev : { ...prev, [item.id]: structuredClone(item) }));
+  };
+
+  const changeEdit = (id: string, next: BoqItem) => {
+    setPendingEdits((prev) => ({ ...prev, [id]: next }));
+  };
+
+  const discardEdit = (id: string) => {
+    setPendingEdits((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  };
+
+  const cancelAllEdits = () => {
+    setPendingEdits({});
+    toast("Edits discarded");
+  };
+
+  const saveAllEdits = () => {
+    if (editCount === 0) return;
+    update((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section) => ({
+        ...section,
+        items: section.items.map((row) => {
+          const edited = pendingEdits[row.id];
+          return edited ? { ...edited, qty: computeQty(edited) } : row;
+        }),
+      })),
+    }));
+    toast(`${editCount} row${editCount === 1 ? "" : "s"} updated`);
+    setPendingEdits({});
   };
 
   const removeItem = (sectionName: string, id: string) => {
@@ -195,11 +284,38 @@ export default function BoqBuilder({
         section.name === sectionName ? { ...section, items: section.items.filter((r) => r.id !== id) } : section,
       ),
     }));
-    if (editingId === id) {
-      setEditingId(null);
-      setDraft(freshDraft(rateEntries, categories));
-    }
+    discardEdit(id);
     toast("Item removed");
+  };
+
+  /**
+   * Merge picked items from another project. Each one is re-keyed so it's a
+   * copy, not a link — editing it here can never touch the source project.
+   * Sections whose names already exist merge in; the rest are appended.
+   */
+  const importItems = (picked: { section: string; items: BoqItem[] }[]) => {
+    let imported = 0;
+    update((prev) => {
+      const sections = prev.sections.map((section) => ({ ...section, items: [...section.items] }));
+
+      for (const entry of picked) {
+        const copies = entry.items.map((item) => ({
+          ...structuredClone(item),
+          id: `new:${Math.random().toString(36).slice(2, 11)}`,
+        }));
+        imported += copies.length;
+
+        const existing = sections.find((section) => section.name === entry.section);
+        if (existing) existing.items.push(...copies);
+        else sections.push({ name: entry.section, items: copies });
+      }
+
+      return { ...prev, sections };
+    });
+
+    setImportOpen(false);
+    setVisibleSection("__all__");
+    toast(`Imported ${imported} item${imported === 1 ? "" : "s"}`);
   };
 
   const addSection = (name: string) => {
@@ -216,7 +332,6 @@ export default function BoqBuilder({
     setVisibleSection("__all__");
     setFormOpen(true);
     setDraft(freshDraft(rateEntries, categories));
-    setEditingId(null);
     toast("Section added");
   };
 
@@ -243,6 +358,9 @@ export default function BoqBuilder({
         toast(result.error ?? "Could not save that version");
         return;
       }
+      // Versioning bumps updatedAt server-side; adopt it or the next autosave
+      // would see its own change as somebody else's.
+      if (result.updatedAt) baseUpdatedAt.current = result.updatedAt;
       toast(`Saved as V${result.number} — sent to client`);
       router.push(`/projects/${projectId}/client-view`);
     } finally {
@@ -257,6 +375,7 @@ export default function BoqBuilder({
     dirty: "Unsaved changes",
     saving: "Saving…",
     error: "Save failed — retrying",
+    conflict: "Out of date — reload",
   }[saveState];
 
   return (
@@ -291,7 +410,20 @@ export default function BoqBuilder({
         }
       />
 
-      <div className="layout">
+      {saveState === "conflict" ? (
+        <div className="conflict-banner">
+          <span>
+            <b>This page is out of date.</b> This BOQ has changed somewhere else — another tab, a teammate, or a
+            restored version — so saving has stopped rather than overwrite it. Reload to pick up the current BOQ.
+            {editCount > 0 ? " Your open row edits will be lost." : ""}
+          </span>
+          <button className="btn primary small" onClick={() => window.location.reload()}>
+            Reload
+          </button>
+        </div>
+      ) : null}
+
+      <div className={`layout${editCount > 0 ? " has-edit-bar" : ""}`}>
         <div className="main">
           <div className="build-context">
             <div className="bc-field">
@@ -338,6 +470,9 @@ export default function BoqBuilder({
                 </option>
               ))}
             </select>
+            <button className="btn light small" onClick={() => setImportOpen(true)}>
+              ↧ Import from project
+            </button>
             <span className="hint">
               {visibleSection === "__all__" ? "Showing every section" : "Showing one section — switch back any time"}
             </span>
@@ -383,8 +518,7 @@ export default function BoqBuilder({
                       draft={draft}
                       onChange={setDraft}
                       onConfirm={confirmEntry}
-                      onCancel={editingId ? () => { setEditingId(null); setDraft(freshDraft(rateEntries, categories)); } : closeForm}
-                      editing={Boolean(editingId)}
+                      onCancel={closeForm}
                       sectionName={section.name}
                       entries={rateEntries}
                       categories={categories}
@@ -406,61 +540,24 @@ export default function BoqBuilder({
                       </div>
 
                       {section.items.map((item, index) => {
-                        const qty = computeQty(item);
-                        const amount = qty * (item.rate || 0);
-                        const spec = [item.material, item.finish].filter(Boolean).join(" · ");
-                        const dimText = dimSummary(item);
                         const entry = approvedSnapshot ? diff.byItem.get(item.id) : undefined;
-                        const kind = entry?.kind ?? "unchanged";
 
                         return (
-                          <div
-                            className={`compact-row${kind === "new" ? " is-new" : kind === "changed" ? " is-changed" : ""}`}
+                          <InlineItemRow
                             key={item.id}
-                          >
-                            <span className="cr-num">{String(index + 1).padStart(2, "0")}</span>
-                            <div className="cr-desc">
-                              <div className="main-line">
-                                {item.desc || "(untitled item)"}
-                                {item.image ? <span className="photo-chip">photo</span> : null}
-                                {kind === "new" ? <span className="co-flag">New since approval</span> : null}
-                                {kind === "changed" ? (
-                                  <span
-                                    className="co-flag"
-                                    title={entry?.changes
-                                      .map((c) => `${fieldLabel(c.field)}: ${c.from || "—"} → ${c.to || "—"}`)
-                                      .join("\n")}
-                                  >
-                                    Change order
-                                  </span>
-                                ) : null}
-                              </div>
-                              <div className="sub-line">
-                                {[spec, dimText].filter(Boolean).join(" · ")}
-                                {item.note ? ` · note: ${item.note}` : ""}
-                              </div>
-                            </div>
-                            <div className="cr-qty">
-                              {qty || 0} {item.unit} @ {fmtPlain(item.rate || 0)}
-                            </div>
-                            <div className="cr-amt">{fmt(amount)}</div>
-                            <div className="cr-actions">
-                              <button
-                                className="icon-btn"
-                                title="Edit"
-                                onClick={() => editItem(section.name, item.id)}
-                              >
-                                ✎
-                              </button>
-                              <button
-                                className="icon-btn danger"
-                                title="Remove"
-                                onClick={() => removeItem(section.name, item.id)}
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          </div>
+                            item={item}
+                            draft={pendingEdits[item.id] ?? null}
+                            index={index}
+                            entries={rateEntries}
+                            categories={categories}
+                            showCost={showCost}
+                            diffKind={entry?.kind ?? "unchanged"}
+                            diffChanges={entry?.changes ?? []}
+                            onStartEdit={() => startEdit(item)}
+                            onChange={(next) => changeEdit(item.id, next)}
+                            onDiscard={() => discardEdit(item.id)}
+                            onRemove={() => removeItem(section.name, item.id)}
+                          />
                         );
                       })}
                     </div>
@@ -540,6 +637,7 @@ export default function BoqBuilder({
           </div>
         </div>
 
+
         <SummaryPanel
           snapshot={snapshot}
           activeSection={activeSection}
@@ -571,6 +669,31 @@ export default function BoqBuilder({
           }
         />
       </div>
+
+      {/* Outside .layout on purpose: as a grid child spanning both columns it
+          pushed the Summary panel out of its column and onto its own row. */}
+      {editCount > 0 ? (
+        <div className="edit-bar">
+          <span className="edit-bar-count">
+            {editCount} row{editCount === 1 ? "" : "s"} edited — not saved yet
+          </span>
+          <button className="btn light small" onClick={cancelAllEdits}>
+            Cancel
+          </button>
+          <button className="btn primary small" onClick={saveAllEdits}>
+            Save changes
+          </button>
+        </div>
+      ) : null}
+
+      {importOpen ? (
+        <ImportFromProject
+          currentProjectId={projectId}
+          existingSections={snapshot.sections.map((section) => section.name)}
+          onImport={importItems}
+          onClose={() => setImportOpen(false)}
+        />
+      ) : null}
 
       <Toast message={message} />
     </>

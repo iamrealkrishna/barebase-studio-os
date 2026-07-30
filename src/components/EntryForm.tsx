@@ -44,7 +44,6 @@ type Props = {
   onChange: (next: BoqItem) => void;
   onConfirm: () => void;
   onCancel: () => void;
-  editing: boolean;
   sectionName: string;
   entries: RateEntry[];
   categories: string[];
@@ -57,7 +56,6 @@ export default function EntryForm({
   onChange,
   onConfirm,
   onCancel,
-  editing,
   sectionName,
   entries,
   categories,
@@ -242,8 +240,8 @@ export default function EntryForm({
   }
 
   return (
-    <div className={`entry-form${editing ? " editing" : ""}`}>
-      <div className="entry-form-label">{editing ? "Editing item" : `New item — ${sectionName}`}</div>
+    <div className="entry-form">
+      <div className="entry-form-label">New item — {sectionName}</div>
 
       <div className="item-row">
         <div className="item-field grow2">
@@ -431,13 +429,13 @@ export default function EntryForm({
 
         <div className="entry-form-buttons">
           <span className="hint-text" style={{ marginTop: 0 }}>
-            Enter in any field {editing ? "updates" : "adds"} the item
+            Enter in any field adds the item
           </span>
           <button className="btn light small" onClick={onCancel}>
-            {editing ? "Cancel" : "Close"}
+            Close
           </button>
           <button className="btn primary small" style={{ padding: "8px 18px" }} onClick={onConfirm}>
-            {editing ? "Update item" : "Add item ↵"}
+            Add item ↵
           </button>
         </div>
       </div>

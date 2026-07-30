@@ -127,6 +127,31 @@ export default function SummaryPanel({
         <span className="amt tabular">{fmt(totals.grand)}</span>
       </div>
 
+      {/* Governs the Client View page and both PDF exports alike. Lives here,
+          with discount and GST, because it's a per-project decision and this is
+          the panel that autosaves it. */}
+      <div className="panel-block">
+        <h4>Client-facing columns</h4>
+        {(
+          [
+            ["material", "Material"],
+            ["finish", "Finish"],
+            ["unit", "Unit"],
+            ["rate", "Rate per unit"],
+          ] as const
+        ).map(([key, label]) => (
+          <label className="col-toggle-row" key={key}>
+            <input
+              type="checkbox"
+              checked={snapshot.meta.cols[key]}
+              onChange={(e) => onMetaChange({ cols: { ...snapshot.meta.cols, [key]: e.target.checked } })}
+            />
+            {label}
+          </label>
+        ))}
+        <p className="col-toggle-note">Applies to Client View, the Client PDF and the Internal PDF.</p>
+      </div>
+
       {showCost ? (
         <div className="cost-summary-block" style={{ display: "block" }}>
           <h4>Cost &amp; margin — internal</h4>

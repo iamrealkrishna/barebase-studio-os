@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import DuplicateProjectButton from "@/components/DuplicateProjectButton";
 import NewProjectForm from "@/components/NewProjectForm";
 import { requireUser } from "@/lib/auth";
 import { computeQty, fmt, fmtDate, statusClass, statusLabel } from "@/lib/boq";
@@ -70,23 +71,33 @@ export default async function ProjectsPage() {
             <span className="pc-date">Last saved</span>
             <span className="pc-amt">Current value</span>
             <span className="pc-status">Status</span>
+            <span className="pc-actions" />
           </div>
           {rows.map((row, i) => (
-            <Link key={row.id} href={`/projects/${row.id}/build`} className="proj-row" style={{ color: "inherit" }}>
-              <span className="pc-num tabular">{i + 1}</span>
-              <span className="pc-name">{row.name}</span>
-              <span className="pc-client">{row.client}</span>
-              <span className="pc-vers tabular">{row.versions}</span>
-              <span className="pc-date">{fmtDate(row.updatedAt)}</span>
-              <span className="pc-amt tabular">{fmt(row.total)}</span>
-              <span className="pc-status">
-                {row.approved ? (
-                  <span className="status-badge approved">✓ Approved by client</span>
-                ) : (
-                  <span className={`status-badge ${statusClass(row.status)}`}>{statusLabel(row.status)}</span>
-                )}
+            <div key={row.id} className="proj-row">
+              <Link href={`/projects/${row.id}/build`} className="proj-row-main" style={{ color: "inherit" }}>
+                <span className="pc-num tabular">{i + 1}</span>
+                <span className="pc-name">{row.name}</span>
+                <span className="pc-client">{row.client}</span>
+                <span className="pc-vers tabular">{row.versions}</span>
+                <span className="pc-date">{fmtDate(row.updatedAt)}</span>
+                <span className="pc-amt tabular">{fmt(row.total)}</span>
+                <span className="pc-status">
+                  {row.approved ? (
+                    <span className="status-badge approved">✓ Approved by client</span>
+                  ) : (
+                    <span className={`status-badge ${statusClass(row.status)}`}>{statusLabel(row.status)}</span>
+                  )}
+                </span>
+              </Link>
+              <span className="pc-actions">
+                <DuplicateProjectButton
+                  projectId={row.id}
+                  projectName={row.name}
+                  clientName={row.client === "—" ? "" : row.client}
+                />
               </span>
-            </Link>
+            </div>
           ))}
         </div>
       )}
