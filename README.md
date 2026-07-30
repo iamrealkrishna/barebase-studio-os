@@ -33,8 +33,9 @@ the single-file prototype that relied on Claude's artifact storage.
 - **Inline editing** of existing rows: the pencil opens that row in place with
   the full cascade — including **Category**, which re-drives Description,
   Material, Finish and the rate exactly as it does for a new item. Several rows
-  can be open at once; one **Save changes** commits them all and **Cancel**
-  discards the lot.
+  can be open at once. Each row has its own **✓ Save** and **Cancel** right
+  where you're working; a bar at the bottom of the screen additionally offers
+  **Save all N rows** / **Discard all** when several are open.
 - **Import from project**: pull sections or individual lines out of any other
   project in the org, all at once or cherry-picked from a checklist. Items are
   copied, never linked, so editing one afterwards can't touch the original.

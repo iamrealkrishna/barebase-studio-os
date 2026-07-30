@@ -27,6 +27,7 @@ export default function InlineItemRow({
   diffChanges,
   onStartEdit,
   onChange,
+  onSave,
   onDiscard,
   onRemove,
 }: {
@@ -41,6 +42,8 @@ export default function InlineItemRow({
   diffChanges: FieldChange[];
   onStartEdit: () => void;
   onChange: (next: BoqItem) => void;
+  /** Commit just this row. */
+  onSave: () => void;
   onDiscard: () => void;
   onRemove: () => void;
 }) {
@@ -299,12 +302,18 @@ export default function InlineItemRow({
             <span className="amt">{fmt(amount)}</span>
           </div>
 
+          {/* Save sits on the row, next to what's being changed. The bar at the
+              bottom of the screen commits every open row at once, but it's a
+              long way from here when you're part-way down a long BOQ. */}
           <div className="inline-edit-actions">
             <button className="cv-mini-btn" onClick={() => setShowDetails(!showDetails)}>
               {showDetails ? "Hide details" : "Details"}
             </button>
-            <button className="icon-btn" title="Discard this row's edits" onClick={onDiscard}>
-              ↺
+            <button className="cv-mini-btn" title="Discard this row's edits" onClick={onDiscard}>
+              Cancel
+            </button>
+            <button className="btn primary small row-save" title="Save this row" onClick={onSave}>
+              ✓ Save
             </button>
           </div>
         </div>

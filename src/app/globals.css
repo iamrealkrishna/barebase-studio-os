@@ -437,3 +437,7 @@ table.ratecard input.r-num{text-align:right;font-family:var(--font-mono),monospa
 .col-toggles-light{display:flex;gap:20px;flex-wrap:wrap}
 .col-toggles-light .col-toggle-row{color:var(--ink);font-size:12.5px}
 .cv-controls .col-toggle-note{color:var(--muted);margin-top:8px}
+
+/* The row's own save — the control you reach for while looking at the row,
+   rather than the bar pinned to the bottom of the screen. */
+.inline-edit-actions .row-save{padding:5px 14px;font-size:12px;white-space:nowrap}

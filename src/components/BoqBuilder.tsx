@@ -261,20 +261,39 @@ export default function BoqBuilder({
     toast("Edits discarded");
   };
 
-  const saveAllEdits = () => {
-    if (editCount === 0) return;
+  /** Commit a set of pending rows into the snapshot, which autosave then picks up. */
+  const commitEdits = (ids: string[]) => {
+    const committing = new Set(ids);
+    if (committing.size === 0) return;
+
     update((prev) => ({
       ...prev,
       sections: prev.sections.map((section) => ({
         ...section,
         items: section.items.map((row) => {
+          if (!committing.has(row.id)) return row;
           const edited = pendingEdits[row.id];
           return edited ? { ...edited, qty: computeQty(edited) } : row;
         }),
       })),
     }));
-    toast(`${editCount} row${editCount === 1 ? "" : "s"} updated`);
-    setPendingEdits({});
+
+    setPendingEdits((prev) => {
+      const next = { ...prev };
+      for (const id of committing) delete next[id];
+      return next;
+    });
+  };
+
+  const saveRowEdit = (id: string) => {
+    commitEdits([id]);
+    toast("Row saved");
+  };
+
+  const saveAllEdits = () => {
+    if (editCount === 0) return;
+    commitEdits(Object.keys(pendingEdits));
+    toast(`${editCount} row${editCount === 1 ? "" : "s"} saved`);
   };
 
   const removeItem = (sectionName: string, id: string) => {
@@ -555,6 +574,7 @@ export default function BoqBuilder({
                             diffChanges={entry?.changes ?? []}
                             onStartEdit={() => startEdit(item)}
                             onChange={(next) => changeEdit(item.id, next)}
+                            onSave={() => saveRowEdit(item.id)}
                             onDiscard={() => discardEdit(item.id)}
                             onRemove={() => removeItem(section.name, item.id)}
                           />
@@ -675,13 +695,13 @@ export default function BoqBuilder({
       {editCount > 0 ? (
         <div className="edit-bar">
           <span className="edit-bar-count">
-            {editCount} row{editCount === 1 ? "" : "s"} edited — not saved yet
+            {editCount} row{editCount === 1 ? "" : "s"} open for editing — not saved yet
           </span>
           <button className="btn light small" onClick={cancelAllEdits}>
-            Cancel
+            Discard all
           </button>
           <button className="btn primary small" onClick={saveAllEdits}>
-            Save changes
+            Save {editCount === 1 ? "row" : `all ${editCount} rows`}
           </button>
         </div>
       ) : null}
