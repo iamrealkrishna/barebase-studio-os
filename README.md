@@ -84,10 +84,39 @@ about the revision history is exposed.
 
 **Approvals & change orders** — each project gets client contacts with their
 own share link (no account, no login). A client can approve the whole estimate
-in one click or go line by line with approve / request change / reject /
-comment. Once an approved version exists, any later edit to an approved line
-automatically raises a **Change Order** recording old → new, and every action by
-either side lands in the audit trail.
+in one click or go line by line: **Approve / Reject / Request change**, plus a
+note on any line. Rejecting opens the note box by itself and asks what's wrong,
+because a rejection with no reason gives the team nothing to act on. A note is
+never read as a verdict — you can approve a line *and* flag something about it
+("fine, but use the lighter shade"), and leaving a note on a line you haven't
+decided on yet leaves it Pending rather than deciding for you. Each verdict and
+note is stored against that specific line **and that specific version**. A
+client who rejects a line on a version they'd previously approved un-approves
+it: the version drops back to Sent to Client and their approval baseline moves
+back to whatever they genuinely approved before, so an approved version can
+never sit there contradicted by a rejection inside it.
+
+**Client Review** (`/projects/[id]/review`) — the team's side of that, shaped
+like the BOQ rather than as a separate list of responses, so a rejection is read
+in the context of the section it sits in. Every line carries the client's
+verdict and their comment inline, coloured with the same highlight family the
+Client View uses for new and changed lines: red for rejected, amber for a change
+requested, a quiet rule for approved-with-a-note. It opens filtered to **Needs
+attention** — anything rejected, queried or commented on — with **Every line**
+one click away, and a rollup across the top.
+
+Crucially it's editable in place: every row is the same inline editor as Build
+BOQ, with the client's words still on screen while you change the finish or drop
+the quantity. Edits go to the live BOQ through the same autosave, so changing a
+line that's already approved raises a **Change Order** on the next version
+exactly as it would on Build BOQ — old → new, recorded automatically, never a
+silent overwrite. **Save version & send back** snapshots the reworked BOQ as a
+new version and returns it to the client, closing the loop. Lines the client
+reviewed that have since been deleted are listed separately rather than quietly
+dropped, and the tab carries a badge with the number of lines still needing
+attention so it's visible from anywhere in the project.
+
+Every action by either side lands in the audit trail.
 
 **Your account** (`/account`, from the chip in the top right) — everything that
 belongs to you rather than to the organisation, in one place: your name and

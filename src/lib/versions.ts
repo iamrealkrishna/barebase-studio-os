@@ -164,3 +164,28 @@ export async function currentClientVersion(projectId: string) {
     orderBy: { number: "desc" },
   });
 }
+
+/**
+ * How many lines of the version currently with the client came back rejected,
+ * with a change requested, or with a note — the number on the Client Review tab.
+ *
+ * Counted per line, not per response: two contacts rejecting the same item is
+ * one thing for the team to deal with.
+ */
+export async function reviewAttentionCount(projectId: string): Promise<number> {
+  const version = await currentClientVersion(projectId);
+  if (!version) return 0;
+
+  const flagged = await prisma.itemApproval.findMany({
+    where: {
+      versionId: version.id,
+      OR: [
+        { status: { in: ["REJECTED", "REVISION_REQUESTED"] } },
+        { AND: [{ comment: { not: null } }, { comment: { not: "" } }] },
+      ],
+    },
+    select: { lineItemId: true },
+  });
+
+  return new Set(flagged.map((row) => row.lineItemId)).size;
+}

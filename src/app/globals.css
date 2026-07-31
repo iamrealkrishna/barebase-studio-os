@@ -188,7 +188,7 @@ table.ratecard input.r-num{text-align:right;font-family:var(--font-mono),monospa
 .cv-summary .row.total span:first-child{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
 .cv-summary .row.total .tabular{font-size:19px;font-weight:600}
 .cv-notes{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px 22px;margin-top:14px;font-size:12px;color:var(--ink-soft);white-space:pre-wrap}
-.cv-approve-bar{margin-top:20px;display:flex;justify-content:flex-end;gap:10px}
+.cv-approve-bar{margin-top:20px;display:flex;justify-content:flex-end;gap:10px;align-items:center;flex-wrap:wrap}
 
 .modal-overlay{position:fixed;inset:0;background:rgba(23,21,17,.5);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto}
 .modal-overlay.open{display:flex}
@@ -274,6 +274,45 @@ table.ratecard input.r-num{text-align:right;font-family:var(--font-mono),monospa
 .role-table td.yn{width:110px;text-align:right;font-size:11px;font-weight:600;letter-spacing:.03em;white-space:nowrap}
 .role-table td.yn.yes{color:var(--green)}
 .role-table td.yn.no{color:var(--muted)}
+
+/* ---------------------------------------------------------------- client review
+   The team's view of what the client said, laid over the BOQ. Verdict colours
+   are the same family the Client View already uses for new/changed lines, so
+   "something to look at" reads the same way on both screens. */
+.tab-flag{display:inline-block;margin-left:6px;background:var(--danger);color:#fff;border-radius:999px;font-size:9.5px;font-weight:700;padding:1px 6px;line-height:1.5;vertical-align:1px}
+.nav-link.active .tab-flag{background:var(--ink);color:var(--brass-bright)}
+
+.review-head{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px}
+.review-head-main{flex:1 1 380px;min-width:0}
+.review-head-main h2{margin:0;font-family:var(--font-serif),serif;font-size:23px;font-weight:400;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.review-counts{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}
+.review-counts .rc{font-size:11px;padding:5px 11px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);white-space:nowrap}
+.review-counts .rc b{font-family:var(--font-mono),monospace;font-size:13px;margin-right:3px}
+.review-counts .rc.approved{background:var(--diff-new);border-color:var(--diff-new-border);color:var(--green)}
+.review-counts .rc.rejected{background:#F6E3DE;border-color:#DBB6AC;color:var(--danger)}
+.review-counts .rc.revision{background:var(--diff-changed);border-color:var(--diff-changed-border);color:var(--brass-dark)}
+
+.review-filter{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+
+.compact-row.review-rejected{background:#FCF4F1;box-shadow:inset 3px 0 0 var(--danger)}
+.compact-row.review-rejected:hover{background:#F8EBE6}
+.compact-row.review-revision{background:var(--diff-changed);box-shadow:inset 3px 0 0 var(--diff-changed-border)}
+.compact-row.review-noted{box-shadow:inset 3px 0 0 var(--line)}
+.compact-row.editing-row.review-rejected,
+.compact-row.editing-row.review-revision{background:var(--card-soft)}
+
+.review-verdicts{margin-top:5px;display:flex;flex-direction:column;gap:3px}
+.review-verdict{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;font-size:11.5px}
+.review-verdict .rv-who{color:var(--muted);font-size:10.5px}
+.review-verdict .rv-comment{color:var(--ink);background:var(--card);border:1px solid var(--line-soft);border-radius:4px;padding:2px 8px;font-style:italic}
+.inline-edit-annotation{margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed var(--line)}
+
+.review-empty{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:34px 30px;text-align:center}
+.review-empty h3{margin:0 0 8px;font-family:var(--font-serif),serif;font-size:20px;font-weight:400}
+.review-empty p{margin:0 auto 16px;max-width:520px;font-size:12.5px;color:var(--ink-soft);line-height:1.7}
+
+.cv-mini-btn.has-note{border-color:var(--brass);color:var(--brass-dark)}
+.cv-flagged-note{font-size:11.5px;color:var(--ink-soft);max-width:520px;line-height:1.6}
 
 .auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px}
 .auth-card{background:var(--card);border:1px solid var(--line);border-top:2px solid var(--brass-bright);border-radius:8px;padding:30px 32px;width:100%;max-width:390px;box-shadow:0 4px 24px rgba(33,31,26,.08)}

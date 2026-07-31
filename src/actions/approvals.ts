@@ -99,7 +99,7 @@ export async function setVersionStatus(formData: FormData): Promise<void> {
 
 // ---------------------------------------------------------------- client side
 
-export type ClientActionResult = { ok: boolean; error?: string };
+export type ClientActionResult = { ok: boolean; error?: string; status?: ApprovalStatus };
 
 /**
  * When every line a client can see is approved, the version itself becomes
@@ -140,6 +140,52 @@ async function settleVersionApproval(
   return true;
 }
 
+/**
+ * A version can't stay Approved once the client turns round and rejects one of
+ * its lines — that's the sort of contradiction the audit trail exists to
+ * prevent. Roll it back to Sent to Client and drop the contact's approval
+ * baseline, so their next diff is measured against whatever they genuinely
+ * approved before this.
+ */
+async function unsettleVersionApproval(
+  tx: Prisma.TransactionClient,
+  args: { versionId: string; projectId: string; contactId: string; contactName: string; itemName: string },
+) {
+  const version = await tx.version.findUnique({ where: { id: args.versionId } });
+  if (!version || version.status !== "APPROVED") return;
+
+  await tx.version.update({
+    where: { id: args.versionId },
+    data: { status: "SENT_TO_CLIENT", approvedAt: null, approvedByContact: null },
+  });
+
+  const contact = await tx.clientContact.findUnique({ where: { id: args.contactId } });
+  if (contact?.lastApprovedVersionId === args.versionId) {
+    const earlier = await tx.version.findFirst({
+      where: { projectId: args.projectId, status: "APPROVED", number: { lt: version.number } },
+      orderBy: { number: "desc" },
+      select: { id: true },
+    });
+    await tx.clientContact.update({
+      where: { id: args.contactId },
+      data: { lastApprovedVersionId: earlier?.id ?? null },
+    });
+  }
+
+  const newest = await tx.version.findFirst({ where: { projectId: args.projectId }, orderBy: { number: "desc" } });
+  if (newest?.id === args.versionId) {
+    await tx.project.update({ where: { id: args.projectId }, data: { status: "SENT_TO_CLIENT" } });
+  }
+
+  await recordAudit(tx, {
+    projectId: args.projectId,
+    actorType: "SYSTEM",
+    actorName: "Barebase BOQ Studio",
+    action: `V${version.number} is no longer approved — ${args.contactName} raised an issue on ${args.itemName}`,
+    detail: { versionId: args.versionId },
+  });
+}
+
 export async function submitItemApproval(input: {
   token: string;
   versionId: string;
@@ -160,6 +206,7 @@ export async function submitItemApproval(input: {
   if (!item) return { ok: false, error: "That line item isn't part of this version." };
 
   const comment = input.comment?.trim() || null;
+  const itemName = item.desc || "(untitled item)";
 
   await prisma.$transaction(async (tx) => {
     await tx.itemApproval.upsert({
@@ -185,9 +232,20 @@ export async function submitItemApproval(input: {
       projectId: access.project.id,
       actorType: "CLIENT",
       actorName: access.contact.name,
-      action: `${approvalLabel(input.status)} — ${item.desc || "(untitled item)"}`,
+      action: `${approvalLabel(input.status)} — ${itemName}${comment ? `: “${comment}”` : ""}`,
       detail: { versionId: version.id, lineItemId: input.lineItemId, comment },
     });
+
+    if (input.status === "REJECTED" || input.status === "REVISION_REQUESTED") {
+      await unsettleVersionApproval(tx, {
+        versionId: version.id,
+        projectId: access.project.id,
+        contactId: access.contact.id,
+        contactName: access.contact.name,
+        itemName,
+      });
+      return;
+    }
 
     await settleVersionApproval(tx, {
       versionId: version.id,
@@ -200,7 +258,83 @@ export async function submitItemApproval(input: {
 
   revalidatePath(`/c/${input.token}`);
   revalidatePath(`/projects/${access.project.id}`);
+  revalidatePath(`/projects/${access.project.id}/review`);
   return { ok: true };
+}
+
+/**
+ * Leave a note on a line without changing its verdict.
+ *
+ * A client should be able to flag something on an item they're otherwise happy
+ * to approve — "fine, but can we see a sample first" — without that being read
+ * as a rejection. Saving a note on an untouched line leaves it Pending rather
+ * than quietly deciding for them.
+ */
+export async function submitItemComment(input: {
+  token: string;
+  versionId: string;
+  lineItemId: string;
+  comment: string;
+}): Promise<ClientActionResult> {
+  const access = await resolveClientAccess(input.token);
+  if (!access) return { ok: false, error: "This link is no longer active." };
+
+  const version = await prisma.version.findFirst({
+    where: { id: input.versionId, projectId: access.project.id, status: { in: ["SENT_TO_CLIENT", "APPROVED"] } },
+  });
+  if (!version) return { ok: false, error: "That version isn't available for review." };
+
+  const snapshot = parseSnapshot(version.snapshot);
+  const item = snapshot.sections.flatMap((s) => s.items).find((i) => i.id === input.lineItemId);
+  if (!item) return { ok: false, error: "That line item isn't part of this version." };
+
+  const comment = input.comment.trim() || null;
+
+  const existing = await prisma.itemApproval.findUnique({
+    where: {
+      versionId_contactId_lineItemId: {
+        versionId: version.id,
+        contactId: access.contact.id,
+        lineItemId: input.lineItemId,
+      },
+    },
+  });
+
+  await prisma.$transaction(async (tx) => {
+    await tx.itemApproval.upsert({
+      where: {
+        versionId_contactId_lineItemId: {
+          versionId: version.id,
+          contactId: access.contact.id,
+          lineItemId: input.lineItemId,
+        },
+      },
+      create: {
+        versionId: version.id,
+        contactId: access.contact.id,
+        lineItemId: input.lineItemId,
+        lineItemName: item.desc,
+        status: "PENDING",
+        comment,
+      },
+      update: { comment, lineItemName: item.desc },
+    });
+
+    await recordAudit(tx, {
+      projectId: access.project.id,
+      actorType: "CLIENT",
+      actorName: access.contact.name,
+      action: comment
+        ? `Commented on ${item.desc || "(untitled item)"}: “${comment}”`
+        : `Removed their note on ${item.desc || "(untitled item)"}`,
+      detail: { versionId: version.id, lineItemId: input.lineItemId, comment },
+    });
+  });
+
+  revalidatePath(`/c/${input.token}`);
+  revalidatePath(`/projects/${access.project.id}`);
+  revalidatePath(`/projects/${access.project.id}/review`);
+  return { ok: true, status: existing?.status ?? "PENDING" };
 }
 
 export async function approveWholeVersion(input: {
@@ -262,6 +396,7 @@ export async function approveWholeVersion(input: {
 
   revalidatePath(`/c/${input.token}`);
   revalidatePath(`/projects/${access.project.id}`);
+  revalidatePath(`/projects/${access.project.id}/review`);
   return { ok: true };
 }
 

@@ -3,7 +3,7 @@ import type { BoqSnapshot } from "@/lib/boq";
 import { prisma } from "@/lib/db";
 import { getProjectPageData, toSnapshot } from "@/lib/project-page";
 import { parseSnapshot } from "@/lib/serialize";
-import { latestApprovedVersion } from "@/lib/versions";
+import { latestApprovedVersion, reviewAttentionCount } from "@/lib/versions";
 
 export const dynamic = "force-dynamic";
 
@@ -28,12 +28,13 @@ export default async function BuildPage({ params }: { params: Promise<{ id: stri
   const { user, project, letterhead } = await getProjectPageData(id);
   const canSeeCost = user.role === "ADMIN";
 
-  const [rateItems, approved] = await Promise.all([
+  const [rateItems, approved, reviewFlag] = await Promise.all([
     prisma.rateItem.findMany({
       where: { orgId: user.orgId },
       orderBy: [{ category: "asc" }, { position: "asc" }],
     }),
     latestApprovedVersion(project.id),
+    reviewAttentionCount(project.id),
   ]);
 
   const live = toSnapshot(project);
@@ -43,6 +44,7 @@ export default async function BuildPage({ params }: { params: Promise<{ id: stri
     <BoqBuilder
       projectId={project.id}
       canSeeCost={canSeeCost}
+      reviewFlag={reviewFlag}
       initialSnapshot={canSeeCost ? live : withoutCost(live)}
       initialUpdatedAt={project.updatedAt.toISOString()}
       rateEntries={rateItems.map((item) => ({

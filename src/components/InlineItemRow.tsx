@@ -36,6 +36,8 @@ export default function InlineItemRow({
   showCost,
   diffKind,
   diffChanges,
+  tone,
+  annotation,
   onStartEdit,
   onChange,
   onSave,
@@ -51,12 +53,21 @@ export default function InlineItemRow({
   showCost: boolean;
   diffKind: "new" | "changed" | "unchanged";
   diffChanges: FieldChange[];
+  /** Extra class on the row — the Client Review screen colours by verdict. */
+  tone?: string;
+  /**
+   * Rendered with the row in both modes: the Client Review screen puts the
+   * client's verdict and comment here, so it stays beside the item while the
+   * team edits it.
+   */
+  annotation?: React.ReactNode;
   onStartEdit: () => void;
   onChange: (next: BoqItem) => void;
   /** Commit just this row. */
   onSave: () => void;
   onDiscard: () => void;
-  onRemove: () => void;
+  /** Omitted where deleting doesn't belong — the Client Review screen. */
+  onRemove?: () => void;
 }) {
   const [showDetails, setShowDetails] = useState(false);
 
@@ -70,7 +81,11 @@ export default function InlineItemRow({
     const dimText = dimSummary(row);
 
     return (
-      <div className={`compact-row${diffKind === "new" ? " is-new" : diffKind === "changed" ? " is-changed" : ""}`}>
+      <div
+        className={`compact-row${diffKind === "new" ? " is-new" : diffKind === "changed" ? " is-changed" : ""}${
+          tone ? ` ${tone}` : ""
+        }`}
+      >
         <span className="cr-num">{String(index + 1).padStart(2, "0")}</span>
         <div className="cr-desc">
           <div className="main-line">
@@ -90,6 +105,7 @@ export default function InlineItemRow({
             {[categoryLabel(row.category), spec, dimText].filter(Boolean).join(" · ")}
             {row.note ? ` · note: ${row.note}` : ""}
           </div>
+          {annotation}
         </div>
         <div className="cr-qty">
           {qty || 0} {row.unit} @ {fmtPlain(row.rate || 0)}
@@ -99,9 +115,11 @@ export default function InlineItemRow({
           <button className="icon-btn" title="Edit this row" onClick={onStartEdit}>
             ✎
           </button>
-          <button className="icon-btn danger" title="Remove" onClick={onRemove}>
-            ✕
-          </button>
+          {onRemove ? (
+            <button className="icon-btn danger" title="Remove" onClick={onRemove}>
+              ✕
+            </button>
+          ) : null}
         </div>
       </div>
     );
@@ -152,10 +170,11 @@ export default function InlineItemRow({
   const finishes = finishOptions(entries, row.category, row.desc, row.material);
 
   return (
-    <div className="compact-row editing-row">
+    <div className={`compact-row editing-row${tone ? ` ${tone}` : ""}`}>
       <span className="cr-num">{String(index + 1).padStart(2, "0")}</span>
 
       <div className="inline-edit">
+        {annotation ? <div className="inline-edit-annotation">{annotation}</div> : null}
         <div className="inline-edit-line">
           <div className="item-field grow2">
             <label>Category</label>
