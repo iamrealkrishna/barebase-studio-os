@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { recordAudit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth";
 import { computeQty, type BoqSnapshot } from "@/lib/boq";
-import { prisma } from "@/lib/db";
+import { BULK_TX, prisma } from "@/lib/db";
 import { toLineItemData, toSnapshot } from "@/lib/serialize";
 import { loadProject, projectInclude } from "@/lib/versions";
 
@@ -78,7 +78,21 @@ export async function listImportableProjects(excludeProjectId: string): Promise<
 export async function getProjectForImport(projectId: string): Promise<BoqSnapshot | null> {
   const user = await requireUser();
   const project = await loadProject(projectId, user.orgId);
-  return project ? toSnapshot(project) : null;
+  if (!project) return null;
+
+  const snapshot = toSnapshot(project);
+  if (user.role === "ADMIN") return snapshot;
+
+  // Internal cost never reaches a team member's browser, here included. The
+  // imported lines come back through saveBoq, which resolves their cost from
+  // the rate card server-side rather than trusting these zeros.
+  return {
+    ...snapshot,
+    sections: snapshot.sections.map((section) => ({
+      ...section,
+      items: section.items.map((item) => ({ ...item, cost: 0 })),
+    })),
+  };
 }
 
 /** Clone a whole project — sections, items and settings — as a new project. */
@@ -169,7 +183,7 @@ export async function duplicateProject(formData: FormData): Promise<void> {
     });
 
     return created;
-  });
+  }, BULK_TX);
 
   revalidatePath("/projects");
   redirect(`/projects/${copy.id}/build`);

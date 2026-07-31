@@ -7,7 +7,8 @@ import type { BoqStatus, Prisma } from "@prisma/client";
 import { recordAudit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth";
 import { DEFAULT_TERMS, FIXED_SECTIONS, type BoqItem } from "@/lib/boq";
-import { prisma } from "@/lib/db";
+import { BULK_TX, prisma } from "@/lib/db";
+import { findRateRow, type RateEntry } from "@/lib/rate-card";
 import { toLineItemData } from "@/lib/serialize";
 import { createVersion, loadProject } from "@/lib/versions";
 
@@ -166,13 +167,24 @@ export type SaveBoqResult = {
  * matches the row. This save deletes any line the payload omits, so a client
  * holding a stale snapshot — a replayed router-cache payload, a second tab, a
  * colleague mid-edit — would otherwise wipe work it never saw.
+ *
+ * Internal cost is admin-only and never reaches a team member's browser, so a
+ * member's payload carries zeros. Those are discarded rather than written —
+ * see `resolveCost`.
  */
 export async function saveBoq(input: SaveBoqInput): Promise<SaveBoqResult> {
   const user = await requireUser();
+  const canSetCost = user.role === "ADMIN";
 
   const project = await prisma.project.findFirst({
     where: { id: input.projectId, orgId: user.orgId },
-    include: { sections: { include: { items: { select: { id: true } } } } },
+    include: {
+      sections: {
+        include: {
+          items: { select: { id: true, category: true, name: true, material: true, finish: true, cost: true } },
+        },
+      },
+    },
   });
   if (!project) return { ok: false, idMap: {}, error: "Project not found." };
 
@@ -185,8 +197,45 @@ export async function saveBoq(input: SaveBoqInput): Promise<SaveBoqResult> {
     };
   }
 
-  const knownItemIds = new Set(project.sections.flatMap((s) => s.items.map((i) => i.id)));
+  const stored = new Map(project.sections.flatMap((s) => s.items).map((item) => [item.id, item]));
+  const knownItemIds = new Set(stored.keys());
   const idMap: Record<string, string> = {};
+
+  // Only loaded when it's needed — an admin's payload is taken at face value.
+  const rateCard: RateEntry[] = canSetCost
+    ? []
+    : (
+        await prisma.rateItem.findMany({
+          where: { orgId: user.orgId },
+          select: { id: true, category: true, name: true, material: true, finish: true, unit: true, rate: true, cost: true },
+        })
+      );
+
+  /**
+   * What to actually store as this line's internal cost.
+   *
+   * A team member's browser has no cost figures, so anything it sends back is a
+   * zero we must not write. For a line already on record we keep exactly what's
+   * stored. For a new line — or one a member re-pointed at a different rate-card
+   * item — we look the cost up from the rate card, falling back to whatever was
+   * there before. The result is that a member can build and edit freely without
+   * ever seeing margin, and without erasing it either.
+   */
+  const resolveCost = (item: BoqItem): number => {
+    if (canSetCost) return item.cost;
+
+    const previous = stored.get(item.id);
+    const unchangedIdentity =
+      previous !== undefined &&
+      previous.category === item.category &&
+      previous.name === item.desc &&
+      previous.material === item.material &&
+      previous.finish === item.finish;
+    if (unchangedIdentity) return previous.cost;
+
+    const row = findRateRow(rateCard, item.category, item.desc, item.material, item.finish);
+    return row?.cost ?? previous?.cost ?? 0;
+  };
 
   await prisma.$transaction(async (tx) => {
     await tx.project.update({
@@ -220,7 +269,7 @@ export async function saveBoq(input: SaveBoqInput): Promise<SaveBoqResult> {
       keptSectionIds.push(row.id);
 
       for (const [itemPosition, item] of section.items.entries()) {
-        const data = toLineItemData(item, itemPosition);
+        const data = { ...toLineItemData(item, itemPosition), cost: resolveCost(item) };
         if (knownItemIds.has(item.id)) {
           await tx.lineItem.update({ where: { id: item.id }, data: { ...data, sectionId: row.id } });
           keptItemIds.push(item.id);
@@ -238,7 +287,7 @@ export async function saveBoq(input: SaveBoqInput): Promise<SaveBoqResult> {
     await tx.section.deleteMany({
       where: { projectId: project.id, id: { notIn: keptSectionIds.length ? keptSectionIds : ["-"] } },
     });
-  });
+  }, BULK_TX);
 
   const saved = await prisma.project.findUnique({
     where: { id: project.id },
@@ -333,7 +382,7 @@ export async function restoreVersion(formData: FormData): Promise<void> {
       action: `Restored V${version.number} into the live BOQ`,
       detail: { versionId } as Prisma.InputJsonValue,
     });
-  });
+  }, BULK_TX);
 
   revalidatePath(`/projects/${projectId}`);
   redirect(`/projects/${projectId}/build`);

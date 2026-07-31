@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { hashPassword, requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 export type OrgFormState = { ok?: string; error?: string };
@@ -28,23 +28,5 @@ export async function updateOrganisation(_prev: OrgFormState, formData: FormData
   return { ok: "Letterhead and default terms saved." };
 }
 
-export type PasswordState = { ok?: string; error?: string };
-
-export async function changeOwnPassword(_prev: PasswordState, formData: FormData): Promise<PasswordState> {
-  const user = await requireUser();
-  const current = String(formData.get("current") ?? "");
-  const next = String(formData.get("next") ?? "");
-
-  if (next.length < 8) return { error: "New password must be at least 8 characters." };
-
-  const record = await prisma.user.findUnique({ where: { id: user.id } });
-  if (!record) return { error: "Could not find your account." };
-
-  const { verifyPassword } = await import("@/lib/auth");
-  if (!(await verifyPassword(current, record.passwordHash))) {
-    return { error: "Your current password isn't right." };
-  }
-
-  await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(next) } });
-  return { ok: "Password updated." };
-}
+// Your own password and profile live in src/actions/account.ts, alongside the
+// rest of the account page — this file is organisation-wide settings only.

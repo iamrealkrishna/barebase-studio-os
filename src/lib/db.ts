@@ -11,3 +11,15 @@ export const prisma =
   });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+/**
+ * Transaction options for the writes that loop over rows.
+ *
+ * Prisma's default interactive-transaction timeout is 5 seconds, which a
+ * 250-row rate card save or a whole-BOQ save can exceed on a slow connection —
+ * the transaction then expires mid-commit and the whole write is lost with a
+ * P2028. These writes are inherently row-by-row (ids have to stay stable, so
+ * they're updates, not a delete-and-recreate), so the fix is to let them take
+ * the time they need rather than to do less work.
+ */
+export const BULK_TX = { timeout: 30_000, maxWait: 10_000 } as const;

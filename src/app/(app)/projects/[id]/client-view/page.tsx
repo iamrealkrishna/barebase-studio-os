@@ -27,7 +27,9 @@ export default async function ClientViewPage({ params }: { params: Promise<{ id:
       // Cost, margin and internal notes are stripped before this ever renders.
       snapshot={toClientSnapshot(toSnapshot(project))}
       letterhead={letterhead}
-      approvedSnapshot={approved ? parseSnapshot(approved.snapshot) : null}
+      // Stripped too: it's only here to diff against, and the diff runs on
+      // client-visible fields, which cost and internal notes aren't.
+      approvedSnapshot={approved ? toClientSnapshot(parseSnapshot(approved.snapshot)) : null}
       approvedVersionNumber={approved?.number ?? null}
       shareLinks={contacts.map((contact) => ({
         id: contact.id,

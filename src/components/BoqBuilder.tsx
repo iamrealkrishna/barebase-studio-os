@@ -45,6 +45,7 @@ export default function BoqBuilder({
   letterhead,
   approvedSnapshot,
   approvedVersionNumber,
+  canSeeCost,
 }: {
   projectId: string;
   initialSnapshot: BoqSnapshot;
@@ -53,6 +54,13 @@ export default function BoqBuilder({
   letterhead: Letterhead;
   approvedSnapshot: BoqSnapshot | null;
   approvedVersionNumber: number | null;
+  /**
+   * Admins only. Internal cost and margin — and the Internal PDF that prints
+   * them — are hidden from team members. The server does the real enforcing:
+   * a member's snapshot and rate card arrive with cost zeroed, and `saveBoq`
+   * ignores whatever cost a member's browser sends back.
+   */
+  canSeeCost: boolean;
 }) {
   const router = useRouter();
   const { message, toast } = useToast();
@@ -61,7 +69,8 @@ export default function BoqBuilder({
   const [activeSection, setActiveSection] = useState<string | null>(initialSnapshot.sections[0]?.name ?? null);
   const [formOpen, setFormOpen] = useState(false);
   const [draft, setDraft] = useState<BoqItem | null>(null);
-  const [showCost, setShowCost] = useState(false);
+  const [costOn, setCostOn] = useState(false);
+  const showCost = canSeeCost && costOn;
   const [saveState, setSaveState] = useState<SaveState>("saved");
   const [visibleSection, setVisibleSection] = useState<string>("__all__");
   const [customSectionOpen, setCustomSectionOpen] = useState(false);
@@ -406,17 +415,23 @@ export default function BoqBuilder({
         right={
           <>
             <span className={`saving-chip${saveState === "saved" ? "" : " dirty"}`}>{saveChip}</span>
-            <label className="cost-toggle">
-              <input type="checkbox" checked={showCost} onChange={(e) => setShowCost(e.target.checked)} /> Cost &amp;
-              margin
-            </label>
-            <PdfButton
-              snapshot={snapshot}
-              letterhead={letterhead}
-              mode="internal"
-              label="Internal PDF"
-              onError={toast}
-            />
+            {/* Cost, margin and the Internal PDF that prints them are admin-only.
+                A member never gets the numbers, so there's nothing to toggle. */}
+            {canSeeCost ? (
+              <>
+                <label className="cost-toggle">
+                  <input type="checkbox" checked={costOn} onChange={(e) => setCostOn(e.target.checked)} /> Cost &amp;
+                  margin
+                </label>
+                <PdfButton
+                  snapshot={snapshot}
+                  letterhead={letterhead}
+                  mode="internal"
+                  label="Internal PDF"
+                  onError={toast}
+                />
+              </>
+            ) : null}
             <PdfButton
               snapshot={snapshot}
               letterhead={letterhead}
@@ -665,13 +680,15 @@ export default function BoqBuilder({
           onMetaChange={setMeta}
           footer={
             <div className="pdf-buttons">
-              <PdfButton
-                snapshot={snapshot}
-                letterhead={letterhead}
-                mode="internal"
-                label="Internal PDF"
-                onError={toast}
-              />
+              {canSeeCost ? (
+                <PdfButton
+                  snapshot={snapshot}
+                  letterhead={letterhead}
+                  mode="internal"
+                  label="Internal PDF"
+                  onError={toast}
+                />
+              ) : null}
               <PdfButton
                 snapshot={snapshot}
                 letterhead={letterhead}

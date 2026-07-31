@@ -6,11 +6,19 @@ import { usePathname } from "next/navigation";
 import { signOut } from "@/actions/auth";
 import type { SessionUser } from "@/lib/auth";
 
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export default function TopBar({ user }: { user: SessionUser }) {
   const pathname = usePathname() ?? "";
   const onProjects = pathname.startsWith("/projects");
   const onSettings = pathname.startsWith("/settings");
   const onTeam = pathname.startsWith("/team");
+  const onAccount = pathname.startsWith("/account");
   const isAdmin = user.role === "ADMIN";
 
   return (
@@ -36,9 +44,19 @@ export default function TopBar({ user }: { user: SessionUser }) {
       </nav>
 
       <div className="topbar-user">
-        <span className="who">
-          {user.name} · {user.role === "ADMIN" ? "Admin" : "Team"}
-        </span>
+        <Link
+          href="/account"
+          className={`user-chip${onAccount ? " active" : ""}`}
+          title="Your account — profile, password and what your role can do"
+        >
+          <span className="user-avatar" aria-hidden="true">
+            {initials(user.name)}
+          </span>
+          <span className="user-meta">
+            <span className="who">{user.name}</span>
+            <span className="role">{isAdmin ? "Admin" : "Team member"}</span>
+          </span>
+        </Link>
         <form action={signOut}>
           <button type="submit" className="linkbtn">
             Sign out

@@ -52,7 +52,8 @@ the single-file prototype that relied on Claude's artifact storage.
 - Long-form client-facing **scope of work** per item, plus a separate
   internal-only note, plus a reference photo (compressed client-side).
 - Discount (₹ or %), GST toggle with 5/12/18/28/custom split into CGST/SGST,
-  and a **Cost & margin** toggle that's off by default and never leaves the org.
+  and an admin-only **Cost & margin** toggle that's off by default and never
+  leaves the org.
 - **Client-facing column toggles** — Material, Finish, Qty and Rate per unit.
   Per-project, and honoured identically by the Client View page, the Client PDF
   and the Internal PDF: switch Rate off and it's gone from all three. Qty covers
@@ -88,9 +89,17 @@ comment. Once an approved version exists, any later edit to an approved line
 automatically raises a **Change Order** recording old → new, and every action by
 either side lands in the audit trail.
 
+**Your account** (`/account`, from the chip in the top right) — everything that
+belongs to you rather than to the organisation, in one place: your name and
+email (the email is your sign-in, so changing it changes what you log in with),
+your password, a plain table of **what your role can and can't do** with the
+admin-only rows marked, the projects you started most recently, and sign-out.
+Your name is what gets stamped on versions and audit entries, so editing it here
+updates the top bar and everything downstream.
+
 **Rate Card & Settings** (`/settings`) — the 253-item default rate card across
 17 categories, editable in-place and shared team-wide (admin only), with
-letterhead, default terms and your own password. **Unit** is a dropdown rather
+letterhead and default terms. **Unit** is a dropdown rather
 than a free-text box, labelled with what each one does to the entry form —
 "SQFT — length × breadth", "Nos. — typed quantity" — so the dimension behaviour
 is visible at the point of choosing. It lists the standard units plus any the
@@ -121,12 +130,24 @@ can't be demoted or deactivated, and you can't deactivate yourself.
 
 | Role | Can do |
 |---|---|
-| Admin | Everything, including the rate card, bulk import, organisation settings and the Team page |
-| Team member | Build and version BOQs, manage client contacts; can't edit the rate card and can't reach `/team` |
+| Admin | Everything, including internal cost and margin, the rate card, bulk import, organisation settings and the Team page |
+| Team member | Build and version BOQs, manage client contacts; can't see cost or margin, can't edit the rate card, can't reach `/team` |
 | Client contact | Read + approve, scoped to one project. Never sees cost, margin, internal notes or version history. |
 
 Role checks run server-side on every entry point — hiding a nav link is never
 the thing keeping someone out.
+
+**Internal cost and margin are admin-only**, and enforced by not sending the
+numbers rather than by hiding them. A team member's Build BOQ page, rate card
+and project-import payloads all arrive with `cost` zeroed, so there's nothing to
+find in devtools; the Cost & margin toggle and the Internal PDF button aren't
+rendered for them at all. Because their browser has no cost to send back,
+`saveBoq` ignores cost from a non-admin entirely: a line already on record keeps
+exactly the cost that's stored, and a new line — or one whose rate-card identity
+a member changed — has its cost resolved from the rate card server-side. A
+member can therefore build, edit and import freely without ever seeing margin
+and without erasing it. The one thing they can't do is set a cost on a bespoke
+item that isn't in the rate card; that stays at zero until an admin fills it in.
 
 ## Running it locally
 

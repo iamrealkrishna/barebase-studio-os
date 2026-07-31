@@ -4,7 +4,7 @@ import type { BoqStatus, Prisma } from "@prisma/client";
 
 import { CLIENT_VISIBLE_FIELDS, diffSnapshots, type BoqSnapshot } from "./boq";
 import { recordAudit } from "./audit";
-import { prisma } from "./db";
+import { BULK_TX, prisma } from "./db";
 import { parseSnapshot, toSnapshot, type ProjectWithBoq } from "./serialize";
 
 export const projectInclude = {
@@ -154,7 +154,7 @@ export async function createVersion({
     });
 
     return version;
-  });
+  }, BULK_TX);
 }
 
 /** The version a client link should show: the newest one they've been sent. */
