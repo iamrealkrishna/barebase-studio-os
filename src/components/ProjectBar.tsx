@@ -2,20 +2,23 @@
 
 import Link from "next/link";
 
-export type ProjectTab = "build" | "clientview" | "versions";
+export type ProjectTab = "build" | "clientview" | "review" | "versions";
 
 export default function ProjectBar({
   projectId,
   projectName,
   active,
   right,
+  reviewFlag,
 }: {
   projectId: string;
   projectName: string;
   active: ProjectTab;
   right?: React.ReactNode;
+  /** Count of lines the client rejected or commented on, shown on the tab. */
+  reviewFlag?: number;
 }) {
-  const tab = (key: ProjectTab, href: string, label: string) => (
+  const tab = (key: ProjectTab, href: string, label: React.ReactNode) => (
     <Link key={key} href={href} className={`nav-link${active === key ? " active" : ""}`}>
       {label}
     </Link>
@@ -35,6 +38,14 @@ export default function ProjectBar({
       <nav className="page-toggle" style={{ background: "var(--ink)" }}>
         {tab("build", `/projects/${projectId}/build`, "Build BOQ")}
         {tab("clientview", `/projects/${projectId}/client-view`, "Client View")}
+        {tab(
+          "review",
+          `/projects/${projectId}/review`,
+          <>
+            Client Review
+            {reviewFlag ? <span className="tab-flag">{reviewFlag}</span> : null}
+          </>,
+        )}
         {tab("versions", `/projects/${projectId}`, "Versions & Approvals")}
       </nav>
 

@@ -1,5 +1,6 @@
+import Link from "next/link";
+
 import OrgSettingsForm from "@/components/OrgSettingsForm";
-import OwnPasswordForm from "@/components/OwnPasswordForm";
 import RateCardEditor from "@/components/RateCardEditor";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
@@ -28,7 +29,8 @@ export default async function SettingsPage() {
       {!isAdmin ? (
         <div className="flash err">
           You&apos;re signed in as a team member — you can build BOQs, but rate card and organisation settings are
-          admin-only.
+          admin-only, and internal cost is hidden. Your own name, email and password live on{" "}
+          <Link href="/account">your account page</Link>.
         </div>
       ) : null}
 
@@ -47,6 +49,7 @@ export default async function SettingsPage() {
 
       <RateCardEditor
         canEdit={isAdmin}
+        canSeeCost={isAdmin}
         orgName={org.name}
         initialEntries={rateItems.map((item) => ({
           id: item.id,
@@ -56,11 +59,11 @@ export default async function SettingsPage() {
           finish: item.finish,
           unit: item.unit,
           rate: item.rate,
-          cost: item.cost,
+          // Internal cost is admin-only, so it isn't sent to a member's browser
+          // at all. Writes are admin-only too, so the zero can never come back.
+          cost: isAdmin ? item.cost : 0,
         }))}
       />
-
-      <OwnPasswordForm />
     </div>
   );
 }

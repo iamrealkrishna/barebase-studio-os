@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { BULK_TX, prisma } from "@/lib/db";
 import { matchKey, parseMoney, type RawCsvRow } from "@/lib/rate-card-csv";
 
 export type FieldDelta = {
@@ -335,7 +335,7 @@ export async function commitRateCardImport(plan: ImportPlan): Promise<CommitResu
         });
         inserted = plan.inserts.length;
       }
-    });
+    }, BULK_TX);
   } catch {
     return { ok: false, updated: 0, inserted: 0, conflicts: [], error: "Could not apply the import — nothing was changed." };
   }

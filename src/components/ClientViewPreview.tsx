@@ -20,6 +20,7 @@ export default function ClientViewPreview({
   approvedSnapshot,
   approvedVersionNumber,
   shareLinks,
+  reviewFlag,
 }: {
   projectId: string;
   projectName: string;
@@ -28,6 +29,7 @@ export default function ClientViewPreview({
   approvedSnapshot: BoqSnapshot | null;
   approvedVersionNumber: number | null;
   shareLinks: { id: string; name: string; email: string; url: string }[];
+  reviewFlag: number;
 }) {
   const { message, toast } = useToast();
   const [pendingCols, startColsTransition] = useTransition();
@@ -61,6 +63,7 @@ export default function ClientViewPreview({
         projectId={projectId}
         projectName={projectName}
         active="clientview"
+        reviewFlag={reviewFlag}
         right={
           <PdfButton
             snapshot={shown}

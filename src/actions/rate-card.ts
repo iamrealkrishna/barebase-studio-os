@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { requireUser } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { BULK_TX, prisma } from "@/lib/db";
 import { DEFAULT_RATE_CARD } from "@/lib/default-rate-card";
 import type { RateEntry } from "@/lib/rate-card";
 
@@ -53,7 +53,7 @@ export async function saveRateCard(entries: RateEntry[]): Promise<RateCardResult
     await tx.rateItem.deleteMany({
       where: { orgId: user.orgId, id: { notIn: kept.length ? kept : ["-"] } },
     });
-  });
+  }, BULK_TX);
 
   revalidatePath("/settings");
   return { ok: true };
@@ -68,7 +68,7 @@ export async function resetRateCard(): Promise<RateCardResult> {
     await tx.rateItem.createMany({
       data: DEFAULT_RATE_CARD.map((item, position) => ({ ...item, orgId: user.orgId, position })),
     });
-  });
+  }, BULK_TX);
 
   revalidatePath("/settings");
   return { ok: true };

@@ -52,7 +52,8 @@ the single-file prototype that relied on Claude's artifact storage.
 - Long-form client-facing **scope of work** per item, plus a separate
   internal-only note, plus a reference photo (compressed client-side).
 - Discount (₹ or %), GST toggle with 5/12/18/28/custom split into CGST/SGST,
-  and a **Cost & margin** toggle that's off by default and never leaves the org.
+  and an admin-only **Cost & margin** toggle that's off by default and never
+  leaves the org.
 - **Client-facing column toggles** — Material, Finish, Qty and Rate per unit.
   Per-project, and honoured identically by the Client View page, the Client PDF
   and the Internal PDF: switch Rate off and it's gone from all three. Qty covers
@@ -83,14 +84,51 @@ about the revision history is exposed.
 
 **Approvals & change orders** — each project gets client contacts with their
 own share link (no account, no login). A client can approve the whole estimate
-in one click or go line by line with approve / request change / reject /
-comment. Once an approved version exists, any later edit to an approved line
-automatically raises a **Change Order** recording old → new, and every action by
-either side lands in the audit trail.
+in one click or go line by line: **Approve / Reject / Request change**, plus a
+note on any line. Rejecting opens the note box by itself and asks what's wrong,
+because a rejection with no reason gives the team nothing to act on. A note is
+never read as a verdict — you can approve a line *and* flag something about it
+("fine, but use the lighter shade"), and leaving a note on a line you haven't
+decided on yet leaves it Pending rather than deciding for you. Each verdict and
+note is stored against that specific line **and that specific version**. A
+client who rejects a line on a version they'd previously approved un-approves
+it: the version drops back to Sent to Client and their approval baseline moves
+back to whatever they genuinely approved before, so an approved version can
+never sit there contradicted by a rejection inside it.
+
+**Client Review** (`/projects/[id]/review`) — the team's side of that, shaped
+like the BOQ rather than as a separate list of responses, so a rejection is read
+in the context of the section it sits in. Every line carries the client's
+verdict and their comment inline, coloured with the same highlight family the
+Client View uses for new and changed lines: red for rejected, amber for a change
+requested, a quiet rule for approved-with-a-note. It opens filtered to **Needs
+attention** — anything rejected, queried or commented on — with **Every line**
+one click away, and a rollup across the top.
+
+Crucially it's editable in place: every row is the same inline editor as Build
+BOQ, with the client's words still on screen while you change the finish or drop
+the quantity. Edits go to the live BOQ through the same autosave, so changing a
+line that's already approved raises a **Change Order** on the next version
+exactly as it would on Build BOQ — old → new, recorded automatically, never a
+silent overwrite. **Save version & send back** snapshots the reworked BOQ as a
+new version and returns it to the client, closing the loop. Lines the client
+reviewed that have since been deleted are listed separately rather than quietly
+dropped, and the tab carries a badge with the number of lines still needing
+attention so it's visible from anywhere in the project.
+
+Every action by either side lands in the audit trail.
+
+**Your account** (`/account`, from the chip in the top right) — everything that
+belongs to you rather than to the organisation, in one place: your name and
+email (the email is your sign-in, so changing it changes what you log in with),
+your password, a plain table of **what your role can and can't do** with the
+admin-only rows marked, the projects you started most recently, and sign-out.
+Your name is what gets stamped on versions and audit entries, so editing it here
+updates the top bar and everything downstream.
 
 **Rate Card & Settings** (`/settings`) — the 253-item default rate card across
 17 categories, editable in-place and shared team-wide (admin only), with
-letterhead, default terms and your own password. **Unit** is a dropdown rather
+letterhead and default terms. **Unit** is a dropdown rather
 than a free-text box, labelled with what each one does to the entry form —
 "SQFT — length × breadth", "Nos. — typed quantity" — so the dimension behaviour
 is visible at the point of choosing. It lists the standard units plus any the
@@ -121,12 +159,24 @@ can't be demoted or deactivated, and you can't deactivate yourself.
 
 | Role | Can do |
 |---|---|
-| Admin | Everything, including the rate card, bulk import, organisation settings and the Team page |
-| Team member | Build and version BOQs, manage client contacts; can't edit the rate card and can't reach `/team` |
+| Admin | Everything, including internal cost and margin, the rate card, bulk import, organisation settings and the Team page |
+| Team member | Build and version BOQs, manage client contacts; can't see cost or margin, can't edit the rate card, can't reach `/team` |
 | Client contact | Read + approve, scoped to one project. Never sees cost, margin, internal notes or version history. |
 
 Role checks run server-side on every entry point — hiding a nav link is never
 the thing keeping someone out.
+
+**Internal cost and margin are admin-only**, and enforced by not sending the
+numbers rather than by hiding them. A team member's Build BOQ page, rate card
+and project-import payloads all arrive with `cost` zeroed, so there's nothing to
+find in devtools; the Cost & margin toggle and the Internal PDF button aren't
+rendered for them at all. Because their browser has no cost to send back,
+`saveBoq` ignores cost from a non-admin entirely: a line already on record keeps
+exactly the cost that's stored, and a new line — or one whose rate-card identity
+a member changed — has its cost resolved from the rate card server-side. A
+member can therefore build, edit and import freely without ever seeing margin
+and without erasing it. The one thing they can't do is set a cost on a bespoke
+item that isn't in the rate card; that stays at zero until an admin fills it in.
 
 ## Running it locally
 

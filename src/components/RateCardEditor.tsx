@@ -12,10 +12,13 @@ const CUSTOM_UNIT = "__custom_unit__";
 
 export default function RateCardEditor({
   canEdit,
+  canSeeCost,
   initialEntries,
   orgName,
 }: {
   canEdit: boolean;
+  /** Internal cost is admin-only — a member's entries arrive with cost zeroed. */
+  canSeeCost: boolean;
   initialEntries: RateEntry[];
   orgName: string;
 }) {
@@ -169,7 +172,7 @@ export default function RateCardEditor({
               <th style={{ width: "19%" }}>Finish</th>
               <th style={{ width: "8%" }}>Unit</th>
               <th style={{ width: "9%" }}>Rate ₹</th>
-              <th style={{ width: "9%" }}>Cost ₹</th>
+              {canSeeCost ? <th style={{ width: "9%" }}>Cost ₹</th> : null}
               <th />
             </tr>
           </thead>
@@ -237,15 +240,17 @@ export default function RateCardEditor({
                     onChange={(e) => patch(index, { rate: parseFloat(e.target.value) || 0 })}
                   />
                 </td>
-                <td>
-                  <input
-                    className="r-num"
-                    type="number"
-                    value={entry.cost}
-                    disabled={!canEdit}
-                    onChange={(e) => patch(index, { cost: parseFloat(e.target.value) || 0 })}
-                  />
-                </td>
+                {canSeeCost ? (
+                  <td>
+                    <input
+                      className="r-num"
+                      type="number"
+                      value={entry.cost}
+                      disabled={!canEdit}
+                      onChange={(e) => patch(index, { cost: parseFloat(e.target.value) || 0 })}
+                    />
+                  </td>
+                ) : null}
                 <td>
                   {canEdit ? (
                     <button className="rm-btn" title="Delete" onClick={() => removeRow(index)}>

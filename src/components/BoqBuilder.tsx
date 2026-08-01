@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { loadBoq, saveBoq, saveVersion } from "@/actions/projects";
+import { saveVersion } from "@/actions/projects";
 import EntryForm, { CUSTOM_CATEGORY, freshDraft } from "@/components/EntryForm";
 import ImportFromProject from "@/components/ImportFromProject";
 import InlineItemRow from "@/components/InlineItemRow";
@@ -19,23 +19,11 @@ import {
   PRESET_ROOMS,
   sectionTotal,
   type BoqItem,
-  type BoqMeta,
   type BoqSnapshot,
 } from "@/lib/boq";
 import type { Letterhead } from "@/lib/pdf";
 import { categoryList, type RateEntry } from "@/lib/rate-card";
-
-type SaveState = "saved" | "dirty" | "saving" | "error" | "conflict";
-
-function remapIds(snapshot: BoqSnapshot, idMap: Record<string, string>): BoqSnapshot {
-  return {
-    ...snapshot,
-    sections: snapshot.sections.map((section) => ({
-      ...section,
-      items: section.items.map((item) => (idMap[item.id] ? { ...item, id: idMap[item.id] } : item)),
-    })),
-  };
-}
+import { useBoqEditor } from "@/lib/use-boq-editor";
 
 export default function BoqBuilder({
   projectId,
@@ -45,6 +33,8 @@ export default function BoqBuilder({
   letterhead,
   approvedSnapshot,
   approvedVersionNumber,
+  canSeeCost,
+  reviewFlag,
 }: {
   projectId: string;
   initialSnapshot: BoqSnapshot;
@@ -53,148 +43,52 @@ export default function BoqBuilder({
   letterhead: Letterhead;
   approvedSnapshot: BoqSnapshot | null;
   approvedVersionNumber: number | null;
+  /**
+   * Admins only. Internal cost and margin — and the Internal PDF that prints
+   * them — are hidden from team members. The server does the real enforcing:
+   * a member's snapshot and rate card arrive with cost zeroed, and `saveBoq`
+   * ignores whatever cost a member's browser sends back.
+   */
+  canSeeCost: boolean;
+  /** Lines the client flagged — badges the Client Review tab. */
+  reviewFlag: number;
 }) {
   const router = useRouter();
   const { message, toast } = useToast();
 
-  const [snapshot, setSnapshot] = useState<BoqSnapshot>(initialSnapshot);
   const [activeSection, setActiveSection] = useState<string | null>(initialSnapshot.sections[0]?.name ?? null);
   const [formOpen, setFormOpen] = useState(false);
   const [draft, setDraft] = useState<BoqItem | null>(null);
-  const [showCost, setShowCost] = useState(false);
-  const [saveState, setSaveState] = useState<SaveState>("saved");
+  const [costOn, setCostOn] = useState(false);
+  const showCost = canSeeCost && costOn;
   const [visibleSection, setVisibleSection] = useState<string>("__all__");
   const [customSectionOpen, setCustomSectionOpen] = useState(false);
   const [customSectionName, setCustomSectionName] = useState("");
   const [sending, setSending] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
 
-  /**
-   * Rows opened for inline editing, keyed by item id.
-   *
-   * Deliberately kept out of `snapshot` so autosave can't pick them up: edits
-   * stay pending until "Save changes" commits every open row at once, and
-   * "Cancel" drops the lot.
-   */
-  const [pendingEdits, setPendingEdits] = useState<Record<string, BoqItem>>({});
-  const editCount = Object.keys(pendingEdits).length;
-
   const categories = useMemo(() => categoryList(rateEntries), [rateEntries]);
 
-  const snapshotRef = useRef(snapshot);
-  snapshotRef.current = snapshot;
-  const revision = useRef(0);
-  const savedRevision = useRef(0);
-  const inFlight = useRef(false);
-  const queued = useRef(false);
-
-  /** project.updatedAt this tab is working from; every save checks it. */
-  const baseUpdatedAt = useRef(initialUpdatedAt);
-  /** Autosave stays parked until the props have been checked against the DB. */
-  const [synced, setSynced] = useState(false);
-
-  /** Every user-driven mutation goes through here so autosave knows to fire. */
-  const update = useCallback((fn: (prev: BoqSnapshot) => BoqSnapshot) => {
-    revision.current += 1;
-    setSaveState("dirty");
-    setSnapshot(fn);
-  }, []);
-
-  const flush = useCallback(async () => {
-    if (inFlight.current) {
-      queued.current = true;
-      return;
-    }
-    const at = revision.current;
-    if (at === savedRevision.current) return;
-
-    inFlight.current = true;
-    setSaveState("saving");
-    try {
-      const current = snapshotRef.current;
-      const result = await saveBoq({
-        projectId,
-        expectedUpdatedAt: baseUpdatedAt.current,
-        meta: current.meta,
-        sections: current.sections,
-      });
-
-      if (result.conflict) {
-        // Someone (or some other tab) has moved this BOQ on. Stop writing —
-        // retrying would overwrite whatever they did.
-        setSaveState("conflict");
-        return;
-      }
-      if (!result.ok) throw new Error(result.error ?? "save rejected");
-
-      savedRevision.current = at;
-      if (result.updatedAt) baseUpdatedAt.current = result.updatedAt;
-      if (Object.keys(result.idMap).length > 0) {
-        setSnapshot((prev) => remapIds(prev, result.idMap));
-      }
-      setSaveState(revision.current === at ? "saved" : "dirty");
-    } catch {
-      setSaveState("error");
-    } finally {
-      inFlight.current = false;
-      if (queued.current) {
-        queued.current = false;
-        void flush();
-      }
-    }
-  }, [projectId]);
-
-  /**
-   * Confirm the server-rendered props are current before touching anything.
-   *
-   * A back/forward navigation can replay a cached RSC payload from before items
-   * were added; mounting on that and autosaving would delete them.
-   */
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      try {
-        const fresh = await loadBoq(projectId);
-        if (cancelled || !fresh) return;
-        if (fresh.updatedAt !== baseUpdatedAt.current) {
-          if (revision.current === savedRevision.current) {
-            // Nothing typed yet — quietly adopt the real state.
-            setSnapshot(fresh.snapshot);
-            baseUpdatedAt.current = fresh.updatedAt;
-          } else {
-            setSaveState("conflict");
-          }
-        }
-      } catch {
-        // Offline or the action failed; the save-time check still protects us.
-      } finally {
-        if (!cancelled) setSynced(true);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [projectId]);
-
-  // Debounced autosave. Typing a rate shouldn't cost a round trip per keystroke.
-  // A failed save backs off and tries again rather than sitting there dead —
-  // losing a section of typed items to a dropped connection is not acceptable.
-  useEffect(() => {
-    if (!synced) return;
-    if (saveState !== "dirty" && saveState !== "error") return;
-    const timer = setTimeout(() => void flush(), saveState === "error" ? 5000 : 900);
-    return () => clearTimeout(timer);
-  }, [synced, saveState, snapshot, flush]);
-
-  // Uncommitted inline edits count as unsaved work too — they only exist in
-  // this tab until "Save changes" is pressed.
-  useEffect(() => {
-    const onBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (revision.current !== savedRevision.current || editCount > 0) event.preventDefault();
-    };
-    window.addEventListener("beforeunload", onBeforeUnload);
-    return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [editCount]);
+  // Snapshot, autosave and inline row editing all live in the shared hook, so
+  // the Client Review screen edits this same BOQ through the same path.
+  const {
+    snapshot,
+    update,
+    setMeta,
+    flush,
+    saveState,
+    saveChip,
+    adoptUpdatedAt,
+    pendingEdits,
+    editCount,
+    startEdit,
+    changeEdit,
+    discardEdit,
+    cancelAllEdits,
+    saveRowEdit,
+    saveAllEdits,
+    removeItem,
+  } = useBoqEditor({ projectId, initialSnapshot, initialUpdatedAt });
 
   // What's moved since the client last approved — surfaced inline so nobody
   // edits approved scope without noticing it raises a change order.
@@ -202,9 +96,6 @@ export default function BoqBuilder({
     () => diffSnapshots(snapshot, approvedSnapshot, CLIENT_VISIBLE_FIELDS),
     [snapshot, approvedSnapshot],
   );
-
-  const setMeta = (changes: Partial<BoqMeta>) =>
-    update((prev) => ({ ...prev, meta: { ...prev.meta, ...changes } }));
 
   const openForm = (sectionName: string) => {
     setActiveSection(sectionName);
@@ -238,72 +129,25 @@ export default function BoqBuilder({
     setDraft(freshDraft(rateEntries, categories));
   };
 
-  // ------------------------------------------------------- inline row edits
-
-  const startEdit = (item: BoqItem) => {
-    setPendingEdits((prev) => (prev[item.id] ? prev : { ...prev, [item.id]: structuredClone(item) }));
-  };
-
-  const changeEdit = (id: string, next: BoqItem) => {
-    setPendingEdits((prev) => ({ ...prev, [id]: next }));
-  };
-
-  const discardEdit = (id: string) => {
-    setPendingEdits((prev) => {
-      const next = { ...prev };
-      delete next[id];
-      return next;
-    });
-  };
-
-  const cancelAllEdits = () => {
-    setPendingEdits({});
+  // Inline row edits come from the hook; these add the screen's own feedback.
+  const discardAll = () => {
+    cancelAllEdits();
     toast("Edits discarded");
   };
 
-  /** Commit a set of pending rows into the snapshot, which autosave then picks up. */
-  const commitEdits = (ids: string[]) => {
-    const committing = new Set(ids);
-    if (committing.size === 0) return;
-
-    update((prev) => ({
-      ...prev,
-      sections: prev.sections.map((section) => ({
-        ...section,
-        items: section.items.map((row) => {
-          if (!committing.has(row.id)) return row;
-          const edited = pendingEdits[row.id];
-          return edited ? { ...edited, qty: computeQty(edited) } : row;
-        }),
-      })),
-    }));
-
-    setPendingEdits((prev) => {
-      const next = { ...prev };
-      for (const id of committing) delete next[id];
-      return next;
-    });
-  };
-
-  const saveRowEdit = (id: string) => {
-    commitEdits([id]);
+  const saveRow = (id: string) => {
+    saveRowEdit(id);
     toast("Row saved");
   };
 
-  const saveAllEdits = () => {
+  const saveAll = () => {
     if (editCount === 0) return;
-    commitEdits(Object.keys(pendingEdits));
+    saveAllEdits();
     toast(`${editCount} row${editCount === 1 ? "" : "s"} saved`);
   };
 
-  const removeItem = (sectionName: string, id: string) => {
-    update((prev) => ({
-      ...prev,
-      sections: prev.sections.map((section) =>
-        section.name === sectionName ? { ...section, items: section.items.filter((r) => r.id !== id) } : section,
-      ),
-    }));
-    discardEdit(id);
+  const deleteItem = (sectionName: string, id: string) => {
+    removeItem(sectionName, id);
     toast("Item removed");
   };
 
@@ -379,7 +223,7 @@ export default function BoqBuilder({
       }
       // Versioning bumps updatedAt server-side; adopt it or the next autosave
       // would see its own change as somebody else's.
-      if (result.updatedAt) baseUpdatedAt.current = result.updatedAt;
+      if (result.updatedAt) adoptUpdatedAt(result.updatedAt);
       toast(`Saved as V${result.number} — sent to client`);
       router.push(`/projects/${projectId}/client-view`);
     } finally {
@@ -389,34 +233,33 @@ export default function BoqBuilder({
 
   const availableRooms = PRESET_ROOMS.filter((room) => !snapshot.sections.some((s) => s.name === room));
 
-  const saveChip = {
-    saved: "All changes saved",
-    dirty: "Unsaved changes",
-    saving: "Saving…",
-    error: "Save failed — retrying",
-    conflict: "Out of date — reload",
-  }[saveState];
-
   return (
     <>
       <ProjectBar
         projectId={projectId}
         projectName={snapshot.meta.property || "Untitled project"}
         active="build"
+        reviewFlag={reviewFlag}
         right={
           <>
             <span className={`saving-chip${saveState === "saved" ? "" : " dirty"}`}>{saveChip}</span>
-            <label className="cost-toggle">
-              <input type="checkbox" checked={showCost} onChange={(e) => setShowCost(e.target.checked)} /> Cost &amp;
-              margin
-            </label>
-            <PdfButton
-              snapshot={snapshot}
-              letterhead={letterhead}
-              mode="internal"
-              label="Internal PDF"
-              onError={toast}
-            />
+            {/* Cost, margin and the Internal PDF that prints them are admin-only.
+                A member never gets the numbers, so there's nothing to toggle. */}
+            {canSeeCost ? (
+              <>
+                <label className="cost-toggle">
+                  <input type="checkbox" checked={costOn} onChange={(e) => setCostOn(e.target.checked)} /> Cost &amp;
+                  margin
+                </label>
+                <PdfButton
+                  snapshot={snapshot}
+                  letterhead={letterhead}
+                  mode="internal"
+                  label="Internal PDF"
+                  onError={toast}
+                />
+              </>
+            ) : null}
             <PdfButton
               snapshot={snapshot}
               letterhead={letterhead}
@@ -574,9 +417,9 @@ export default function BoqBuilder({
                             diffChanges={entry?.changes ?? []}
                             onStartEdit={() => startEdit(item)}
                             onChange={(next) => changeEdit(item.id, next)}
-                            onSave={() => saveRowEdit(item.id)}
+                            onSave={() => saveRow(item.id)}
                             onDiscard={() => discardEdit(item.id)}
-                            onRemove={() => removeItem(section.name, item.id)}
+                            onRemove={() => deleteItem(section.name, item.id)}
                           />
                         );
                       })}
@@ -665,13 +508,15 @@ export default function BoqBuilder({
           onMetaChange={setMeta}
           footer={
             <div className="pdf-buttons">
-              <PdfButton
-                snapshot={snapshot}
-                letterhead={letterhead}
-                mode="internal"
-                label="Internal PDF"
-                onError={toast}
-              />
+              {canSeeCost ? (
+                <PdfButton
+                  snapshot={snapshot}
+                  letterhead={letterhead}
+                  mode="internal"
+                  label="Internal PDF"
+                  onError={toast}
+                />
+              ) : null}
               <PdfButton
                 snapshot={snapshot}
                 letterhead={letterhead}
@@ -697,10 +542,10 @@ export default function BoqBuilder({
           <span className="edit-bar-count">
             {editCount} row{editCount === 1 ? "" : "s"} open for editing — not saved yet
           </span>
-          <button className="btn light small" onClick={cancelAllEdits}>
+          <button className="btn light small" onClick={discardAll}>
             Discard all
           </button>
-          <button className="btn primary small" onClick={saveAllEdits}>
+          <button className="btn primary small" onClick={saveAll}>
             Save {editCount === 1 ? "row" : `all ${editCount} rows`}
           </button>
         </div>

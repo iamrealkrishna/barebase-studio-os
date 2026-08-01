@@ -19,6 +19,7 @@ import {
 import { prisma } from "@/lib/db";
 import { getProjectPageData, toSnapshot } from "@/lib/project-page";
 import { parseSnapshot } from "@/lib/serialize";
+import { reviewAttentionCount } from "@/lib/versions";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ export default async function ProjectVersionsPage({ params }: { params: Promise<
   const { id } = await params;
   const { project, letterhead } = await getProjectPageData(id);
 
-  const [versions, contacts, changeOrders, auditEvents] = await Promise.all([
+  const [versions, contacts, changeOrders, auditEvents, reviewFlag] = await Promise.all([
     prisma.version.findMany({
       where: { projectId: project.id },
       orderBy: { number: "desc" },
@@ -43,6 +44,7 @@ export default async function ProjectVersionsPage({ params }: { params: Promise<
       orderBy: { createdAt: "desc" },
       take: 120,
     }),
+    reviewAttentionCount(project.id),
   ]);
 
   const live = toSnapshot(project);
@@ -51,7 +53,7 @@ export default async function ProjectVersionsPage({ params }: { params: Promise<
 
   return (
     <>
-      <ProjectBar projectId={project.id} projectName={project.name} active="versions" />
+      <ProjectBar projectId={project.id} projectName={project.name} active="versions" reviewFlag={reviewFlag} />
 
       <div className="settings-wrap">
         {approvedVersion ? (

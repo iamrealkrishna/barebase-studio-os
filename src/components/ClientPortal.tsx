@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import type { ApprovalStatus } from "@prisma/client";
 
-import { approveWholeVersion, submitItemApproval } from "@/actions/approvals";
+import { approveWholeVersion, submitItemApproval, submitItemComment } from "@/actions/approvals";
 import ClientBoqView from "@/components/ClientBoqView";
 import { PdfButton } from "@/components/PdfButtons";
 import { Toast, useToast } from "@/components/Toast";
@@ -14,9 +14,19 @@ type ApprovalRecord = { lineItemId: string; status: ApprovalStatus; comment: str
 
 const BUTTONS: { status: ApprovalStatus; label: string; on: string }[] = [
   { status: "APPROVED", label: "Approve", on: "on-approve" },
-  { status: "REVISION_REQUESTED", label: "Request change", on: "on-revision" },
   { status: "REJECTED", label: "Reject", on: "on-reject" },
+  { status: "REVISION_REQUESTED", label: "Request change", on: "on-revision" },
 ];
+
+/** Statuses we ask for a reason on — the comment box opens by itself. */
+const WANTS_REASON: ApprovalStatus[] = ["REJECTED", "REVISION_REQUESTED"];
+
+const PROMPT: Record<string, string> = {
+  REJECTED: "What's wrong with this one? Barebase will see your note.",
+  REVISION_REQUESTED: "What would you like changed?",
+  APPROVED: "Anything to flag on this one? It stays approved.",
+  PENDING: "A question or note about this line…",
+};
 
 export default function ClientPortal({
   token,
@@ -51,11 +61,24 @@ export default function ClientPortal({
   );
 
   const total = countItems(snapshot);
-  const approvedCount = Object.values(approvals).filter((record) => record.status === "APPROVED").length;
-  const done = alreadyApproved || (total > 0 && approvedCount === total);
+  const records = Object.values(approvals);
+  const approvedCount = records.filter((record) => record.status === "APPROVED").length;
+  const flaggedCount = records.filter(
+    (record) => record.status === "REJECTED" || record.status === "REVISION_REQUESTED",
+  ).length;
+  const done = flaggedCount === 0 && (alreadyApproved || (total > 0 && approvedCount === total));
+
+  const draftFor = (item: BoqItem) => commentDraft[item.id] ?? approvals[item.id]?.comment ?? "";
 
   const setStatus = (item: BoqItem, status: ApprovalStatus) => {
-    const comment = (commentDraft[item.id] ?? approvals[item.id]?.comment ?? "").trim();
+    const comment = draftFor(item).trim();
+
+    // Rejecting without saying why helps nobody — record the verdict, then ask.
+    if (WANTS_REASON.includes(status) && !comment) {
+      setApprovals((prev) => ({ ...prev, [item.id]: { lineItemId: item.id, status, comment: "" } }));
+      setOpenComment(item.id);
+    }
+
     startTransition(async () => {
       const result = await submitItemApproval({ token, versionId, lineItemId: item.id, status, comment });
       if (!result.ok) {
@@ -63,14 +86,38 @@ export default function ClientPortal({
         return;
       }
       setApprovals((prev) => ({ ...prev, [item.id]: { lineItemId: item.id, status, comment } }));
-      setOpenComment(null);
+      if (!WANTS_REASON.includes(status) || comment) setOpenComment(null);
       toast(
         status === "APPROVED"
-          ? "Approved"
+          ? comment
+            ? "Approved, with your note"
+            : "Approved"
           : status === "REJECTED"
-            ? "Marked as rejected"
+            ? "Marked as rejected — add a note so Barebase knows why"
             : "Change requested — Barebase will be in touch",
       );
+    });
+  };
+
+  /** Save a note without touching the verdict. */
+  const saveComment = (item: BoqItem) => {
+    const comment = draftFor(item).trim();
+    startTransition(async () => {
+      const result = await submitItemComment({ token, versionId, lineItemId: item.id, comment });
+      if (!result.ok) {
+        toast(result.error ?? "Could not save that — please try again");
+        return;
+      }
+      setApprovals((prev) => ({
+        ...prev,
+        [item.id]: {
+          lineItemId: item.id,
+          status: prev[item.id]?.status ?? result.status ?? "PENDING",
+          comment,
+        },
+      }));
+      setOpenComment(null);
+      toast(comment ? "Note saved — Barebase will see it" : "Note removed");
     });
   };
 
@@ -90,9 +137,16 @@ export default function ClientPortal({
         ),
       );
       setApprovals(all);
+      setOpenComment(null);
       toast("Thank you — the full estimate is approved");
     });
   };
+
+  const headline = done
+    ? "Approved"
+    : flaggedCount > 0
+      ? `${approvedCount} of ${total} approved · ${flaggedCount} flagged`
+      : `${approvedCount} of ${total} lines approved`;
 
   return (
     <>
@@ -102,9 +156,7 @@ export default function ClientPortal({
           <span className="sub">Estimate</span>
         </div>
         <div className="topbar-actions">
-          <span style={{ fontSize: 11.5, color: "var(--dark-muted)" }}>
-            {done ? "Approved" : `${approvedCount} of ${total} lines approved`}
-          </span>
+          <span style={{ fontSize: 11.5, color: "var(--dark-muted)" }}>{headline}</span>
           <PdfButton
             snapshot={snapshot}
             letterhead={letterhead}
@@ -125,13 +177,15 @@ export default function ClientPortal({
               Hi {contactName} — here&apos;s your estimate for {snapshot.meta.property || "your project"}.
               {baselineSnapshot && (diff.added > 0 || diff.changed > 0)
                 ? " Highlighted lines are new or changed since you last approved."
-                : " Approve the whole estimate, or go line by line."}
+                : " Approve the whole estimate, or go line by line — you can leave a note on any item."}
             </span>
           </div>
         }
         renderItemActions={(item) => {
           const record = approvals[item.id];
           const status = record?.status ?? "PENDING";
+          const isOpen = openComment === item.id;
+
           return (
             <>
               <div className="cv-row-actions">
@@ -146,39 +200,38 @@ export default function ClientPortal({
                   </button>
                 ))}
                 <button
-                  className="cv-mini-btn"
+                  className={`cv-mini-btn${record?.comment ? " has-note" : ""}`}
                   disabled={pending}
-                  onClick={() => setOpenComment(openComment === item.id ? null : item.id)}
+                  onClick={() => setOpenComment(isOpen ? null : item.id)}
                 >
-                  {record?.comment ? "Edit comment" : "Comment"}
+                  {record?.comment ? "Edit note" : "Add a note"}
                 </button>
               </div>
 
-              {openComment === item.id ? (
+              {isOpen ? (
                 <div className="cv-comment">
                   <input
                     autoFocus
-                    placeholder="A question or note about this line…"
-                    value={commentDraft[item.id] ?? record?.comment ?? ""}
+                    placeholder={PROMPT[status] ?? PROMPT.PENDING}
+                    value={draftFor(item)}
                     onChange={(e) => setCommentDraft((prev) => ({ ...prev, [item.id]: e.target.value }))}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
-                        setStatus(item, status === "PENDING" ? "REVISION_REQUESTED" : status);
+                        saveComment(item);
                       }
+                      if (e.key === "Escape") setOpenComment(null);
                     }}
                   />
-                  <button
-                    className="btn light small"
-                    disabled={pending}
-                    onClick={() => setStatus(item, status === "PENDING" ? "REVISION_REQUESTED" : status)}
-                  >
-                    Send
+                  {/* Saving a note never changes the verdict — a client can flag
+                      something on a line they're happy to approve. */}
+                  <button className="btn light small" disabled={pending} onClick={() => saveComment(item)}>
+                    Save note
                   </button>
                 </div>
               ) : null}
 
-              {record?.comment && openComment !== item.id ? (
+              {record?.comment && !isOpen ? (
                 <div className="cv-comment-note">Your note: {record.comment}</div>
               ) : null}
             </>
@@ -191,9 +244,18 @@ export default function ClientPortal({
                 ✓ Approved — thank you. Barebase has been notified.
               </span>
             ) : (
-              <button className="btn primary" disabled={pending} onClick={approveAll}>
-                {pending ? "Saving…" : "Approve the whole estimate"}
-              </button>
+              <>
+                <button className="btn primary" disabled={pending} onClick={approveAll}>
+                  {pending ? "Saving…" : "Approve the whole estimate"}
+                </button>
+                {flaggedCount > 0 ? (
+                  <span className="cv-flagged-note">
+                    You&apos;ve flagged {flaggedCount} line{flaggedCount === 1 ? "" : "s"} — Barebase can see{" "}
+                    {flaggedCount === 1 ? "it" : "them"} and your notes. Approving everything here would clear{" "}
+                    {flaggedCount === 1 ? "that flag" : "those flags"}.
+                  </span>
+                ) : null}
+              </>
             )}
           </div>
         }
