@@ -314,6 +314,22 @@ table.ratecard input.r-num{text-align:right;font-family:var(--font-mono),monospa
 .cv-mini-btn.has-note{border-color:var(--brass);color:var(--brass-dark)}
 .cv-flagged-note{font-size:11.5px;color:var(--ink-soft);max-width:520px;line-height:1.6}
 
+/* ------------------------------------------------------------ password fields
+   The eye sits inside the box. `display:block` on the wrapper so it behaves
+   like the bare input it replaces in every layout that already styles one. */
+.pw-wrap{position:relative;display:block;width:100%}
+.pw-wrap input{width:100%;padding-right:38px !important}
+.pw-toggle{position:absolute;top:0;bottom:0;right:2px;width:34px;display:flex;align-items:center;justify-content:center;background:none;border:none;padding:0;color:var(--muted);cursor:pointer;border-radius:4px}
+.pw-toggle:hover{color:var(--ink)}
+.pw-toggle:focus-visible{outline:2px solid var(--brass-bright);outline-offset:-2px}
+.pw-toggle[aria-pressed="true"]{color:var(--brass-dark)}
+/* The inline "reset this member's password" box carries no field styling of
+   its own — it used to be styled inline on the element we replaced. */
+.pw-reset-input{padding:5px 8px;border:1px solid var(--line);border-radius:4px;font-size:12px;background:#fff;color:var(--ink)}
+.pw-reset-input:focus{outline:none;border-color:var(--brass-bright)}
+/* That one sits in a flex row next to its Set button, so it can't stretch. */
+.pw-wrap:has(.pw-reset-input){flex:0 0 200px;width:200px}
+
 .auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px}
 .auth-card{background:var(--card);border:1px solid var(--line);border-top:2px solid var(--brass-bright);border-radius:8px;padding:30px 32px;width:100%;max-width:390px;box-shadow:0 4px 24px rgba(33,31,26,.08)}
 .auth-card .mark{font-family:var(--font-serif),serif;font-size:26px;letter-spacing:.04em}
