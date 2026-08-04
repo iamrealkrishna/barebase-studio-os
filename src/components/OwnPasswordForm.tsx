@@ -4,6 +4,7 @@ import { useActionState, useRef } from "react";
 import { useFormStatus } from "react-dom";
 
 import { changeOwnPassword, type PasswordState } from "@/actions/account";
+import PasswordInput from "@/components/PasswordInput";
 
 function Submit() {
   const { pending } = useFormStatus();
@@ -37,15 +38,15 @@ export default function OwnPasswordForm() {
         <div className="inline-form">
           <div className="f">
             <label htmlFor="pw-current">Current password</label>
-            <input id="pw-current" name="current" type="password" autoComplete="current-password" required />
+            <PasswordInput id="pw-current" name="current" autoComplete="current-password" required />
           </div>
           <div className="f">
             <label htmlFor="pw-next">New password</label>
-            <input id="pw-next" name="next" type="password" autoComplete="new-password" minLength={8} required />
+            <PasswordInput id="pw-next" name="next" autoComplete="new-password" minLength={8} required />
           </div>
           <div className="f">
             <label htmlFor="pw-confirm">Confirm new password</label>
-            <input id="pw-confirm" name="confirm" type="password" autoComplete="new-password" minLength={8} required />
+            <PasswordInput id="pw-confirm" name="confirm" autoComplete="new-password" minLength={8} required />
           </div>
           <Submit />
         </div>

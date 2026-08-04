@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { teamAction, type TeamFormState } from "@/actions/team";
+import PasswordInput from "@/components/PasswordInput";
 import { fmtDate } from "@/lib/boq";
 
 export type TeamMember = {
@@ -140,20 +141,14 @@ export default function TeamManager({
             <form action={action} style={{ marginTop: 8, display: "flex", gap: 6, justifyContent: "flex-end" }}>
               <input type="hidden" name="intent" value="password" />
               <input type="hidden" name="userId" value={member.id} />
-              <input
+              <PasswordInput
                 name="password"
-                type="text"
+                autoComplete="new-password"
                 minLength={8}
                 required
                 autoFocus
                 placeholder="New password (min 8)"
-                style={{
-                  padding: "5px 8px",
-                  border: "1px solid var(--line)",
-                  borderRadius: 4,
-                  fontSize: 12,
-                  background: "#fff",
-                }}
+                className="pw-reset-input"
               />
               <Submit className="cv-mini-btn" label="Set" busy="…" />
             </form>
@@ -203,7 +198,14 @@ export default function TeamManager({
               </div>
               <div className="f">
                 <label htmlFor="tm-password">Initial password</label>
-                <input id="tm-password" name="password" type="text" minLength={8} required placeholder="min 8 characters" />
+                <PasswordInput
+                  id="tm-password"
+                  name="password"
+                  autoComplete="new-password"
+                  minLength={8}
+                  required
+                  placeholder="min 8 characters"
+                />
               </div>
               <div className="f" style={{ flex: "0 0 160px" }}>
                 <label htmlFor="tm-role">Role</label>
@@ -218,8 +220,9 @@ export default function TeamManager({
               </button>
             </div>
             <p className="hint-text">
-              You set the password here and pass it to them directly — there&apos;s no email sending yet. They can
-              change it themselves under Rate Card &amp; Settings once they&apos;re in.
+              You set the password here and pass it to them directly — there&apos;s no email sending yet. It&apos;s
+              masked as you type; use the eye to check it before you read it out. They can change it themselves on
+              their account page once they&apos;re in.
             </p>
           </form>
         ) : (

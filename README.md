@@ -155,6 +155,13 @@ sign-in immediately (including any session already open) while keeping every
 project, version and audit entry that person authored. The last active Admin
 can't be demoted or deactivated, and you can't deactivate yourself.
 
+**Password fields** — every one of them, on sign-in, your account page and the
+Team page, is masked with a show/hide eye. The two Team-page fields (an initial
+password, and resetting someone's) used to be plain `type="text"` so the admin
+could read what they were typing; they're masked now with the eye there when you
+actually need to check it, since a password shouldn't sit readable on a screen
+other people can see.
+
 ### Roles
 
 | Role | Can do |
