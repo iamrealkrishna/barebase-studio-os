@@ -83,9 +83,21 @@ and an exportable audit log. Internal-only; the client never sees it.
 about the revision history is exposed.
 
 **Approvals & change orders** — each project gets client contacts with their
-own share link (no account, no login). A client can approve the whole estimate
+own share link (no account, no login). Opening a link asks for the email address
+it was issued to before any of the estimate is fetched — a **basic access check,
+not authentication**: it stops a forwarded link opening for whoever receives it,
+but anyone with both the link and the address still gets in. A verified browser
+is remembered for 30 days via a signed pass in local storage, bound to that
+specific link, so **Revoke & reissue** on Client access invalidates every
+remembered device in one action while keeping the contact's approval history.
+Real protection is a one-time code emailed to the contact, which needs email
+sending (see Known limitations). A client can approve the whole estimate
 in one click or go line by line: **Approve / Reject / Request change**, plus a
-note on any line. Rejecting opens the note box by itself and asks what's wrong,
+note on any line. Every line-level action saves on the click and confirms itself
+in place — a green tick and a "saved at" time that stays put. Approve-the-whole-
+estimate sits above *and* below the line items, is styled to look like the
+consequential action it is, and asks for confirmation naming how many of the
+client's own flagged lines it would clear. Rejecting opens the note box by itself and asks what's wrong,
 because a rejection with no reason gives the team nothing to act on. A note is
 never read as a verdict — you can approve a line *and* flag something about it
 ("fine, but use the lighter shade"), and leaving a note on a line you haven't
@@ -128,7 +140,11 @@ updates the top bar and everything downstream.
 
 **Rate Card & Settings** (`/settings`) — the 253-item default rate card across
 17 categories, editable in-place and shared team-wide (admin only), with
-letterhead and default terms. **Unit** is a dropdown rather
+letterhead and default terms. Each item carries a **default scope note** —
+boilerplate copied into a BOQ line's scope of work when the item is added, so
+common items aren't retyped. Copied, never referenced: hand-typed wording
+survives a cascade change, and editing the default later never rewrites scope
+text already saved on a BOQ, which a client may have approved. **Unit** is a dropdown rather
 than a free-text box, labelled with what each one does to the entry form —
 "SQFT — length × breadth", "Nos. — typed quantity" — so the dimension behaviour
 is visible at the point of choosing. It lists the standard units plus any the
@@ -141,7 +157,10 @@ still have it are matched on it and can have *any* field edited, so rewording a
 Description in Excel updates that item rather than losing track of it or adding
 a duplicate. Rows without an ID fall back to **Category + Description +
 Material + Finish** and are added as new when nothing matches — for those the
-four columns are the identity, so their wording is left alone. Nothing is written on upload: you get a preview first showing every
+four columns are the identity, so their wording is left alone. A row that
+carries an Item ID another row already used is the copy-a-row-in-Excel case: if
+it describes something different it's added as a new item with the reason shown,
+rather than being dropped as a duplicate. Nothing is written on upload: you get a preview first showing every
 update as old → new per field, every new item, and every row that couldn't be
 read — bad rows are listed with a reason and skipped, they don't block the rest.
 Only after you confirm is anything saved, and each update is re-checked against

@@ -56,6 +56,7 @@ export default async function BuildPage({ params }: { params: Promise<{ id: stri
         unit: item.unit,
         rate: item.rate,
         cost: canSeeCost ? item.cost : 0,
+        defaultScope: item.defaultScope,
       }))}
       letterhead={letterhead}
       approvedSnapshot={

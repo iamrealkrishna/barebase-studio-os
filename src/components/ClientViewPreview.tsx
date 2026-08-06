@@ -109,7 +109,10 @@ export default function ClientViewPreview({
           <div style={{ marginTop: 20 }}>
             <div className="settings-section">
               <h3>
-                Client links <span className="note">— each one is scoped to this project only</span>
+                Client links{" "}
+                <span className="note">
+                  — scoped to this project, and opening one asks for the contact&apos;s email first
+                </span>
               </h3>
               {shareLinks.length === 0 ? (
                 <div className="mini-empty">

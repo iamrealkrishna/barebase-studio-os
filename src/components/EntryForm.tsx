@@ -34,7 +34,7 @@ export function freshDraft(entries: RateEntry[], categories: string[]): BoqItem 
     dims: { l: "", b: "", h: "" },
     qty: 0,
     qtyOverride: false,
-    description: "",
+    description: first?.defaultScope ?? "",
     note: "",
     image: null,
   };
@@ -73,11 +73,26 @@ export default function EntryForm({
 
   const patch = (changes: Partial<BoqItem>) => onChange({ ...draft, ...changes });
 
-  /** Re-fill rate / cost / unit from the rate card for the current cascade. */
+  /**
+   * Re-fill rate / cost / unit — and the scope of work — from the rate card for
+   * the current cascade.
+   *
+   * The scope is only overwritten while it's still boilerplate: empty, or still
+   * exactly the default of the item we're moving away from. The moment someone
+   * types their own wording, changing the cascade leaves it alone.
+   */
   const applyRate = (next: BoqItem): BoqItem => {
     const row = findRateRow(entries, next.category, next.desc, next.material, next.finish);
     if (!row) return next;
-    return { ...next, rate: row.rate, cost: row.cost, unit: row.unit };
+    const previous = findRateRow(entries, draft.category, draft.desc, draft.material, draft.finish);
+    const untouched = draft.description.trim() === "" || draft.description === (previous?.defaultScope ?? "");
+    return {
+      ...next,
+      rate: row.rate,
+      cost: row.cost,
+      unit: row.unit,
+      description: untouched ? row.defaultScope : next.description,
+    };
   };
 
   const onCategoryChange = (category: string) => {

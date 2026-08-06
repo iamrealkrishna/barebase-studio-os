@@ -128,9 +128,23 @@ export default function InlineItemRow({
   // ------------------------------------------------------------- edit mode
   const patch = (changes: Partial<BoqItem>) => onChange({ ...row, ...changes });
 
+  /**
+   * Same rule as the entry form: the rate card's default scope only replaces
+   * scope text that's still boilerplate. An existing line whose wording someone
+   * typed — or that a client has already read — keeps it when the cascade moves.
+   */
   const applyRate = (next: BoqItem): BoqItem => {
     const match = findRateRow(entries, next.category, next.desc, next.material, next.finish);
-    return match ? { ...next, rate: match.rate, cost: match.cost, unit: match.unit } : next;
+    if (!match) return next;
+    const previous = findRateRow(entries, row.category, row.desc, row.material, row.finish);
+    const untouched = row.description.trim() === "" || row.description === (previous?.defaultScope ?? "");
+    return {
+      ...next,
+      rate: match.rate,
+      cost: match.cost,
+      unit: match.unit,
+      description: untouched ? match.defaultScope : next.description,
+    };
   };
 
   const onCategoryChange = (category: string) => {

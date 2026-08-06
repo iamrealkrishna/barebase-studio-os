@@ -1,4 +1,4 @@
-import { addClientContact, revokeClientContact, setVersionStatus } from "@/actions/approvals";
+import { addClientContact, reissueClientLink, revokeClientContact, setVersionStatus } from "@/actions/approvals";
 import { restoreVersion } from "@/actions/projects";
 import AuditLogButton from "@/components/AuditLogButton";
 import ProjectBar from "@/components/ProjectBar";
@@ -171,6 +171,14 @@ export default async function ProjectVersionsPage({ params }: { params: Promise<
             Client access <span className="note">— a link per contact, scoped to this project only</span>
           </h3>
 
+          <p className="access-note">
+            <b>Basic access check, not a login.</b> Opening a link asks for the email address below before showing
+            the estimate, so a link forwarded to someone else doesn&apos;t just open for them. Anyone who has both
+            the link and the address still gets in — proper protection is a one-time code emailed to the contact,
+            which needs email sending we haven&apos;t built yet. Use <b>Reissue</b> if a link has travelled further
+            than it should: it swaps in a brand-new URL, kills the old one, and keeps the contact&apos;s history.
+          </p>
+
           {contacts.length === 0 ? (
             <div className="mini-empty">No client contacts yet. Add one to share a review link.</div>
           ) : (
@@ -202,15 +210,28 @@ export default async function ProjectVersionsPage({ params }: { params: Promise<
                         )}
                       </td>
                       <td style={{ textAlign: "right" }}>
-                        {contact.revoked ? null : (
-                          <form action={revokeClientContact}>
+                        <div className="link-actions">
+                          <form action={reissueClientLink}>
                             <input type="hidden" name="projectId" value={project.id} />
                             <input type="hidden" name="contactId" value={contact.id} />
-                            <button type="submit" className="rm-btn" title="Revoke this link">
-                              ✕
+                            <button
+                              type="submit"
+                              className="cv-mini-btn"
+                              title="Kill this link and issue a new one to the same contact"
+                            >
+                              {contact.revoked ? "Reissue link" : "Revoke & reissue"}
                             </button>
                           </form>
-                        )}
+                          {contact.revoked ? null : (
+                            <form action={revokeClientContact}>
+                              <input type="hidden" name="projectId" value={project.id} />
+                              <input type="hidden" name="contactId" value={contact.id} />
+                              <button type="submit" className="rm-btn" title="Revoke this link">
+                                ✕
+                              </button>
+                            </form>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
