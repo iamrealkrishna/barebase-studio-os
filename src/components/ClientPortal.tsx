@@ -3,7 +3,12 @@
 import { useMemo, useState, useTransition } from "react";
 import type { ApprovalStatus } from "@prisma/client";
 
-import { approveWholeVersion, submitItemApproval, submitItemComment } from "@/actions/approvals";
+import {
+  approveWholeVersion,
+  submitClientReview,
+  submitItemApproval,
+  submitItemComment,
+} from "@/actions/approvals";
 import ClientBoqView from "@/components/ClientBoqView";
 import { PdfButton } from "@/components/PdfButtons";
 import { Toast, useToast } from "@/components/Toast";
@@ -52,6 +57,7 @@ export default function ClientPortal({
   baselineSnapshot,
   alreadyApproved,
   initialApprovals,
+  initialSubmittedAt,
   onExpired,
 }: {
   token: string;
@@ -64,6 +70,8 @@ export default function ClientPortal({
   baselineSnapshot: BoqSnapshot | null;
   alreadyApproved: boolean;
   initialApprovals: ApprovalRecord[];
+  /** Set if this contact has already pressed Done on a previous visit. */
+  initialSubmittedAt: string | null;
   onExpired: () => void;
 }) {
   const { message, toast } = useToast();
@@ -76,6 +84,7 @@ export default function ClientPortal({
   /** Ids that just saved, so the tick reads as "that click landed". */
   const [justSaved, setJustSaved] = useState<Record<string, boolean>>({});
   const [confirmingAll, setConfirmingAll] = useState(false);
+  const [submittedAt, setSubmittedAt] = useState<string | null>(initialSubmittedAt);
 
   const diff = useMemo(
     () => diffSnapshots(snapshot, baselineSnapshot, CLIENT_VISIBLE_FIELDS),
@@ -181,6 +190,18 @@ export default function ClientPortal({
     });
   };
 
+  const finishReview = () => {
+    startTransition(async () => {
+      const result = await submitClientReview({ token, pass });
+      if (!result.ok) {
+        handleFailure(result.error);
+        return;
+      }
+      setSubmittedAt(new Date().toISOString());
+      toast("Sent — Barebase knows you've finished");
+    });
+  };
+
   const headline = done
     ? "Approved"
     : flaggedCount > 0
@@ -192,8 +213,8 @@ export default function ClientPortal({
    * including ones the client has deliberately rejected. So it's visually loud,
    * and it asks first — naming how many flags it would clear.
    */
-  const approveBar = (place: string) => (
-    <div className={`cv-approve-block ${place}`}>
+  const approveBar = () => (
+    <div className="cv-approve-block top">
       {done ? (
         <span className="cv-approved-stamp">✓ Approved — thank you. Barebase has been notified.</span>
       ) : confirmingAll ? (
@@ -245,6 +266,75 @@ export default function ClientPortal({
     </div>
   );
 
+  const respondedCount = records.filter((r) => r.status !== "PENDING" || r.comment.trim() !== "").length;
+  const untouched = total - respondedCount;
+
+  /**
+   * The end of the client's journey.
+   *
+   * Nothing here is a save — every line saved when they clicked it, and the
+   * summary says so rather than implying their work was sitting unsaved. What
+   * the button adds is a definite finish: something to press that says "I'm
+   * done", which is also the only way the team can tell a client who hasn't
+   * started from one who is waiting on them.
+   */
+  const finishBlock = () => (
+    <div className="cv-finish-block">
+      {submittedAt ? (
+        <div className="cv-finish-done">
+          <span className="cv-finish-tick">✓</span>
+          <div>
+            <b>Thanks — your review is with Barebase.</b>
+            <div className="cv-finish-sub">
+              Sent {new Date(submittedAt).toLocaleString("en-IN", {
+                day: "numeric",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+              . You can still change any line above; press Done again if you do.
+            </div>
+          </div>
+          <button className="btn light small" disabled={pending} onClick={() => setSubmittedAt(null)}>
+            Make more changes
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="cv-finish-summary">
+            <b>
+              {done
+                ? "Everything approved."
+                : respondedCount === 0
+                  ? "You haven't responded to any lines yet."
+                  : `You've responded to ${respondedCount} of ${total} line${total === 1 ? "" : "s"}.`}
+            </b>
+            <span className="cv-finish-counts">
+              {approvedCount > 0 ? <span className="ok">{approvedCount} approved</span> : null}
+              {flaggedCount > 0 ? <span className="flag">{flaggedCount} flagged</span> : null}
+              {untouched > 0 ? <span className="rest">{untouched} not answered</span> : null}
+            </span>
+            <span className="cv-finish-note">
+              Every answer above is already saved. Press Done to let Barebase know you&apos;ve finished.
+            </span>
+          </div>
+          <button
+            className="btn cv-finish-btn"
+            disabled={pending || respondedCount === 0}
+            title={
+              respondedCount === 0
+                ? "Approve, reject or comment on at least one line first"
+                : "Tell Barebase you've finished reviewing"
+            }
+            onClick={finishReview}
+          >
+            {pending ? "Sending…" : "Done — send my review"}
+          </button>
+        </>
+      )}
+    </div>
+  );
+
   return (
     <>
       <div className="topbar">
@@ -278,7 +368,7 @@ export default function ClientPortal({
             </span>
           </div>
         }
-        beforeContent={approveBar("top")}
+        beforeContent={approveBar()}
         renderItemActions={(item) => {
           const record = approvals[item.id];
           const status = record?.status ?? "PENDING";
@@ -345,7 +435,7 @@ export default function ClientPortal({
             </>
           );
         }}
-        footer={approveBar("bottom")}
+        footer={finishBlock()}
       />
 
       <Toast message={message} />

@@ -289,10 +289,10 @@ added. No cost. No margin. No internal notes. No version history.
 
 They can:
 
-- **Approve the whole estimate** — a large green button at the top *and* bottom
-  of the page. It asks for confirmation first, naming how many of their own
-  flagged lines it would clear, because it overrides every line including ones
-  they rejected.
+- **Approve the whole estimate** — a large green button at the **top** of the
+  page. It asks for confirmation first, naming how many of their own flagged
+  lines it would clear, because it overrides every line including ones they
+  rejected.
 - **Go line by line.** Each line has **Approve**, **Reject**, **Request change**,
   and **Add a note**.
 
@@ -300,6 +300,18 @@ They can:
 green **✓ Approved / ✓ Rejected / ✓ Change requested** and a **"saved at 4:12
 pm"** timestamp appear next to the line the moment it lands, and the timestamp
 stays there, so a client is never left wondering whether their click registered.
+
+**At the bottom is "Done — send my review".** It doesn't save anything (that
+already happened) and it isn't a second approve-all. It's the end of their
+journey: a running summary of what they've answered, and a button that tells you
+they've finished. It stays disabled until they've responded to at least one
+line, and afterwards shows a confirmation with the time — they can still change
+any line and press Done again.
+
+**Why that matters to you:** it's the difference between a client who hasn't got
+to it yet and one who is finished and waiting on you. You can see it two places
+— on **Client Review** in the header line, and as a **Finished** column on
+Client access.
 
 A few behaviours worth knowing so you can explain them:
 

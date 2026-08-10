@@ -95,9 +95,14 @@ sending (see Known limitations). A client can approve the whole estimate
 in one click or go line by line: **Approve / Reject / Request change**, plus a
 note on any line. Every line-level action saves on the click and confirms itself
 in place — a green tick and a "saved at" time that stays put. Approve-the-whole-
-estimate sits above *and* below the line items, is styled to look like the
-consequential action it is, and asks for confirmation naming how many of the
-client's own flagged lines it would clear. Rejecting opens the note box by itself and asks what's wrong,
+estimate sits above the line items, is styled to look like the consequential
+action it is, and asks for confirmation naming how many of the client's own
+flagged lines it would clear. The bottom of the page is a separate **Done — send
+my review** step rather than a second copy of it: it saves nothing, since every
+line already did, but it gives the client an end to their journey and gives the
+team the one thing per-line verdicts can't — the difference between a client who
+hasn't started and one who is finished and waiting. Surfaced on Client Review and
+as a Finished column on Client access. Rejecting opens the note box by itself and asks what's wrong,
 because a rejection with no reason gives the team nothing to act on. A note is
 never read as a verdict — you can approve a line *and* flag something about it
 ("fine, but use the lighter shade"), and leaving a note on a line you haven't

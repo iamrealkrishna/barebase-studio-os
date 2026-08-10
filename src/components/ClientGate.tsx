@@ -175,6 +175,7 @@ export default function ClientGate({ token }: { token: string }) {
       baselineSnapshot={estimate.baselineSnapshot}
       alreadyApproved={estimate.alreadyApproved}
       initialApprovals={estimate.approvals}
+      initialSubmittedAt={estimate.submittedAt}
       onExpired={() => {
         clearPass(token);
         setResult({ state: "locked", orgName: estimate.letterhead.name });

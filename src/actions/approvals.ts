@@ -9,6 +9,7 @@ import { approvalLabel, countItems, statusLabel } from "@/lib/boq";
 import { newClientToken, resolveClientAccess, verifyDevicePass } from "@/lib/client-access";
 import { prisma } from "@/lib/db";
 import { parseSnapshot } from "@/lib/serialize";
+import { currentClientVersion } from "@/lib/versions";
 
 // ------------------------------------------------------------------ team side
 
@@ -443,6 +444,60 @@ export async function approveWholeVersion(input: {
   });
 
   revalidatePath(`/c/${input.token}`);
+  revalidatePath(`/projects/${access.project.id}`);
+  revalidatePath(`/projects/${access.project.id}/review`);
+  return { ok: true };
+}
+
+/**
+ * "I've finished going through it."
+ *
+ * Nothing here saves a verdict — every line already saved on the click. What
+ * this adds is the end of the journey: a clear last action for the client, and
+ * for the team the difference between a client who hasn't got to it yet and one
+ * who is done and waiting on them.
+ */
+export async function submitClientReview(input: {
+  token: string;
+  pass: string | null;
+}): Promise<ClientActionResult> {
+  const access = await resolveClientAccess(input.token);
+  if (!access) return { ok: false, error: "This link is no longer active." };
+  if (!(await verifyDevicePass(input.pass, access.contact.id, input.token))) {
+    return { ok: false, error: "Please confirm your email again to continue." };
+  }
+
+  const version = await currentClientVersion(access.project.id);
+  if (!version) return { ok: false, error: "There's nothing to review yet." };
+
+  const responses = await prisma.itemApproval.findMany({
+    where: { versionId: version.id, contactId: access.contact.id },
+    select: { status: true, comment: true },
+  });
+
+  const approved = responses.filter((r) => r.status === "APPROVED").length;
+  const flagged = responses.filter(
+    (r) => r.status === "REJECTED" || r.status === "REVISION_REQUESTED",
+  ).length;
+  const noted = responses.filter((r) => (r.comment ?? "").trim() !== "").length;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.clientContact.update({
+      where: { id: access.contact.id },
+      data: { reviewSubmittedAt: new Date() },
+    });
+
+    await recordAudit(tx, {
+      projectId: access.project.id,
+      actorType: "CLIENT",
+      actorName: access.contact.name,
+      action:
+        `Finished reviewing V${version.number} — ${approved} approved, ${flagged} flagged` +
+        (noted > 0 ? `, ${noted} with notes` : ""),
+      detail: { versionId: version.id, approved, flagged, noted },
+    });
+  });
+
   revalidatePath(`/projects/${access.project.id}`);
   revalidatePath(`/projects/${access.project.id}/review`);
   return { ok: true };
