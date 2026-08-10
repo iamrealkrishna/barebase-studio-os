@@ -79,7 +79,7 @@ export default function ReviewBoard({
   approvedVersionNumber: number | null;
   reviewedVersion: { number: number; status: BoqStatus; sentAt: string; itemCount: number } | null;
   approvals: ReviewApproval[];
-  contacts: { id: string; name: string; lastViewedAt: string | null }[];
+  contacts: { id: string; name: string; lastViewedAt: string | null; submittedAt: string | null }[];
 }) {
   const router = useRouter();
   const { message, toast } = useToast();
@@ -209,6 +209,10 @@ export default function ReviewBoard({
   };
 
   const viewedBy = contacts.filter((contact) => contact.lastViewedAt);
+  // A client who has pressed Done is waiting on the team; one who hasn't may
+  // still be part-way through, which changes what you do about a half-empty
+  // set of verdicts.
+  const finishedBy = contacts.filter((contact) => contact.submittedAt);
 
   return (
     <>
@@ -280,6 +284,13 @@ export default function ReviewBoard({
                   {viewedBy.length > 0
                     ? `Opened by ${viewedBy.map((c) => `${c.name} (${fmtDate(c.lastViewedAt)})`).join(", ")}.`
                     : "No client has opened the link yet."}{" "}
+                  {finishedBy.length > 0 ? (
+                    <b>
+                      {finishedBy.map((c) => `${c.name} finished their review ${fmtDate(c.submittedAt)}`).join("; ")}.
+                    </b>
+                  ) : viewedBy.length > 0 ? (
+                    "Nobody has pressed Done yet, so they may still be going through it."
+                  ) : null}{" "}
                   Verdicts are recorded against V{reviewedVersion.number} ({reviewedVersion.itemCount} line
                   {reviewedVersion.itemCount === 1 ? "" : "s"} sent); the rows below are the <b>live BOQ</b>, which is
                   what you edit.

@@ -335,6 +335,26 @@ table.ratecard input.r-num{text-align:right;font-family:var(--font-mono),monospa
 .cv-confirm-text{flex:1 1 320px;font-size:12.5px;color:var(--ink);line-height:1.65}
 .cv-confirm-actions{display:flex;gap:8px;flex-wrap:wrap}
 
+/* End of the client's journey. Not a save — everything already saved — so it
+   reads as "I'm finished" rather than competing with Approve at the top. */
+.cv-finish-block{margin-top:22px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:space-between;background:var(--ink);border-radius:8px;padding:20px 24px}
+.cv-finish-summary{display:flex;flex-direction:column;gap:5px;flex:1 1 320px;min-width:0}
+.cv-finish-summary b{color:var(--dark-paper);font-size:14px;font-weight:600}
+.cv-finish-counts{display:flex;gap:8px;flex-wrap:wrap}
+.cv-finish-counts span{font-size:10.5px;padding:2px 9px;border-radius:999px;font-weight:600;letter-spacing:.02em}
+.cv-finish-counts .ok{background:var(--diff-new);color:var(--green)}
+.cv-finish-counts .flag{background:var(--diff-changed);color:var(--brass-dark)}
+.cv-finish-counts .rest{background:var(--dark-2);color:var(--dark-muted);border:1px solid var(--dark-border)}
+.cv-finish-note{font-size:11.5px;color:var(--dark-muted);line-height:1.55}
+.btn.cv-finish-btn{background:var(--brass-bright);border-color:var(--brass-bright);color:var(--ink);font-weight:700;font-size:14px;padding:13px 26px;border-radius:6px;white-space:nowrap}
+.btn.cv-finish-btn:hover{background:#E8C877;border-color:#E8C877;color:var(--ink)}
+.btn.cv-finish-btn:disabled{opacity:.45}
+.cv-finish-done{display:flex;align-items:center;gap:14px;flex-wrap:wrap;width:100%}
+.cv-finish-done b{color:var(--dark-paper);font-size:14px}
+.cv-finish-tick{flex:0 0 34px;width:34px;height:34px;border-radius:999px;background:var(--diff-new-border);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700}
+.cv-finish-sub{font-size:11.5px;color:var(--dark-muted);margin-top:3px;line-height:1.55}
+.cv-finish-done .btn.light{margin-left:auto}
+
 /* Rate card: the default scope note cell. */
 table.ratecard textarea.scope-cell{width:100%;border:1px solid transparent;background:transparent;font-family:inherit;font-size:11.5px;padding:4px 5px;border-radius:3px;resize:vertical;min-height:26px;line-height:1.45;color:var(--ink)}
 table.ratecard textarea.scope-cell:hover{border-color:var(--line)}

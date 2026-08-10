@@ -188,6 +188,7 @@ export default async function ProjectVersionsPage({ params }: { params: Promise<
                   <th>Name</th>
                   <th>Email</th>
                   <th>Last viewed</th>
+                  <th>Finished</th>
                   <th>Last approved</th>
                   <th>Link</th>
                   <th />
@@ -201,6 +202,13 @@ export default async function ProjectVersionsPage({ params }: { params: Promise<
                       <td>{contact.name}</td>
                       <td>{contact.email}</td>
                       <td>{contact.lastViewedAt ? fmtDate(contact.lastViewedAt) : "—"}</td>
+                      <td>
+                        {contact.reviewSubmittedAt ? (
+                          <span className="approval-pill approved">✓ {fmtDate(contact.reviewSubmittedAt)}</span>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
                       <td>{lastApproved ? `V${lastApproved.number}` : "—"}</td>
                       <td style={{ minWidth: 260 }}>
                         {contact.revoked ? (

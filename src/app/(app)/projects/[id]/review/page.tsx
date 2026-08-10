@@ -43,7 +43,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
     prisma.clientContact.findMany({
       where: { projectId: project.id, revoked: false },
       orderBy: { createdAt: "asc" },
-      select: { id: true, name: true, lastViewedAt: true },
+      select: { id: true, name: true, lastViewedAt: true, reviewSubmittedAt: true },
     }),
   ]);
 
@@ -97,6 +97,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
         id: contact.id,
         name: contact.name,
         lastViewedAt: contact.lastViewedAt ? contact.lastViewedAt.toISOString() : null,
+        submittedAt: contact.reviewSubmittedAt ? contact.reviewSubmittedAt.toISOString() : null,
       }))}
     />
   );

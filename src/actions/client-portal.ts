@@ -24,6 +24,8 @@ export type ClientEstimate = {
   letterhead: Letterhead;
   baselineSnapshot: BoqSnapshot | null;
   alreadyApproved: boolean;
+  /** When this contact last pressed Done, if they have. */
+  submittedAt: string | null;
   approvals: { lineItemId: string; status: ApprovalStatus; comment: string; at: string }[];
 };
 
@@ -65,6 +67,9 @@ async function openEstimate(token: string, contactId: string): Promise<ClientEst
     letterhead: toLetterhead(access.org),
     baselineSnapshot: baseline ? toClientSnapshot(baseline) : null,
     alreadyApproved: version.status === "APPROVED",
+    submittedAt: access.contact.reviewSubmittedAt
+      ? access.contact.reviewSubmittedAt.toISOString()
+      : null,
     approvals: approvals.map((approval) => ({
       lineItemId: approval.lineItemId,
       status: approval.status,
