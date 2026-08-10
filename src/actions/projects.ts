@@ -207,7 +207,7 @@ export async function saveBoq(input: SaveBoqInput): Promise<SaveBoqResult> {
     : (
         await prisma.rateItem.findMany({
           where: { orgId: user.orgId },
-          select: { id: true, category: true, name: true, material: true, finish: true, unit: true, rate: true, cost: true },
+          select: { id: true, category: true, name: true, material: true, finish: true, unit: true, rate: true, cost: true, defaultScope: true },
         })
       );
 

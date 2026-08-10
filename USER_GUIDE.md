@@ -32,6 +32,7 @@ shouldn't need to ask anyone.
 - [Editing rows inline](#editing-rows-inline)
 - [Sections](#sections)
 - [Scope of work, internal notes and photos](#scope-of-work-internal-notes-and-photos)
+- [Default scope notes on rate card items](#default-scope-notes-on-rate-card-items)
 - [Discount and GST](#discount-and-gst)
 - [Cost & margin](#cost--margin)
 - [What the client is allowed to see](#what-the-client-is-allowed-to-see)
@@ -246,6 +247,10 @@ saved as a version.
 4. Copy the link and send it however you normally would — WhatsApp, email,
    whatever. **The app does not send it for you.**
 
+**Get the email right.** Opening the link asks for the email address you entered
+before it shows anything, so a typo there means the client can't get in. See
+[The link access check](#the-link-access-check).
+
 Each contact gets their own link. If more than one person on the client side
 needs to review, give each of them their own — the app then records who said
 what.
@@ -266,20 +271,35 @@ Or from **Versions & Approvals**, use **Save & mark Sent to Client**.
 **To revoke someone's access**, click the ✕ next to their link on Versions &
 Approvals. It stops working immediately.
 
+**If a link has been forwarded further than it should have been**, click
+**Revoke & reissue** instead. That swaps in a brand-new URL in one action: the
+old one dies, every device that had passed the email check has to pass it again,
+and the contact keeps their approval history. Send them the new link.
+
 ---
 
 ## 6. What the client does
 
-They open the link — no login, no account. They see a branded, read-only version
+They open the link and are asked for the email address you sent it to. Once
+they've entered it, that browser remembers them for 30 days. Then they see a
+branded, read-only version
 of the estimate: your letterhead, the line items, section subtotals, discount,
 GST, grand total, your terms, and any scope notes and reference photos you
 added. No cost. No margin. No internal notes. No version history.
 
 They can:
 
-- **Approve the whole estimate** in one click, or
+- **Approve the whole estimate** — a large green button at the top *and* bottom
+  of the page. It asks for confirmation first, naming how many of their own
+  flagged lines it would clear, because it overrides every line including ones
+  they rejected.
 - **Go line by line.** Each line has **Approve**, **Reject**, **Request change**,
   and **Add a note**.
+
+**Every line-level click saves immediately** — there's no separate save step. A
+green **✓ Approved / ✓ Rejected / ✓ Change requested** and a **"saved at 4:12
+pm"** timestamp appear next to the line the moment it lands, and the timestamp
+stays there, so a client is never left wondering whether their click registered.
 
 A few behaviours worth knowing so you can explain them:
 
@@ -298,6 +318,28 @@ A few behaviours worth knowing so you can explain them:
 They can also download their own copy of the Client PDF from that page.
 
 ---
+
+### The link access check
+
+Opening a client link asks for the email address the link was issued to — the
+one in the **Email** column on Client access. If it doesn't match, they get a
+flat *"This link isn't valid for that email"* — the same answer a dead link
+gives, so the page never confirms to a stranger that a given link is real.
+
+Once they've entered it, that browser remembers them for 30 days and they go
+straight in on later visits.
+
+**Be clear with yourself about what this is: a basic access check, not a login.**
+It stops a link forwarded on WhatsApp from simply opening for whoever receives
+it. Anyone holding *both* the link and the right email address still gets in.
+Proper protection is a one-time code emailed to the contact each time — that
+needs email sending, which isn't built. It's on the list.
+
+Two things worth knowing:
+- **Reissuing a link invalidates every remembered device**, because the memory is
+  tied to the specific link.
+- Failed attempts are recorded in the project's audit trail, so you can see if
+  someone's been probing a link.
 
 ## 7. Client Review
 
@@ -519,6 +561,27 @@ button shows a **•** when there's something in there).
 
 ---
 
+## Default scope notes on rate card items
+
+Stops the same scope-of-work paragraph being retyped on every BOQ.
+
+**Where:** the **Default scope note** column on each rate card row, next to Rate
+and Cost. **Admins only** (it's part of the rate card). It's also a column in the
+bulk CSV export and import.
+
+**How it works:** when anyone adds that item to a BOQ, its **Scope of work** is
+pre-filled with the default. From there it behaves like the Rate — a starting
+point, editable or clearable on that line without affecting anything else.
+
+Two rules that keep it safe:
+- **Typing your own wording wins.** If you've edited the scope on a line, changing
+  the item's Category or Description won't overwrite what you wrote. Only text
+  that's still untouched boilerplate gets replaced.
+- **Changing the default never rewrites existing BOQs.** Lines already saved —
+  including ones a client has read and approved — keep exactly the scope text
+  they were saved with. Only items added *after* the change pick up the new
+  wording.
+
 ## Discount and GST
 
 Both live in the **Summary panel** on the right of Build BOQ.
@@ -664,6 +727,11 @@ Blank-ID rows are matched on Category + Description + Material + Finish first,
 so if one happens to match something you already have, it's treated as an edit
 rather than a duplicate.
 
+**Copied a row and forgot to clear its ID?** That's fine. If the copy describes
+something different from the row it came from, it's added as a new item and the
+original is left alone — the preview says so on that row. Only a genuinely
+identical duplicate is skipped.
+
 **Two things that will bite you if you don't know them:**
 
 - **Save your on-screen edits first.** The download reflects what's on screen,
@@ -725,6 +793,12 @@ hand. Clients aren't notified when an estimate is ready. You aren't notified
 when a client approves, rejects or comments — you have to open the project and
 look (the badge on the Client Review tab is there to help). New team members are
 given their password directly rather than invited.
+
+**Client links are protected by an email check, not a login.** Opening one asks
+for the address it was issued to, which stops a forwarded link opening for
+whoever receives it. It is not authentication: anyone with both the link and the
+address gets in. The proper fix — a one-time code emailed to the contact — needs
+email sending, so it's blocked behind the item above.
 
 **No BOQ import from Excel.** You can import a *rate card* from CSV, and you can
 import line items *from another project in the app*. There is no way to import a

@@ -7,7 +7,7 @@ import { BULK_TX, prisma } from "@/lib/db";
 import { matchKey, parseMoney, type RawCsvRow } from "@/lib/rate-card-csv";
 
 export type FieldDelta = {
-  field: "category" | "name" | "material" | "finish" | "unit" | "rate" | "cost";
+  field: "category" | "name" | "material" | "finish" | "unit" | "rate" | "cost" | "defaultScope";
   from: string;
   to: string;
 };
@@ -21,8 +21,8 @@ export type PlannedUpdate = {
   finish: string;
   changes: FieldDelta[];
   /** What the DB held when the preview was built — re-checked before writing. */
-  expected: { rate: number; cost: number; unit: string; category: string; name: string; material: string; finish: string };
-  next: { rate: number; cost: number; unit: string; category: string; name: string; material: string; finish: string };
+  expected: { rate: number; cost: number; unit: string; category: string; name: string; material: string; finish: string; defaultScope: string };
+  next: { rate: number; cost: number; unit: string; category: string; name: string; material: string; finish: string; defaultScope: string };
 };
 
 export type PlannedInsert = {
@@ -34,6 +34,9 @@ export type PlannedInsert = {
   unit: string;
   rate: number;
   cost: number;
+  defaultScope: string;
+  /** Why this is being added when it wasn't obviously new. Shown in the preview. */
+  note?: string;
 };
 
 export type RejectedRow = {
@@ -90,6 +93,8 @@ export async function previewRateCardImport(rows: RawCsvRow[]): Promise<ImportPl
   // Guards against one file trying to touch the same item twice.
   const seenKeys = new Map<string, number>();
   const claimedIds = new Map<string, number>();
+  /** Match key of the row that claimed each Item ID, to spot copy-pasted rows. */
+  const claimedKeys = new Map<string, string>();
 
   for (const row of rows) {
     const rowLabel = label(row);
@@ -133,7 +138,9 @@ export async function previewRateCardImport(rows: RawCsvRow[]): Promise<ImportPl
     }
 
     const key = matchKey(row);
-    const target = row.id ? byId.get(row.id) : undefined;
+    let target = row.id ? byId.get(row.id) : undefined;
+    /** Set when a carried-over Item ID was ignored because the row is really new. */
+    let carriedOverIdFrom: number | undefined;
 
     if (row.id && !target) {
       rejected.push({
@@ -147,11 +154,29 @@ export async function previewRateCardImport(rows: RawCsvRow[]): Promise<ImportPl
     if (target) {
       const clash = claimedIds.get(target.id);
       if (clash !== undefined) {
-        rejected.push({ line: row.line, label: rowLabel, reason: `Same item as line ${clash} — only the first was used` });
-        continue;
+        // The same Item ID twice in one file. Almost always someone adding an
+        // item the natural way — copy a similar row in Excel, edit it, and not
+        // think about the ID column. If this row describes something different
+        // from the row that claimed the ID, it's a new item wearing a borrowed
+        // ID, so add it instead of dropping it on the floor. Identical rows are
+        // still a genuine duplicate and still rejected.
+        if (claimedKeys.get(target.id) === key) {
+          rejected.push({
+            line: row.line,
+            label: rowLabel,
+            reason: `Identical to line ${clash} — only the first was used`,
+          });
+          continue;
+        }
+        carriedOverIdFrom = clash;
+        target = undefined;
+      } else {
+        claimedIds.set(target.id, row.line);
+        claimedKeys.set(target.id, key);
       }
-      claimedIds.set(target.id, row.line);
-    } else {
+    }
+
+    if (!target) {
       const clash = seenKeys.get(key);
       if (clash !== undefined) {
         rejected.push({
@@ -185,6 +210,11 @@ export async function previewRateCardImport(rows: RawCsvRow[]): Promise<ImportPl
         unit: row.unit,
         rate,
         cost,
+        defaultScope: row.defaultScope,
+        note:
+          carriedOverIdFrom === undefined
+            ? undefined
+            : `Item ID was copied from line ${carriedOverIdFrom} — added as a new item, that one is untouched`,
       });
       continue;
     }
@@ -197,6 +227,9 @@ export async function previewRateCardImport(rows: RawCsvRow[]): Promise<ImportPl
     // Without an ID the four columns ARE the identity, so a reworded row is a
     // different item — renaming it there would mean overwriting whatever
     // unrelated item happened to share the old wording.
+    // A blank scope cell leaves the stored default alone, the same way Unit does
+    // — a spreadsheet with the column deleted shouldn't wipe every note.
+    const defaultScope = row.defaultScope.trim() === "" ? item.defaultScope : row.defaultScope;
     const matchedById = Boolean(target);
     const category = matchedById ? row.category : item.category;
     const name = matchedById ? row.name : item.name;
@@ -211,6 +244,9 @@ export async function previewRateCardImport(rows: RawCsvRow[]): Promise<ImportPl
     if (item.unit !== unit) changes.push({ field: "unit", from: item.unit || "—", to: unit || "—" });
     if (item.rate !== rate) changes.push({ field: "rate", from: String(item.rate), to: String(rate) });
     if (item.cost !== cost) changes.push({ field: "cost", from: String(item.cost), to: String(cost) });
+    if (item.defaultScope !== defaultScope) {
+      changes.push({ field: "defaultScope", from: item.defaultScope || "—", to: defaultScope || "—" });
+    }
 
     if (changes.length === 0) {
       unchanged++;
@@ -233,8 +269,9 @@ export async function previewRateCardImport(rows: RawCsvRow[]): Promise<ImportPl
         name: item.name,
         material: item.material,
         finish: item.finish,
+        defaultScope: item.defaultScope,
       },
-      next: { rate, cost, unit, category, name, material, finish },
+      next: { rate, cost, unit, category, name, material, finish, defaultScope },
     });
   }
 
@@ -291,6 +328,7 @@ export async function commitRateCardImport(plan: ImportPlan): Promise<CommitResu
         if (item.name !== update.expected.name) drifted.push(`description is now "${item.name}"`);
         if (item.material !== update.expected.material) drifted.push(`material is now "${item.material}"`);
         if (item.finish !== update.expected.finish) drifted.push(`finish is now "${item.finish}"`);
+        if (item.defaultScope !== update.expected.defaultScope) drifted.push("the default scope note changed");
 
         if (drifted.length > 0) {
           conflicts.push({ label: name, reason: `Changed by someone else — ${drifted.join("; ")}. Left as-is.` });
@@ -307,6 +345,7 @@ export async function commitRateCardImport(plan: ImportPlan): Promise<CommitResu
             name: update.next.name,
             material: update.next.material,
             finish: update.next.finish,
+            defaultScope: update.next.defaultScope,
           },
         });
         updated++;
@@ -330,6 +369,7 @@ export async function commitRateCardImport(plan: ImportPlan): Promise<CommitResu
             unit: insert.unit,
             rate: insert.rate,
             cost: insert.cost,
+            defaultScope: insert.defaultScope,
             position: position++,
           })),
         });

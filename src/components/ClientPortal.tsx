@@ -10,7 +10,7 @@ import { Toast, useToast } from "@/components/Toast";
 import { CLIENT_VISIBLE_FIELDS, countItems, diffSnapshots, type BoqItem, type BoqSnapshot } from "@/lib/boq";
 import type { Letterhead } from "@/lib/pdf";
 
-type ApprovalRecord = { lineItemId: string; status: ApprovalStatus; comment: string };
+type ApprovalRecord = { lineItemId: string; status: ApprovalStatus; comment: string; at?: string };
 
 const BUTTONS: { status: ApprovalStatus; label: string; on: string }[] = [
   { status: "APPROVED", label: "Approve", on: "on-approve" },
@@ -28,8 +28,23 @@ const PROMPT: Record<string, string> = {
   PENDING: "A question or note about this line…",
 };
 
+const SAVED_LABEL: Record<string, string> = {
+  APPROVED: "Approved",
+  REJECTED: "Rejected",
+  REVISION_REQUESTED: "Change requested",
+  PENDING: "Note saved",
+};
+
+function clockTime(iso: string): string {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime())
+    ? ""
+    : date.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+}
+
 export default function ClientPortal({
   token,
+  pass,
   versionId,
   contactName,
   snapshot,
@@ -37,8 +52,11 @@ export default function ClientPortal({
   baselineSnapshot,
   alreadyApproved,
   initialApprovals,
+  onExpired,
 }: {
   token: string;
+  /** Device pass from the email check; every write carries it. */
+  pass: string | null;
   versionId: string;
   contactName: string;
   snapshot: BoqSnapshot;
@@ -46,6 +64,7 @@ export default function ClientPortal({
   baselineSnapshot: BoqSnapshot | null;
   alreadyApproved: boolean;
   initialApprovals: ApprovalRecord[];
+  onExpired: () => void;
 }) {
   const { message, toast } = useToast();
   const [pending, startTransition] = useTransition();
@@ -54,6 +73,9 @@ export default function ClientPortal({
   );
   const [commentDraft, setCommentDraft] = useState<Record<string, string>>({});
   const [openComment, setOpenComment] = useState<string | null>(null);
+  /** Ids that just saved, so the tick reads as "that click landed". */
+  const [justSaved, setJustSaved] = useState<Record<string, boolean>>({});
+  const [confirmingAll, setConfirmingAll] = useState(false);
 
   const diff = useMemo(
     () => diffSnapshots(snapshot, baselineSnapshot, CLIENT_VISIBLE_FIELDS),
@@ -70,32 +92,40 @@ export default function ClientPortal({
 
   const draftFor = (item: BoqItem) => commentDraft[item.id] ?? approvals[item.id]?.comment ?? "";
 
+  /** Session-expired is the one error worth sending back to the gate. */
+  const handleFailure = (error: string | undefined) => {
+    if (error && error.startsWith("Please confirm your email")) {
+      toast(error);
+      onExpired();
+      return;
+    }
+    toast(error ?? "Could not save that — please try again");
+  };
+
+  const markSaved = (id: string, at: string) => {
+    setJustSaved((prev) => ({ ...prev, [id]: true }));
+    // The tick fades but the timestamp stays, so there's always a record on
+    // screen that the click was actually saved.
+    window.setTimeout(() => setJustSaved((prev) => ({ ...prev, [id]: false })), 4000);
+    return at;
+  };
+
   const setStatus = (item: BoqItem, status: ApprovalStatus) => {
     const comment = draftFor(item).trim();
 
     // Rejecting without saying why helps nobody — record the verdict, then ask.
-    if (WANTS_REASON.includes(status) && !comment) {
-      setApprovals((prev) => ({ ...prev, [item.id]: { lineItemId: item.id, status, comment: "" } }));
-      setOpenComment(item.id);
-    }
+    if (WANTS_REASON.includes(status) && !comment) setOpenComment(item.id);
 
     startTransition(async () => {
-      const result = await submitItemApproval({ token, versionId, lineItemId: item.id, status, comment });
+      const result = await submitItemApproval({ token, pass, versionId, lineItemId: item.id, status, comment });
       if (!result.ok) {
-        toast(result.error ?? "Could not save that — please try again");
+        handleFailure(result.error);
         return;
       }
-      setApprovals((prev) => ({ ...prev, [item.id]: { lineItemId: item.id, status, comment } }));
+      const at = new Date().toISOString();
+      setApprovals((prev) => ({ ...prev, [item.id]: { lineItemId: item.id, status, comment, at } }));
+      markSaved(item.id, at);
       if (!WANTS_REASON.includes(status) || comment) setOpenComment(null);
-      toast(
-        status === "APPROVED"
-          ? comment
-            ? "Approved, with your note"
-            : "Approved"
-          : status === "REJECTED"
-            ? "Marked as rejected — add a note so Barebase knows why"
-            : "Change requested — Barebase will be in touch",
-      );
     });
   };
 
@@ -103,41 +133,50 @@ export default function ClientPortal({
   const saveComment = (item: BoqItem) => {
     const comment = draftFor(item).trim();
     startTransition(async () => {
-      const result = await submitItemComment({ token, versionId, lineItemId: item.id, comment });
+      const result = await submitItemComment({ token, pass, versionId, lineItemId: item.id, comment });
       if (!result.ok) {
-        toast(result.error ?? "Could not save that — please try again");
+        handleFailure(result.error);
         return;
       }
+      const at = new Date().toISOString();
       setApprovals((prev) => ({
         ...prev,
         [item.id]: {
           lineItemId: item.id,
           status: prev[item.id]?.status ?? result.status ?? "PENDING",
           comment,
+          at,
         },
       }));
+      markSaved(item.id, at);
       setOpenComment(null);
-      toast(comment ? "Note saved — Barebase will see it" : "Note removed");
     });
   };
 
   const approveAll = () => {
     startTransition(async () => {
-      const result = await approveWholeVersion({ token, versionId });
+      const result = await approveWholeVersion({ token, pass, versionId });
       if (!result.ok) {
-        toast(result.error ?? "Could not approve — please try again");
+        handleFailure(result.error);
         return;
       }
+      const at = new Date().toISOString();
       const all = Object.fromEntries(
         snapshot.sections.flatMap((section) =>
           section.items.map((item) => [
             item.id,
-            { lineItemId: item.id, status: "APPROVED" as ApprovalStatus, comment: approvals[item.id]?.comment ?? "" },
+            {
+              lineItemId: item.id,
+              status: "APPROVED" as ApprovalStatus,
+              comment: approvals[item.id]?.comment ?? "",
+              at,
+            },
           ]),
         ),
       );
       setApprovals(all);
       setOpenComment(null);
+      setConfirmingAll(false);
       toast("Thank you — the full estimate is approved");
     });
   };
@@ -147,6 +186,64 @@ export default function ClientPortal({
     : flaggedCount > 0
       ? `${approvedCount} of ${total} approved · ${flaggedCount} flagged`
       : `${approvedCount} of ${total} lines approved`;
+
+  /**
+   * The one irreversible-feeling thing on this page: it overwrites every line,
+   * including ones the client has deliberately rejected. So it's visually loud,
+   * and it asks first — naming how many flags it would clear.
+   */
+  const approveBar = (place: string) => (
+    <div className={`cv-approve-block ${place}`}>
+      {done ? (
+        <span className="cv-approved-stamp">✓ Approved — thank you. Barebase has been notified.</span>
+      ) : confirmingAll ? (
+        <div className="cv-confirm">
+          <div className="cv-confirm-text">
+            {flaggedCount > 0 ? (
+              <>
+                <b>
+                  This will approve all {total} line{total === 1 ? "" : "s"} — including the {flaggedCount} you
+                  flagged.
+                </b>{" "}
+                Your notes are kept, but {flaggedCount === 1 ? "that line" : "those lines"} will no longer be marked
+                as needing changes.
+              </>
+            ) : (
+              <>
+                <b>
+                  Approve all {total} line{total === 1 ? "" : "s"}?
+                </b>{" "}
+                Barebase will take this as your sign-off on the estimate.
+              </>
+            )}
+          </div>
+          <div className="cv-confirm-actions">
+            <button className="btn light" disabled={pending} onClick={() => setConfirmingAll(false)}>
+              Cancel
+            </button>
+            <button className="btn cv-approve-all" disabled={pending} onClick={approveAll}>
+              {pending ? "Saving…" : `Yes, approve all ${total}`}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <button
+            className="btn cv-approve-all"
+            disabled={pending}
+            onClick={() => setConfirmingAll(true)}
+          >
+            ✓ Approve the whole estimate
+          </button>
+          <span className="cv-approve-hint">
+            {flaggedCount > 0
+              ? `You've flagged ${flaggedCount} line${flaggedCount === 1 ? "" : "s"} — approving everything would clear ${flaggedCount === 1 ? "that flag" : "those flags"}.`
+              : "Or go line by line below — each click saves on its own."}
+          </span>
+        </>
+      )}
+    </div>
+  );
 
   return (
     <>
@@ -181,10 +278,12 @@ export default function ClientPortal({
             </span>
           </div>
         }
+        beforeContent={approveBar("top")}
         renderItemActions={(item) => {
           const record = approvals[item.id];
           const status = record?.status ?? "PENDING";
           const isOpen = openComment === item.id;
+          const saved = justSaved[item.id];
 
           return (
             <>
@@ -206,6 +305,15 @@ export default function ClientPortal({
                 >
                   {record?.comment ? "Edit note" : "Add a note"}
                 </button>
+
+                {/* Proof the click landed. The tick is momentary; the "saved at"
+                    stays, so there's no doubt later either. */}
+                {record?.at ? (
+                  <span className={`cv-saved${saved ? " flash-in" : ""}`}>
+                    <b>✓ {SAVED_LABEL[status] ?? "Saved"}</b>
+                    <span className="cv-saved-at">saved at {clockTime(record.at)}</span>
+                  </span>
+                ) : null}
               </div>
 
               {isOpen ? (
@@ -237,28 +345,7 @@ export default function ClientPortal({
             </>
           );
         }}
-        footer={
-          <div className="cv-approve-bar">
-            {done ? (
-              <span className="status-badge approved" style={{ padding: "9px 16px" }}>
-                ✓ Approved — thank you. Barebase has been notified.
-              </span>
-            ) : (
-              <>
-                <button className="btn primary" disabled={pending} onClick={approveAll}>
-                  {pending ? "Saving…" : "Approve the whole estimate"}
-                </button>
-                {flaggedCount > 0 ? (
-                  <span className="cv-flagged-note">
-                    You&apos;ve flagged {flaggedCount} line{flaggedCount === 1 ? "" : "s"} — Barebase can see{" "}
-                    {flaggedCount === 1 ? "it" : "them"} and your notes. Approving everything here would clear{" "}
-                    {flaggedCount === 1 ? "that flag" : "those flags"}.
-                  </span>
-                ) : null}
-              </>
-            )}
-          </div>
-        }
+        footer={approveBar("bottom")}
       />
 
       <Toast message={message} />

@@ -89,6 +89,7 @@ export default function RateCardEditor({
         unit: "SQFT",
         rate: 0,
         cost: 0,
+        defaultScope: "",
       },
     ]);
     setDirty(true);
@@ -173,6 +174,7 @@ export default function RateCardEditor({
               <th style={{ width: "8%" }}>Unit</th>
               <th style={{ width: "9%" }}>Rate ₹</th>
               {canSeeCost ? <th style={{ width: "9%" }}>Cost ₹</th> : null}
+              <th style={{ width: "13%" }}>Default scope note</th>
               <th />
             </tr>
           </thead>
@@ -252,6 +254,17 @@ export default function RateCardEditor({
                   </td>
                 ) : null}
                 <td>
+                  <textarea
+                    className="scope-cell"
+                    rows={1}
+                    value={entry.defaultScope}
+                    disabled={!canEdit}
+                    placeholder="Boilerplate scope…"
+                    title={entry.defaultScope || "Copied onto a BOQ line when this item is added"}
+                    onChange={(e) => patch(index, { defaultScope: e.target.value })}
+                  />
+                </td>
+                <td>
                   {canEdit ? (
                     <button className="rm-btn" title="Delete" onClick={() => removeRow(index)}>
                       ✕
@@ -268,6 +281,11 @@ export default function RateCardEditor({
         Unit drives the entry form: SQFT asks for length × breadth, RFT for a single length, CFT for length ×
         breadth × height. Everything else takes a typed quantity. Pick <b>Custom unit…</b>{" "}
         to add one that isn&apos;t listed — it then shows up in the dropdown on every other row.
+        <br />
+        <b>Default scope note</b>{" "}
+        is boilerplate copied into a BOQ line&apos;s Scope of work when someone adds this item, so common items
+        don&apos;t get retyped. It stays editable on the line afterwards, and changing it here never rewrites scope
+        text already saved on existing BOQs.
       </p>
 
       <Toast message={message} />

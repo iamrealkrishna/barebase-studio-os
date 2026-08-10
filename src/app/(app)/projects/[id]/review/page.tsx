@@ -67,6 +67,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
         unit: item.unit,
         rate: item.rate,
         cost: canSeeCost ? item.cost : 0,
+        defaultScope: item.defaultScope,
       }))}
       approvedSnapshot={
         approvedSnapshot ? (canSeeCost ? approvedSnapshot : withoutCost(approvedSnapshot)) : null

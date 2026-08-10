@@ -6,7 +6,7 @@ import type { ApprovalStatus, BoqStatus, Prisma } from "@prisma/client";
 import { recordAudit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth";
 import { approvalLabel, countItems, statusLabel } from "@/lib/boq";
-import { newClientToken, resolveClientAccess } from "@/lib/client-access";
+import { newClientToken, resolveClientAccess, verifyDevicePass } from "@/lib/client-access";
 import { prisma } from "@/lib/db";
 import { parseSnapshot } from "@/lib/serialize";
 
@@ -57,6 +57,42 @@ export async function revokeClientContact(formData: FormData): Promise<void> {
   });
 
   revalidatePath(`/projects/${projectId}`);
+}
+
+/**
+ * Replace a contact's link with a fresh one, in a single deliberate action.
+ *
+ * The case this exists for is a link that's been forwarded further than it
+ * should have been. Doing it as revoke-then-add loses the contact's approval
+ * history along with the old row; this keeps the contact and swaps the token,
+ * so the new link is dead to anyone holding the old URL and every device that
+ * had passed the email check has to pass it again.
+ */
+export async function reissueClientLink(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const projectId = String(formData.get("projectId") ?? "");
+  const contactId = String(formData.get("contactId") ?? "");
+
+  const project = await prisma.project.findFirst({ where: { id: projectId, orgId: user.orgId } });
+  if (!project) return;
+
+  const contact = await prisma.clientContact.findFirst({ where: { id: contactId, projectId } });
+  if (!contact) return;
+
+  await prisma.clientContact.update({
+    where: { id: contactId },
+    data: { token: newClientToken(), revoked: false },
+  });
+
+  await recordAudit(prisma, {
+    projectId,
+    actorType: "TEAM",
+    actorName: user.name,
+    action: `Reissued ${contact.name}'s review link — the previous one no longer works`,
+  });
+
+  revalidatePath(`/projects/${projectId}`);
+  revalidatePath(`/projects/${projectId}/client-view`);
 }
 
 /** Manual status override on a version — the design's per-row status dropdown. */
@@ -188,6 +224,7 @@ async function unsettleVersionApproval(
 
 export async function submitItemApproval(input: {
   token: string;
+  pass: string | null;
   versionId: string;
   lineItemId: string;
   status: ApprovalStatus;
@@ -195,6 +232,9 @@ export async function submitItemApproval(input: {
 }): Promise<ClientActionResult> {
   const access = await resolveClientAccess(input.token);
   if (!access) return { ok: false, error: "This link is no longer active." };
+  if (!(await verifyDevicePass(input.pass, access.contact.id, input.token))) {
+    return { ok: false, error: "Please confirm your email again to continue." };
+  }
 
   const version = await prisma.version.findFirst({
     where: { id: input.versionId, projectId: access.project.id, status: { in: ["SENT_TO_CLIENT", "APPROVED"] } },
@@ -272,12 +312,16 @@ export async function submitItemApproval(input: {
  */
 export async function submitItemComment(input: {
   token: string;
+  pass: string | null;
   versionId: string;
   lineItemId: string;
   comment: string;
 }): Promise<ClientActionResult> {
   const access = await resolveClientAccess(input.token);
   if (!access) return { ok: false, error: "This link is no longer active." };
+  if (!(await verifyDevicePass(input.pass, access.contact.id, input.token))) {
+    return { ok: false, error: "Please confirm your email again to continue." };
+  }
 
   const version = await prisma.version.findFirst({
     where: { id: input.versionId, projectId: access.project.id, status: { in: ["SENT_TO_CLIENT", "APPROVED"] } },
@@ -339,10 +383,14 @@ export async function submitItemComment(input: {
 
 export async function approveWholeVersion(input: {
   token: string;
+  pass: string | null;
   versionId: string;
 }): Promise<ClientActionResult> {
   const access = await resolveClientAccess(input.token);
   if (!access) return { ok: false, error: "This link is no longer active." };
+  if (!(await verifyDevicePass(input.pass, access.contact.id, input.token))) {
+    return { ok: false, error: "Please confirm your email again to continue." };
+  }
 
   const version = await prisma.version.findFirst({
     where: { id: input.versionId, projectId: access.project.id, status: { in: ["SENT_TO_CLIENT", "APPROVED"] } },

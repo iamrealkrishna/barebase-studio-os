@@ -21,6 +21,7 @@ const FIELD_LABEL: Record<string, string> = {
   unit: "Unit",
   rate: "Rate",
   cost: "Cost",
+  defaultScope: "Default scope note",
 };
 
 export default function RateCardBulkEdit({
@@ -55,6 +56,7 @@ export default function RateCardBulkEdit({
         unit: entry.unit,
         rate: entry.rate,
         cost: entry.cost,
+        defaultScope: entry.defaultScope,
       })),
     );
 
@@ -278,6 +280,7 @@ export default function RateCardBulkEdit({
                       <td>{insert.category}</td>
                       <td>
                         <b>{insert.name}</b>
+                        {insert.note ? <div className="insert-note">{insert.note}</div> : null}
                       </td>
                       <td>{insert.material || "—"}</td>
                       <td>{insert.finish || "—"}</td>

@@ -62,6 +62,7 @@ export default async function SettingsPage() {
           // Internal cost is admin-only, so it isn't sent to a member's browser
           // at all. Writes are admin-only too, so the zero can never come back.
           cost: isAdmin ? item.cost : 0,
+          defaultScope: item.defaultScope,
         }))}
       />
     </div>

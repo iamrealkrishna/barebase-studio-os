@@ -80,6 +80,10 @@ model RateItem {
   rate     Float  @default(0)
   /// Internal cost. Never leaves the org.
   cost     Float  @default(0)
+  /// Boilerplate scope of work, copied onto a BOQ line when this item is added.
+  /// Copied, not referenced: editing it here never rewrites scope text already
+  /// saved on existing BOQ lines, which a client may well have approved.
+  defaultScope String @default("")
   position Int    @default(0)
 
   org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)

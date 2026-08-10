@@ -9,6 +9,8 @@ export type RateEntry = {
   unit: string;
   rate: number;
   cost: number;
+  /** Boilerplate scope of work copied onto a BOQ line when this item is added. */
+  defaultScope: string;
 };
 
 function uniq(values: string[]): string[] {

@@ -18,6 +18,7 @@ function clean(entry: RateEntry, position: number) {
     unit: entry.unit.trim(),
     rate: Number.isFinite(entry.rate) ? entry.rate : 0,
     cost: Number.isFinite(entry.cost) ? entry.cost : 0,
+    defaultScope: entry.defaultScope ?? "",
     position,
   };
 }
