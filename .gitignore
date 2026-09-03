@@ -19,3 +19,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /prisma/generated
+
+# Playwright run output. Same root-anchoring rule as the build dirs above.
+/test-results/
+/playwright-report/
+/playwright/.cache/

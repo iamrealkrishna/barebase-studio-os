@@ -59,13 +59,35 @@ async function openEstimate(token: string, contactId: string): Promise<ClientEst
     }),
   ]);
 
+  /**
+   * Which columns the client sees comes from the project as it stands, not from
+   * the version they're looking at.
+   *
+   * The snapshot froze whatever the toggles were when the version was saved, so
+   * reading them from there meant switching Rate off did nothing for a client
+   * who already had the link — while the team's own preview of that same page,
+   * which renders from the live project, showed it correctly hidden. Visibility
+   * is a presentation choice about the estimate, not part of the scope the
+   * version exists to pin down.
+   */
+  const cols = {
+    material: access.project.colMaterial,
+    finish: access.project.colFinish,
+    qty: access.project.colQty,
+    rate: access.project.colRate,
+  };
+  const withLiveCols = (snapshot: BoqSnapshot): BoqSnapshot => ({
+    ...snapshot,
+    meta: { ...snapshot.meta, cols },
+  });
+
   return {
     versionId: version.id,
     contactName: access.contact.name,
     // Everything internal — cost, margin, notes — is stripped before it leaves.
-    snapshot: toClientSnapshot(parseSnapshot(version.snapshot)),
+    snapshot: withLiveCols(toClientSnapshot(parseSnapshot(version.snapshot))),
     letterhead: toLetterhead(access.org),
-    baselineSnapshot: baseline ? toClientSnapshot(baseline) : null,
+    baselineSnapshot: baseline ? withLiveCols(toClientSnapshot(baseline)) : null,
     alreadyApproved: version.status === "APPROVED",
     submittedAt: access.contact.reviewSubmittedAt
       ? access.contact.reviewSubmittedAt.toISOString()
