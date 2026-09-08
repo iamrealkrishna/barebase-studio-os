@@ -3,9 +3,9 @@
 Playwright, driving the real app in a real browser. Nothing is mocked: each
 test signs in, clicks through the UI, and checks what the database gave back.
 
-43 tests across seven areas — auth, Team admin, BOQ building, the rate card
-CSV round-trip, duplicate/import, Client View (14 of them), and GST on the
-Client PDF.
+52 tests across nine areas — auth, Team admin, BOQ building, the rate card
+CSV round-trip, duplicate/import, Client View (14 of them), GST on the Client
+PDF, PDF layout, and line-item counts.
 
 ## Running it
 
@@ -42,7 +42,7 @@ Then clean up (see below). Read the rest of this section first.
 `PLAYWRIGHT TEST …` so you can find it, and the cleanup script removes it, but
 the records are real while they exist. In particular:
 
-- **~15 projects** are created, with sections, line items and versions.
+- **~20 projects** are created, with sections, line items and versions.
 - **One team member** is created, promoted, demoted and left **deactivated**
   (so an interrupted run can't leave a working login behind). The cleanup
   script deletes them.
@@ -102,6 +102,8 @@ and tearing a hole in the audit trail. Deactivate them on `/team` instead.
 | `05-project-actions.spec.ts` | Duplicate a project, import lines from another, and confirm both are copies rather than links |
 | `06-client-view.spec.ts` | The client's own path end to end — see below |
 | `07-gst-pdf.spec.ts` | CGST/SGST on the Client PDF, checked as arithmetic against the line items |
+| `08-pdf-layout.spec.ts` | That nothing in either PDF is printed on top of anything else — see below |
+| `09-item-count.spec.ts` | Two of the same item on one line: the count multiplies the quantity everywhere it appears |
 
 ### A note on the Client View tests
 
@@ -121,6 +123,29 @@ Two assertions are deliberately stricter than they look:
   characters; `pdfText()` decodes them through the `/ToUnicode` map each
   embedded font carries. If a future font change made two faces disagree about
   a glyph, it throws rather than quietly decoding to the wrong text.
+
+### A note on the PDF layout tests
+
+Checking a PDF's *text* cannot catch a collision: two strings printed on top of
+each other read back as two perfectly good strings. That is how a property
+address printed straight across the quote date got past a suite that already
+asserted on PDF contents.
+
+So `08-pdf-layout.spec.ts` checks geometry instead. `pdfLayout()` reconstructs
+where every string was actually drawn — the text matrix gives the position, and
+the embedded font's `/W` array gives the advance width of each glyph, so a run's
+extent is exact rather than estimated. `findOverlaps()` then reports any two
+strings sharing a baseline that occupy the same space, and `findOutsideMargins()`
+any string drawn outside the printable box.
+
+Widths are read **per font and never merged across fonts**. Each embedded subset
+numbers its glyphs from scratch, so glyph 19 in one face is a different character
+at a different width in the next; merging them mismeasures every run and produces
+false failures on right-aligned text.
+
+The inputs are deliberately long — a real 114-character property address, a
+double-barrelled client name, a 400-character scope note with no spaces in it to
+wrap on. Short values fit whatever the layout does and prove nothing.
 
 ### Why it runs serially
 

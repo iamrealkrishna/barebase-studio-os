@@ -13,9 +13,9 @@ import SummaryPanel from "@/components/SummaryPanel";
 import { Toast, useToast } from "@/components/Toast";
 import {
   CLIENT_VISIBLE_FIELDS,
-  computeQty,
   diffSnapshots,
   fmt,
+  perUnitQty,
   PRESET_ROOMS,
   sectionTotal,
   type BoqItem,
@@ -115,7 +115,10 @@ export default function BoqBuilder({
       toast("Add a description before saving this item");
       return;
     }
-    const item: BoqItem = { ...draft, qty: computeQty(draft) };
+    // perUnitQty, not computeQty: `qty` holds one unit's worth and the count
+    // multiplies it on read, so storing the billed total here would multiply it
+    // again on the next render.
+    const item: BoqItem = { ...draft, qty: perUnitQty(draft) };
 
     update((prev) => ({
       ...prev,

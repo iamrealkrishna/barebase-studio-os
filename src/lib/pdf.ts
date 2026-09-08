@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 
 import {
   computeQty,
+  countSuffix,
   computeTotals,
   fmt,
   fmtPlain,
@@ -54,18 +55,116 @@ const LINE: [number, number, number] = [214, 207, 187];
 const CHIP: [number, number, number] = [239, 235, 224];
 const GREEN: [number, number, number] = [70, 82, 65];
 
+/** Page margin, and the gap kept between two columns sharing a baseline. */
+const MARGIN = 40;
+const GUTTER = 18;
+
+/**
+ * Trim a single line until it fits, with an ellipsis to show it was cut.
+ *
+ * The backstop behind `wrapLines`: a wrapper can only break on spaces, so one
+ * unbroken token longer than the box — a pasted URL, a run-on address with no
+ * spaces — comes back still too wide. Nothing downstream checks, so without
+ * this it would just be drawn over whatever is next to it.
+ */
+function fitLine(doc: jsPDF, line: string, maxWidth: number): string {
+  if (maxWidth <= 0) return "";
+  if (doc.getTextWidth(line) <= maxWidth) return line;
+  let out = line;
+  while (out.length > 1 && doc.getTextWidth(`${out}…`) > maxWidth) out = out.slice(0, -1);
+  return `${out}…`;
+}
+
+/** Wrap to a width, and guarantee every line returned actually fits it. */
+function wrapLines(doc: jsPDF, text: string, maxWidth: number): string[] {
+  const lines = doc.splitTextToSize(String(text ?? ""), maxWidth) as string[];
+  return lines.map((line) => fitLine(doc, line, maxWidth));
+}
+
+/**
+ * Draw a string inside a hard width limit and return the next free baseline.
+ *
+ * Every fixed-position string in this document goes through here. jsPDF's
+ * `doc.text()` draws one line wherever it is told, however wide it turns out to
+ * be, so any value the team can type — a client name, a property address — will
+ * eventually run off the page or straight through whatever shares its baseline.
+ * That is exactly how a long property address came to be printed on top of the
+ * quote date. Passing a width is the whole point: there is no call here that
+ * knows its content is short enough, because none of them do.
+ */
+function drawText(
+  doc: jsPDF,
+  text: string,
+  opts: {
+    x: number;
+    y: number;
+    maxWidth: number;
+    align?: "left" | "right";
+    lineHeight: number;
+    maxLines?: number;
+  },
+): number {
+  const { x, y, maxWidth, align = "left", lineHeight, maxLines } = opts;
+  const value = String(text ?? "");
+  if (!value.trim()) return y;
+
+  let lines = wrapLines(doc, value, maxWidth);
+  if (maxLines && lines.length > maxLines) {
+    // Keep the header a header: an essay in the property field must not push
+    // the table off the page.
+    lines = lines.slice(0, maxLines);
+    lines[maxLines - 1] = fitLine(doc, `${lines[maxLines - 1]} …`, maxWidth);
+  }
+
+  let cursor = y;
+  for (const line of lines) {
+    doc.text(line, x, cursor, align === "right" ? { align: "right" } : undefined);
+    cursor += lineHeight;
+  }
+  return cursor;
+}
+
+/**
+ * One row of the totals block: label on the left, amount on the right, sharing a
+ * baseline inside a fixed box.
+ *
+ * The amount is measured first and the label gets whatever is left. A big enough
+ * figure — or a longer label in another language — would otherwise meet the
+ * amount in the middle, which is the same collision the header used to have.
+ */
+function summaryRow(
+  doc: jsPDF,
+  label: string,
+  amount: string,
+  opts: { left: number; right: number; y: number },
+): void {
+  const { left, right, y } = opts;
+  const amountWidth = doc.getTextWidth(amount);
+  doc.text(fitLine(doc, label, right - left - amountWidth - 10), left, y);
+  doc.text(amount, right, y, { align: "right" });
+}
+
 function header(doc: jsPDF, title: string, snapshot: BoqSnapshot, letterhead: Letterhead): number {
   const pageW = doc.internal.pageSize.getWidth();
+  const usable = pageW - MARGIN * 2;
 
   doc.setFont(PDF_FONT, "bold");
   doc.setFontSize(16);
   doc.setTextColor(...INK);
-  doc.text(letterhead.name.toUpperCase(), 40, 46);
+  let y = drawText(doc, letterhead.name.toUpperCase(), {
+    x: MARGIN,
+    y: 46,
+    maxWidth: usable,
+    lineHeight: 18,
+    maxLines: 2,
+  });
 
   doc.setFont(PDF_FONT, "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(...INK_SOFT);
-  if (letterhead.addressLine) doc.text(letterhead.addressLine, 40, 60);
+  if (letterhead.addressLine) {
+    y = drawText(doc, letterhead.addressLine, { x: MARGIN, y: y + 0, maxWidth: usable, lineHeight: 12 });
+  }
   const poc = [
     letterhead.pocName ? `POC: ${letterhead.pocName}` : "",
     letterhead.pocPhone,
@@ -73,26 +172,71 @@ function header(doc: jsPDF, title: string, snapshot: BoqSnapshot, letterhead: Le
   ]
     .filter(Boolean)
     .join("  ·  ");
-  if (poc) doc.text(poc, 40, 72);
+  if (poc) y = drawText(doc, poc, { x: MARGIN, y, maxWidth: usable, lineHeight: 12 });
 
+  const ruleY = y + 2;
   doc.setDrawColor(...BRASS);
   doc.setLineWidth(1.2);
-  doc.line(40, 82, pageW - 40, 82);
+  doc.line(MARGIN, ruleY, pageW - MARGIN, ruleY);
 
   doc.setFont(PDF_FONT, "bold");
   doc.setFontSize(12.5);
   doc.setTextColor(...INK);
-  doc.text(title, 40, 102);
+  const titleY = ruleY + 20;
+  doc.text(fitLine(doc, title, usable), MARGIN, titleY);
 
   doc.setFont(PDF_FONT, "normal");
   doc.setFontSize(9.5);
   doc.setTextColor(50, 48, 42);
-  doc.text(`Client: ${snapshot.meta.client || "—"}`, 40, 118);
-  doc.text(`Property: ${snapshot.meta.property || "—"}`, 40, 130);
-  doc.text(`Prepared by: ${snapshot.meta.preparedBy || "—"}`, pageW - 40, 118, { align: "right" });
-  doc.text(`Date: ${snapshot.meta.date || "—"}`, pageW - 40, 130, { align: "right" });
 
-  return 148;
+  /**
+   * Two independent columns rather than four strings on two shared baselines.
+   *
+   * The right column is measured first and only takes the width it needs, up to
+   * a cap; the left column gets whatever is left. Either side can then wrap
+   * downward on its own without ever reaching into the other — which is what
+   * the fixed positions here used to allow.
+   */
+  const rightLines = [
+    `Prepared by: ${snapshot.meta.preparedBy || "—"}`,
+    `Date: ${snapshot.meta.date || "—"}`,
+  ];
+  const rightWidth = Math.min(
+    usable * 0.45,
+    Math.max(...rightLines.map((line) => doc.getTextWidth(line))),
+  );
+  const leftWidth = usable - rightWidth - GUTTER;
+
+  const metaY = titleY + 16;
+  let leftY = metaY;
+  leftY = drawText(doc, `Client: ${snapshot.meta.client || "—"}`, {
+    x: MARGIN,
+    y: leftY,
+    maxWidth: leftWidth,
+    lineHeight: 12,
+    maxLines: 2,
+  });
+  leftY = drawText(doc, `Property: ${snapshot.meta.property || "—"}`, {
+    x: MARGIN,
+    y: leftY,
+    maxWidth: leftWidth,
+    lineHeight: 12,
+    maxLines: 3,
+  });
+
+  let rightY = metaY;
+  for (const line of rightLines) {
+    rightY = drawText(doc, line, {
+      x: pageW - MARGIN,
+      y: rightY,
+      maxWidth: rightWidth,
+      align: "right",
+      lineHeight: 12,
+      maxLines: 2,
+    });
+  }
+
+  return Math.max(leftY, rightY) + 6;
 }
 
 function ensureSpace(doc: jsPDF, y: number, needed: number): number {
@@ -167,9 +311,13 @@ export async function buildBoqPdf(
           text: item.description.trim(),
         });
       }
+      // The quantity column already carries the billed total, but "96 SQFT"
+      // alone doesn't say it covers two wardrobes. There's no room for a column
+      // of its own on a quote this wide, so it rides with the description —
+      // which also means it survives the client having the Qty column hidden.
       return [
         String(slNo++),
-        item.desc,
+        item.desc + countSuffix(item),
         ...(cols.material ? [item.material] : []),
         ...(cols.finish ? [item.finish] : []),
         ...(cols.qty ? [item.unit, String(qty || 0)] : []),
@@ -213,7 +361,12 @@ export async function buildBoqPdf(
     doc.setFont(PDF_FONT, "italic");
     doc.setFontSize(8.5);
     doc.setTextColor(...INK_SOFT);
-    doc.text(`${section.name} subtotal: ${fmt(sectionTotal(section))}`, pageW - 40, y, { align: "right" });
+    doc.text(
+      fitLine(doc, `${section.name} subtotal: ${fmt(sectionTotal(section))}`, pageW - MARGIN * 2),
+      pageW - MARGIN,
+      y,
+      { align: "right" },
+    );
     y += 18;
   });
 
@@ -221,48 +374,47 @@ export async function buildBoqPdf(
   y = ensureSpace(doc, y, 130);
   doc.setDrawColor(...INK);
   doc.setLineWidth(1);
-  doc.line(pageW - 260, y, pageW - 40, y);
+  doc.line(pageW - 260, y, pageW - MARGIN, y);
   y += 16;
+
+  const sumLeft = pageW - 260;
+  const sumRight = pageW - MARGIN;
 
   doc.setFont(PDF_FONT, "normal");
   doc.setFontSize(9.5);
   doc.setTextColor(50, 48, 42);
-  doc.text("Subtotal", pageW - 260, y);
-  doc.text(fmt(totals.subtotal), pageW - 40, y, { align: "right" });
+  summaryRow(doc, "Subtotal", fmt(totals.subtotal), { left: sumLeft, right: sumRight, y });
   y += 15;
 
   if (totals.discountAmount > 0) {
-    doc.text("Discount", pageW - 260, y);
-    doc.text("−" + fmt(totals.discountAmount), pageW - 40, y, { align: "right" });
+    summaryRow(doc, "Discount", "−" + fmt(totals.discountAmount), { left: sumLeft, right: sumRight, y });
     y += 15;
   }
   if (totals.gstOn) {
-    doc.text(`CGST @ ${totals.gstRate / 2}%`, pageW - 260, y);
-    doc.text(fmt(totals.cgst), pageW - 40, y, { align: "right" });
+    summaryRow(doc, `CGST @ ${totals.gstRate / 2}%`, fmt(totals.cgst), { left: sumLeft, right: sumRight, y });
     y += 15;
-    doc.text(`SGST @ ${totals.gstRate / 2}%`, pageW - 260, y);
-    doc.text(fmt(totals.sgst), pageW - 40, y, { align: "right" });
+    summaryRow(doc, `SGST @ ${totals.gstRate / 2}%`, fmt(totals.sgst), { left: sumLeft, right: sumRight, y });
     y += 15;
   }
 
   doc.setFont(PDF_FONT, "bold");
   doc.setFontSize(11.5);
-  doc.text("Grand total", pageW - 260, y + 4);
-  doc.text(fmt(totals.grand), pageW - 40, y + 4, { align: "right" });
+  summaryRow(doc, "Grand total", fmt(totals.grand), { left: sumLeft, right: sumRight, y: y + 4 });
   y += 26;
 
   if (internal) {
     doc.setFont(PDF_FONT, "normal");
     doc.setFontSize(9.5);
     doc.setTextColor(...GREEN);
-    doc.text("Internal cost", pageW - 260, y);
-    doc.text(fmt(totals.totalCost), pageW - 40, y, { align: "right" });
+    summaryRow(doc, "Internal cost", fmt(totals.totalCost), { left: sumLeft, right: sumRight, y });
     y += 15;
     doc.setFont(PDF_FONT, "bold");
-    doc.text("Margin", pageW - 260, y);
-    doc.text(`${fmt(totals.margin)}  (${Math.round(totals.marginPct * 10) / 10}%)`, pageW - 40, y, {
-      align: "right",
-    });
+    summaryRow(
+      doc,
+      "Margin",
+      `${fmt(totals.margin)}  (${Math.round(totals.marginPct * 10) / 10}%)`,
+      { left: sumLeft, right: sumRight, y },
+    );
     y += 26;
   } else {
     const terms = snapshot.meta.terms;
@@ -276,7 +428,7 @@ export async function buildBoqPdf(
       doc.setFont(PDF_FONT, "normal");
       doc.setFontSize(8.5);
       doc.setTextColor(80, 76, 66);
-      for (const line of doc.splitTextToSize(terms, pageW - 80)) {
+      for (const line of wrapLines(doc, terms, pageW - MARGIN * 2)) {
         y = ensureSpace(doc, y, 14);
         doc.text(line, 40, y);
         y += 12;
@@ -287,8 +439,13 @@ export async function buildBoqPdf(
     doc.setFont(PDF_FONT, "normal");
     doc.setFontSize(9);
     doc.setTextColor(...INK);
-    doc.text(`For ${letterhead.legalName || letterhead.name}`, pageW - 40, y, { align: "right" });
-    doc.text("Authorised Signatory", pageW - 40, y + 34, { align: "right" });
+    doc.text(
+      fitLine(doc, `For ${letterhead.legalName || letterhead.name}`, pageW - MARGIN * 2),
+      pageW - MARGIN,
+      y,
+      { align: "right" },
+    );
+    doc.text("Authorised Signatory", pageW - MARGIN, y + 34, { align: "right" });
   }
 
   if (scopeNotes.length > 0) {
@@ -307,19 +464,27 @@ export async function buildBoqPdf(
         doc.setFont(PDF_FONT, "bold");
         doc.setFontSize(10);
         doc.setTextColor(...BRASS_DARK);
-        doc.text(note.section.toUpperCase(), 40, ny);
-        ny += 14;
+        ny = drawText(doc, note.section.toUpperCase(), {
+          x: MARGIN,
+          y: ny,
+          maxWidth: pageW - MARGIN * 2,
+          lineHeight: 14,
+        });
         lastSection = note.section;
       }
       doc.setFont(PDF_FONT, "bold");
       doc.setFontSize(8.5);
       doc.setTextColor(...INK);
-      doc.text(note.desc, 40, ny);
-      ny += 11;
+      ny = drawText(doc, note.desc, {
+        x: MARGIN,
+        y: ny,
+        maxWidth: pageW - MARGIN * 2,
+        lineHeight: 11,
+      });
       doc.setFont(PDF_FONT, "normal");
       doc.setFontSize(8.5);
       doc.setTextColor(80, 76, 66);
-      for (const line of doc.splitTextToSize(note.text, pageW - 80)) {
+      for (const line of wrapLines(doc, note.text, pageW - MARGIN * 2)) {
         ny = ensureSpace(doc, ny, 12);
         doc.text(line, 40, ny);
         ny += 11;
@@ -363,7 +528,7 @@ export async function buildBoqPdf(
       doc.setFontSize(7.5);
       doc.setTextColor(70, 68, 60);
       const caption = [item.desc, item.material, item.finish].filter(Boolean).join(" · ");
-      doc.text(doc.splitTextToSize(caption, imgW).slice(0, 2), x, iy + imgH + 11);
+      doc.text(wrapLines(doc, caption, imgW).slice(0, 2), x, iy + imgH + 11);
       col++;
       if (col >= perRow) {
         col = 0;

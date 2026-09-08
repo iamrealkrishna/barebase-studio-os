@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { loadBoq, saveBoq } from "@/actions/projects";
-import { computeQty, type BoqItem, type BoqMeta, type BoqSnapshot } from "@/lib/boq";
+import { perUnitQty, type BoqItem, type BoqMeta, type BoqSnapshot } from "@/lib/boq";
 
 export type SaveState = "saved" | "dirty" | "saving" | "error" | "conflict";
 
@@ -211,7 +211,9 @@ export function useBoqEditor({
           items: section.items.map((row) => {
             if (!committing.has(row.id)) return row;
             const edited = pendingEdits[row.id];
-            return edited ? { ...edited, qty: computeQty(edited) } : row;
+            // perUnitQty: `qty` is one unit's worth, multiplied by the count
+            // on read. Storing the billed total would compound it each save.
+            return edited ? { ...edited, qty: perUnitQty(edited) } : row;
           }),
         })),
       }));

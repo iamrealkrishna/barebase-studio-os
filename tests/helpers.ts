@@ -302,10 +302,258 @@ export function amountAfter(pdf: string, label: string): number | null {
 
 /** Click a PDF button and hand back the file's text. */
 export async function downloadPdfText(page: Page, buttonText: string): Promise<string> {
+  return pdfText(await downloadPdf(page, buttonText));
+}
+
+/** Click a PDF button and hand back the raw file. */
+export async function downloadPdf(page: Page, buttonText: string): Promise<Buffer> {
   const download = page.waitForEvent("download", { timeout: 60_000 });
   await page.locator(`.topbar-actions button:has-text("${buttonText}")`).first().click();
   const file = await (await download).createReadStream();
   const chunks: Buffer[] = [];
   for await (const chunk of file) chunks.push(chunk as Buffer);
-  return pdfText(Buffer.concat(chunks));
+  return Buffer.concat(chunks);
+}
+
+// ------------------------------------------------------------ PDF geometry
+
+/** One drawn string, with where it sits and how much room it takes. */
+export type PdfRun = {
+  page: number;
+  text: string;
+  /** Left edge, in points from the left of the page. */
+  x: number;
+  /** Baseline, in points from the bottom of the page. */
+  y: number;
+  width: number;
+  fontSize: number;
+};
+
+export type PdfLayout = {
+  pageWidth: number;
+  pageHeight: number;
+  runs: PdfRun[];
+};
+
+function bracketBody(source: string, openIndex: number): string {
+  let depth = 0;
+  for (let i = openIndex; i < source.length; i++) {
+    if (source[i] === "[") depth++;
+    else if (source[i] === "]") {
+      depth--;
+      if (depth === 0) return source.slice(openIndex + 1, i);
+    }
+  }
+  return "";
+}
+
+/**
+ * Where every string in a PDF was actually drawn, and how wide it is.
+ *
+ * Text extraction alone can't see a collision: two strings printed on top of
+ * each other read back as two perfectly good strings. This reconstructs the
+ * geometry instead — the text matrix gives each run's position, and the
+ * embedded font's `/W` array gives the advance width of every glyph in it, so a
+ * run's extent is exact rather than estimated.
+ *
+ * Widths are read per font, never merged across them. Each subset numbers its
+ * own glyphs from scratch, so glyph 19 in one face is a different character at a
+ * different width in the next; merging them silently mismeasures every run.
+ */
+export function pdfLayout(buffer: Buffer): PdfLayout {
+  const raw = buffer.toString("latin1");
+
+  const objects = new Map<number, string>();
+  for (const object of raw.matchAll(/(\d+)\s+0\s+obj\b([\s\S]*?)endobj/g)) {
+    objects.set(Number(object[1]), object[2]);
+  }
+
+  type Font = { widths: Map<number, number>; defaultWidth: number; toUnicode: Map<number, string> };
+  const fonts = new Map<string, Font>();
+
+  for (const dict of raw.matchAll(/\/Font\s*<<([\s\S]*?)>>/g)) {
+    for (const entry of dict[1].matchAll(/\/(\w+)\s+(\d+)\s+0\s+R/g)) {
+      const body = objects.get(Number(entry[2])) ?? "";
+
+      const descendant = body.match(/\/DescendantFonts\s*\[\s*(\d+)\s+0\s+R/);
+      if (!descendant) continue; // A base-14 font — jsPDF registers them but our exports don't draw with them.
+      const cid = objects.get(Number(descendant[1])) ?? "";
+
+      const widths = new Map<number, number>();
+      const widthArray = cid.match(/\/W\s*\[/);
+      if (widthArray) {
+        const body2 = bracketBody(cid, widthArray.index! + widthArray[0].length - 1);
+        for (const pair of body2.matchAll(/(\d+)\s*\[\s*([\d.]+)\s*\]/g)) {
+          widths.set(Number(pair[1]), Number(pair[2]));
+        }
+        // The other legal form: a first..last range sharing one width.
+        for (const span of body2.matchAll(/(\d+)\s+(\d+)\s+([\d.]+)(?=\s|$)/g)) {
+          for (let gid = Number(span[1]); gid <= Number(span[2]); gid++) widths.set(gid, Number(span[3]));
+        }
+      }
+      if (widths.size === 0) continue;
+
+      const toUnicode = new Map<number, string>();
+      const cmapRef = body.match(/\/ToUnicode\s+(\d+)\s+0\s+R/);
+      if (cmapRef) {
+        const cmap = objects.get(Number(cmapRef[1])) ?? "";
+        for (const block of cmap.matchAll(/beginbfchar([\s\S]*?)endbfchar/g)) {
+          for (const pair of block[1].matchAll(/<([0-9a-fA-F]+)>\s*<([0-9a-fA-F]+)>/g)) {
+            toUnicode.set(parseInt(pair[1], 16), String.fromCodePoint(parseInt(pair[2], 16)));
+          }
+        }
+      }
+
+      const dw = cid.match(/\/DW\s+([\d.]+)/);
+      fonts.set(entry[1], { widths, defaultWidth: dw ? Number(dw[1]) : 1000, toUnicode });
+    }
+  }
+
+  const mediaBox = raw.match(/\/MediaBox\s*\[([^\]]*)\]/);
+  const box = mediaBox ? mediaBox[1].trim().split(/\s+/).map(Number) : [0, 0, 595.28, 841.89];
+
+  const runs: PdfRun[] = [];
+  const streams = [...raw.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)];
+
+  // Streams include embedded font files, so pages are counted only over the
+  // ones that actually draw text, in the order jsPDF writes them.
+  let page = 0;
+
+  streams.forEach((stream) => {
+    const content = stream[1];
+    if (!content.includes("BT")) return;
+    page++;
+
+    let matrix = [1, 0, 0, 1, 0, 0];
+    let lineMatrix = [...matrix];
+    let fontSize = 10;
+    let leading = 0;
+    let fontName = "";
+
+    const token =
+      /BT|([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+Tm|([-\d.]+)\s+([-\d.]+)\s+Td|([-\d.]+)\s+([-\d.]+)\s+TD|T\*|\/(\w+)\s+([\d.]+)\s+Tf|([-\d.]+)\s+TL|<([0-9a-fA-F\s]+)>\s*Tj/g;
+
+    for (const match of content.matchAll(token)) {
+      const raw2 = match[0];
+      if (raw2 === "BT") {
+        matrix = [1, 0, 0, 1, 0, 0];
+        lineMatrix = [...matrix];
+      } else if (raw2.endsWith("Tm")) {
+        matrix = [1, 2, 3, 4, 5, 6].map((i) => Number(match[i]));
+        lineMatrix = [...matrix];
+      } else if (raw2.endsWith("Td")) {
+        lineMatrix[4] += Number(match[7]);
+        lineMatrix[5] += Number(match[8]);
+        matrix = [...lineMatrix];
+      } else if (raw2.endsWith("TD")) {
+        leading = -Number(match[10]);
+        lineMatrix[4] += Number(match[9]);
+        lineMatrix[5] += Number(match[10]);
+        matrix = [...lineMatrix];
+      } else if (raw2 === "T*") {
+        lineMatrix[5] -= leading;
+        matrix = [...lineMatrix];
+      } else if (raw2.endsWith("Tf")) {
+        fontName = match[11];
+        fontSize = Number(match[12]);
+      } else if (raw2.endsWith("TL")) {
+        leading = Number(match[13]);
+      } else if (match[14] !== undefined) {
+        const font = fonts.get(fontName);
+        if (!font) continue;
+        const hex = match[14].replace(/\s+/g, "");
+        let width = 0;
+        let text = "";
+        for (let i = 0; i + 4 <= hex.length; i += 4) {
+          const gid = parseInt(hex.slice(i, i + 4), 16);
+          width += font.widths.get(gid) ?? font.defaultWidth;
+          text += font.toUnicode.get(gid) ?? "";
+        }
+        runs.push({
+          page,
+          text,
+          x: matrix[4],
+          y: matrix[5],
+          width: (width / 1000) * fontSize,
+          fontSize,
+        });
+      }
+    }
+  });
+
+  return { pageWidth: box[2] - box[0], pageHeight: box[3] - box[1], runs };
+}
+
+export type PdfOverlap = {
+  page: number;
+  y: number;
+  left: string;
+  right: string;
+  /** How far the left run reaches past where the right one starts, in points. */
+  by: number;
+};
+
+/**
+ * Every place two strings sharing a baseline are drawn over each other.
+ *
+ * A quarter-point of contact is kerning, not a collision, so the tolerance
+ * keeps the check on real overlaps.
+ */
+export function findOverlaps(layout: PdfLayout, tolerance = 0.5): PdfOverlap[] {
+  const byLine = new Map<string, PdfRun[]>();
+  for (const run of layout.runs) {
+    if (!run.text.trim()) continue;
+    const key = `${run.page}:${run.y.toFixed(1)}`;
+    const list = byLine.get(key) ?? [];
+    list.push(run);
+    byLine.set(key, list);
+  }
+
+  const found: PdfOverlap[] = [];
+  for (const line of byLine.values()) {
+    const sorted = [...line].sort((a, b) => a.x - b.x);
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const end = sorted[i].x + sorted[i].width;
+      if (end > sorted[i + 1].x + tolerance) {
+        found.push({
+          page: sorted[i].page,
+          y: sorted[i].y,
+          left: sorted[i].text,
+          right: sorted[i + 1].text,
+          by: end - sorted[i + 1].x,
+        });
+      }
+    }
+  }
+  return found;
+}
+
+/** Every string drawn outside the page's printable box. */
+export function findOutsideMargins(layout: PdfLayout, margin = 40, tolerance = 1): PdfRun[] {
+  return layout.runs.filter(
+    (run) =>
+      run.text.trim() !== "" &&
+      (run.x < margin - tolerance || run.x + run.width > layout.pageWidth - margin + tolerance),
+  );
+}
+
+/** Overlaps and overflows, written out so a failure names the strings involved. */
+export function describeLayoutProblems(layout: PdfLayout): string {
+  const overlaps = findOverlaps(layout);
+  const outside = findOutsideMargins(layout);
+  const lines: string[] = [];
+
+  for (const overlap of overlaps) {
+    lines.push(
+      `overlap on page ${overlap.page}: "${overlap.left.slice(0, 60)}" runs ` +
+        `${overlap.by.toFixed(1)}pt into "${overlap.right.slice(0, 40)}"`,
+    );
+  }
+  for (const run of outside) {
+    lines.push(
+      `outside the margins on page ${run.page}: "${run.text.slice(0, 60)}" spans ` +
+        `x=${run.x.toFixed(1)}..${(run.x + run.width).toFixed(1)} of a ${layout.pageWidth.toFixed(0)}pt page`,
+    );
+  }
+  return lines.join("\n");
 }

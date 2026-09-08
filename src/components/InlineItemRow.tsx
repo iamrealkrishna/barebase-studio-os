@@ -5,12 +5,15 @@ import { useState } from "react";
 import {
   categoryLabel,
   computeQty,
+  countOf,
   CUSTOM_CATEGORY,
   dimsForUnit,
   dimSummary,
   fieldLabel,
   fmt,
   fmtPlain,
+  perUnitQty,
+  setCount,
   setDimension,
   setTypedQty,
   type BoqItem,
@@ -73,6 +76,9 @@ export default function InlineItemRow({
 
   const editing = draft !== null;
   const row = draft ?? item;
+  // `each` is what the dimensions describe; `qty` is what gets billed.
+  const each = perUnitQty(row);
+  const count = countOf(row);
   const qty = computeQty(row);
   const amount = qty * (row.rate || 0);
 
@@ -301,7 +307,8 @@ export default function InlineItemRow({
 
           <div className="item-field dim" style={{ flex: "0 0 104px", minWidth: 104 }}>
             <label>
-              Qty{row.unit ? ` (${row.unit})` : ""}
+              Qty{count > 1 ? " each" : ""}
+              {row.unit ? ` (${row.unit})` : ""}
               {dims.length > 0 && row.qtyOverride ? <span className="qty-manual-flag">typed</span> : null}
             </label>
             <input
@@ -309,7 +316,7 @@ export default function InlineItemRow({
               min="0"
               step="0.01"
               className={`num${dims.length > 0 && !row.qtyOverride ? " qty-computed" : ""}`}
-              value={row.qtyOverride || dims.length === 0 ? (row.qty || "") : qty || 0}
+              value={row.qtyOverride || dims.length === 0 ? (row.qty || "") : each || 0}
               title={
                 dims.length > 0 && !row.qtyOverride
                   ? "Calculated from the dimensions — type here to override it"
@@ -318,6 +325,27 @@ export default function InlineItemRow({
               onChange={(e) => onChange(setTypedQty(row, e.target.value))}
             />
           </div>
+
+          {/* Dimension-driven units only — see the note in EntryForm. */}
+          {dims.length > 0 ? (
+            <div className="item-field dim" style={{ flex: "0 0 92px", minWidth: 92 }}>
+              <label>Count</label>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                className="num"
+                value={row.count}
+                title="How many identical units — 2 wardrobes of the same size are one line with a count of 2"
+                onChange={(e) => onChange(setCount(row, e.target.value))}
+              />
+              {count > 1 ? (
+                <span className="qty-total-hint">
+                  = {qty} {row.unit}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="item-field dim" style={{ flex: "0 0 96px", minWidth: 96 }}>
             <label>Rate ₹</label>

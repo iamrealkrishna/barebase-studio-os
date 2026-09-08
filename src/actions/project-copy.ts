@@ -31,7 +31,16 @@ export async function listImportableProjects(excludeProjectId: string): Promise<
       sections: {
         select: {
           items: {
-            select: { rate: true, qty: true, qtyOverride: true, unit: true, dimL: true, dimB: true, dimH: true },
+            select: {
+              rate: true,
+              qty: true,
+              count: true,
+              qtyOverride: true,
+              unit: true,
+              dimL: true,
+              dimB: true,
+              dimH: true,
+            },
           },
         },
       },
@@ -47,6 +56,7 @@ export async function listImportableProjects(excludeProjectId: string): Promise<
         const qty = computeQty({
           unit: item.unit,
           qty: item.qty,
+          count: item.count,
           qtyOverride: item.qtyOverride,
           dims: {
             l: item.dimL === null ? "" : String(item.dimL),
@@ -161,6 +171,7 @@ export async function duplicateProject(formData: FormData): Promise<void> {
                     h: item.dimH === null ? "" : String(item.dimH),
                   },
                   qty: item.qty,
+                  count: item.count,
                   qtyOverride: item.qtyOverride,
                   description: item.scope,
                   note: item.note,
