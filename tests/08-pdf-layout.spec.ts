@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import {
+  PREFIX,
   addItem,
   createProject,
   describeLayoutProblems,
@@ -29,11 +30,14 @@ import {
  */
 
 /** The property address from the estimate this was first reported on. */
+// Prefixed, like every other record this suite creates. These specs overwrite
+// "Property / project", which renames the project — without the prefix here the
+// row stops matching the cleanup sweep and survives it.
 const LONG_PROPERTY =
-  "Renovation Project | Bedroom | A06, Almond Tree, Kenchanahalli Rd, " +
+  `${PREFIX} Renovation Project | Bedroom | A06, Almond Tree, Kenchanahalli Rd, ` +
   "Yelahanka, New Town, Bengaluru, Karnataka 560064";
 
-const LONG_CLIENT = "Dr. Pratham Bhatra & Mrs. Anuradha Bhatra-Venkataraman (Joint Owners)";
+const LONG_CLIENT = `${PREFIX} Dr. Pratham Bhatra & Mrs. Anuradha Bhatra-Venkataraman (Joint Owners)`;
 
 test.describe("PDF layout", () => {
   test("a long property address never collides with the date beside it", async ({ page }) => {
