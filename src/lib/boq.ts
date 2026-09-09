@@ -24,8 +24,14 @@ export type BoqItem = {
   /** Internal cost. Stripped before anything reaches a client. */
   cost: number;
   dims: { l: string; b: string; h: string };
-  /** The quantity. Derived from dims unless `qtyOverride` is set. */
+  /** The quantity of ONE unit. Derived from dims unless `qtyOverride` is set. */
   qty: number;
+  /**
+   * How many identical units this line covers. Two wardrobes of the same size in
+   * the same room are one line with a count of 2, not two lines — the dimensions
+   * describe one of them and this says how many there are.
+   */
+  count: number;
   /**
    * True when someone typed a quantity over a dimension-driven unit. Dimensions
    * stop driving the total until they clear it or touch a dimension again.
@@ -110,7 +116,23 @@ export function dimsForUnit(unit: string | undefined): Dim[] {
   return [];
 }
 
-export function computeQty(item: Pick<BoqItem, "unit" | "dims" | "qty"> & { qtyOverride?: boolean }): number {
+type QtyInput = Pick<BoqItem, "unit" | "dims" | "qty"> & { qtyOverride?: boolean; count?: number };
+
+/**
+ * How many identical units the line covers.
+ *
+ * Anything missing, zero or fractional reads as one: a line always describes at
+ * least one thing, and half a wardrobe isn't a quantity anyone quotes. Snapshots
+ * written before counts existed have no field at all, so the fallback is what
+ * keeps every old version rendering at its original total.
+ */
+export function countOf(item: { count?: number }): number {
+  const n = Math.floor(item.count ?? 1);
+  return Number.isFinite(n) && n > 0 ? n : 1;
+}
+
+/** The quantity of a single unit — what the dimensions describe. */
+export function perUnitQty(item: QtyInput): number {
   // A typed quantity wins over the dimensions until it's cleared.
   if (item.qtyOverride) return item.qty || 0;
   const dims = dimsForUnit(item.unit);
@@ -121,6 +143,17 @@ export function computeQty(item: Pick<BoqItem, "unit" | "dims" | "qty"> & { qtyO
   if (dims.length === 1) return l;
   if (dims.length === 2) return round2(l * b);
   return round2(l * b * h);
+}
+
+/**
+ * The billed quantity: one unit's worth, times however many of them.
+ *
+ * Everything downstream — totals, the PDF, the client's view, the project list —
+ * goes through here, so the count reaches all of them without any of them
+ * needing to know it exists.
+ */
+export function computeQty(item: QtyInput): number {
+  return round2(perUnitQty(item) * countOf(item));
 }
 
 function round2(n: number): number {
@@ -143,6 +176,12 @@ export function setTypedQty<T extends BoqItem>(item: T, raw: string): T {
 /** Editing any dimension resumes L×B driving the quantity. */
 export function setDimension<T extends BoqItem>(item: T, axis: "l" | "b" | "h", value: string): T {
   return { ...item, dims: { ...item.dims, [axis]: value }, qtyOverride: false };
+}
+
+/** Apply a typed count. An empty or nonsense box means one, not none. */
+export function setCount<T extends BoqItem>(item: T, raw: string): T {
+  const n = Math.floor(parseFloat(raw));
+  return { ...item, count: Number.isFinite(n) && n > 0 ? n : 1 };
 }
 
 export function itemAmount(item: BoqItem): number {
@@ -236,19 +275,47 @@ export function fmtDate(value: string | Date | null | undefined): string {
   return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
 
-export function dimSummary(item: BoqItem): string {
+/**
+ * How many of the thing, as a suffix for the item's name: "Wardrobe (2 nos.)".
+ *
+ * Deliberately not governed by the `qty` column toggle. That toggle hides
+ * measurements and rates — pricing detail. How many wardrobes the client is
+ * getting is scope, and a quote that hides it is wrong rather than discreet.
+ */
+export function countSuffix(item: { count?: number }): string {
+  const count = countOf(item);
+  return count > 1 ? ` (${count} nos.)` : "";
+}
+
+/**
+ * The measurements behind the quantity.
+ *
+ * `includeCount` is off where the count is already shown beside the item's name
+ * — the client's view and the PDF do that — so it isn't printed twice.
+ */
+export function dimSummary(item: BoqItem, includeCount = true): string {
+  const count = countOf(item);
+  // "nos." rather than a bare "2 ×" so a three-dimension item doesn't read as
+  // though the count were another dimension: "2 nos. × 6 × 8 × 3 ft".
+  const each = count > 1 && includeCount ? `${count} nos. × ` : "";
+
   // With a typed quantity the dimensions no longer describe it, so showing
-  // "10 × 12 ft · 150 SQFT" would just be a contradiction on the page.
-  if (item.qtyOverride) return "";
+  // "10 × 12 ft · 150 SQFT" would just be a contradiction on the page. The count
+  // still needs saying, though — it's the only thing explaining the total.
+  if (item.qtyOverride) {
+    return each ? `${each}${perUnitQty(item)} ${item.unit}`.trim() : "";
+  }
+
   const dims = dimsForUnit(item.unit);
   if (dims.length === 3 && (item.dims.l || item.dims.b || item.dims.h)) {
-    return `${item.dims.l || 0} × ${item.dims.b || 0} × ${item.dims.h || 0} ft`;
+    return `${each}${item.dims.l || 0} × ${item.dims.b || 0} × ${item.dims.h || 0} ft`;
   }
   if (dims.length === 2 && (item.dims.l || item.dims.b)) {
-    return `${item.dims.l || 0} × ${item.dims.b || 0} ft`;
+    return `${each}${item.dims.l || 0} × ${item.dims.b || 0} ft`;
   }
-  if (dims.length === 1 && item.dims.l) return `${item.dims.l} ft`;
-  return "";
+  if (dims.length === 1 && item.dims.l) return `${each}${item.dims.l} ft`;
+  // No usable measurements, so the count is all there is left to say.
+  return each ? `${count} nos.` : "";
 }
 
 // --------------------------------------------------------------------- diffing
@@ -262,6 +329,7 @@ export const CLIENT_VISIBLE_FIELDS = [
   "finish",
   "unit",
   "rate",
+  "count",
   "qty",
   "description",
 ] as const;
@@ -274,6 +342,7 @@ const FIELD_LABELS: Record<string, string> = {
   finish: "Finish",
   unit: "Unit",
   rate: "Rate",
+  count: "Count",
   qty: "Quantity",
   description: "Scope of work",
   cost: "Internal cost",
@@ -287,6 +356,9 @@ export function fieldLabel(field: string): string {
 
 function comparableValue(item: BoqItem, field: string): string {
   if (field === "qty") return String(computeQty(item));
+  // Through countOf, so a snapshot saved before counts existed compares as the
+  // one unit it always was rather than reading as a change nobody made.
+  if (field === "count") return String(countOf(item));
   if (field === "rate") return String(item.rate ?? 0);
   if (field === "cost") return String(item.cost ?? 0);
   return String((item as unknown as Record<string, unknown>)[field] ?? "");

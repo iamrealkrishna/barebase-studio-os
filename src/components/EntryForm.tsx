@@ -2,7 +2,17 @@
 
 import { useRef } from "react";
 
-import { computeQty, dimsForUnit, fmt, setDimension, setTypedQty, type BoqItem } from "@/lib/boq";
+import {
+  computeQty,
+  countOf,
+  dimsForUnit,
+  fmt,
+  perUnitQty,
+  setCount,
+  setDimension,
+  setTypedQty,
+  type BoqItem,
+} from "@/lib/boq";
 import { readAndCompressImage } from "@/lib/image";
 import {
   descOptions,
@@ -33,6 +43,7 @@ export function freshDraft(entries: RateEntry[], categories: string[]): BoqItem 
     unit: first?.unit ?? "",
     dims: { l: "", b: "", h: "" },
     qty: 0,
+    count: 1,
     qtyOverride: false,
     description: first?.defaultScope ?? "",
     note: "",
@@ -67,6 +78,9 @@ export default function EntryForm({
 
   const isCustomCategory = draft.category === CUSTOM_CATEGORY;
   const dims = dimsForUnit(draft.unit);
+  // `each` is what the dimensions describe; `qty` is what gets billed.
+  const each = perUnitQty(draft);
+  const count = countOf(draft);
   const qty = computeQty(draft);
   const amount = qty * (draft.rate || 0);
   const margin = amount - qty * (draft.cost || 0);
@@ -333,7 +347,8 @@ export default function EntryForm({
 
         <div className="item-field dim" style={{ flex: "0 0 104px", minWidth: 104 }}>
           <label>
-            Qty{draft.unit ? ` (${draft.unit})` : ""}
+            Qty{count > 1 ? " each" : ""}
+            {draft.unit ? ` (${draft.unit})` : ""}
             {dims.length > 0 && draft.qtyOverride ? <span className="qty-manual-flag">typed</span> : null}
           </label>
           <input
@@ -341,7 +356,7 @@ export default function EntryForm({
             min="0"
             step="0.01"
             className={`num${dims.length > 0 && !draft.qtyOverride ? " qty-computed" : ""}`}
-            value={draft.qtyOverride || dims.length === 0 ? draft.qty || "" : qty || 0}
+            value={draft.qtyOverride || dims.length === 0 ? draft.qty || "" : each || 0}
             placeholder="0"
             title={
               dims.length > 0 && !draft.qtyOverride
@@ -352,6 +367,30 @@ export default function EntryForm({
             onKeyDown={onKeyDown}
           />
         </div>
+
+        {/* Only where the dimensions describe a single unit. For Nos. and
+            Lumpsum the Qty box already is the count, and a second box meaning
+            the same thing is how a line ends up billed twice. */}
+        {dims.length > 0 ? (
+          <div className="item-field dim" style={{ flex: "0 0 92px", minWidth: 92 }}>
+            <label>Count</label>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              className="num"
+              value={draft.count}
+              title="How many identical units — 2 wardrobes of the same size are one line with a count of 2"
+              onChange={(e) => onChange(setCount(draft, e.target.value))}
+              onKeyDown={onKeyDown}
+            />
+            {count > 1 ? (
+              <span className="qty-total-hint">
+                = {qty} {draft.unit}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="item-field dim" style={{ flex: "0 0 96px", minWidth: 96 }}>
           <label>Rate ₹</label>

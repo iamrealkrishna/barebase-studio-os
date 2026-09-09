@@ -27,6 +27,7 @@ shouldn't need to ask anyone.
 - [Adding items: the cascade](#adding-items-the-cascade)
 - [Custom items](#custom-items)
 - [Quantity from dimensions](#quantity-from-dimensions)
+- [Several of the same thing — the Count box](#several-of-the-same-thing--the-count-box)
 - [Typing a quantity over the calculation](#typing-a-quantity-over-the-calculation)
 - [The entry form and the compact list](#the-entry-form-and-the-compact-list)
 - [Editing rows inline](#editing-rows-inline)
@@ -484,6 +485,34 @@ The Amount updates live as you type.
 
 ---
 
+## Several of the same thing — the Count box
+
+Two wardrobes of the same size in the same bedroom are **one line with a count of
+2**, not two identical lines.
+
+Next to the Qty box, dimension-driven items (SQFT, RFT, CFT) have a **Count**
+box. The dimensions describe **one** of them; Count says how many there are. The
+billed quantity is the two multiplied together.
+
+> Example: a wardrobe measured 6 × 8 ft is 48 SQFT. Set Count to 2 and the line
+> bills 96 SQFT. Under the Count box you'll see **= 96 SQFT** so the arithmetic
+> is on screen rather than in your head, and the Qty label changes to
+> **"Qty each"** to be clear which number is which.
+
+The row then reads `2 nos. × 6 × 8 ft`, and the client's estimate and PDF show
+the item as **"Wardrobe (2 nos.)"** — so how many they're getting is stated
+plainly, even on projects where the Qty column is switched off for the client.
+
+**Items priced by the piece don't have a Count box.** For Nos., Set, Lumpsum and
+the rest, the Qty box already *is* the count — 4 sockets is just Qty 4. A second
+box meaning the same thing is how a line ends up billed twice.
+
+**Changing a count on an approved line raises a change order**, the same as
+changing its rate or size would — the client agreed to one of something and is
+now being quoted for three.
+
+---
+
 ## Typing a quantity over the calculation
 
 Sometimes you already know the total — an oddly shaped area, a number off a site
@@ -643,6 +672,12 @@ setting in both places — set it wherever you happen to be.
 
 Turn Rate off and it disappears from the client's page, the Client PDF **and**
 the Internal PDF alike. The description and the line amount always show.
+
+**The item count is not one of these toggles.** A line with a
+[Count](#several-of-the-same-thing--the-count-box) of 2 always reads "Wardrobe
+(2 nos.)", however the toggles are set. These toggles hide measurements and
+pricing; how many of something a client is getting is scope, and a quote that
+hides it is wrong rather than discreet.
 
 ---
 

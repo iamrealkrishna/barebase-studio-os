@@ -1,6 +1,6 @@
 import type { LineItem, Project, Section } from "@prisma/client";
 
-import type { BoqItem, BoqSnapshot } from "./boq";
+import { countOf, type BoqItem, type BoqSnapshot } from "./boq";
 
 export type ProjectWithBoq = Project & {
   sections: (Section & { items: LineItem[] })[];
@@ -23,6 +23,7 @@ export function toBoqItem(row: LineItem): BoqItem {
     cost: row.cost,
     dims: { l: dimString(row.dimL), b: dimString(row.dimB), h: dimString(row.dimH) },
     qty: row.qty,
+    count: row.count,
     qtyOverride: row.qtyOverride,
     description: row.scope,
     note: row.note,
@@ -89,6 +90,7 @@ export function toLineItemData(item: BoqItem, position: number) {
     dimB: optionalNum(item.dims?.b),
     dimH: optionalNum(item.dims?.h),
     qty: num(item.qty),
+    count: countOf(item),
     qtyOverride: Boolean(item.qtyOverride),
     scope: str(item.description),
     note: str(item.note),
@@ -148,6 +150,11 @@ export function parseSnapshot(value: unknown): BoqSnapshot {
             cost: num(it.cost),
             dims: { l: str(dims.l), b: str(dims.b), h: str(dims.h) },
             qty: num(it.qty),
+            // Snapshots written before counts existed have no field here, and
+            // num() would read that as zero — which would silently zero out the
+            // quantity on every version already approved. countOf reads it as
+            // the single unit it was.
+            count: countOf(it as { count?: number }),
             qtyOverride: Boolean(it.qtyOverride),
             description: str(it.description),
             note: str(it.note),

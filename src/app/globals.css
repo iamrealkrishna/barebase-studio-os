@@ -582,3 +582,7 @@ table.ratecard textarea.scope-cell:focus{outline:none;border-color:var(--brass-b
 
 /* Marks a quantity that was typed over a dimension-driven unit. */
 .qty-manual-flag{margin-left:5px;font-size:8px;letter-spacing:.06em;text-transform:uppercase;color:var(--brass);border:1px solid #D9C69A;border-radius:999px;padding:0 5px;vertical-align:1px}
+
+/* Sits under the Count box: the billed quantity, so the multiplication is
+   visible rather than something you have to do in your head. */
+.qty-total-hint{display:block;margin-top:3px;font-size:10px;color:var(--brass);white-space:nowrap}
