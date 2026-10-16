@@ -3,10 +3,11 @@
 Playwright, driving the real app in a real browser. Nothing is mocked: each
 test signs in, clicks through the UI, and checks what the database gave back.
 
-83 tests across thirteen areas — auth, Team admin, BOQ building, the rate card
+93 tests across fifteen areas — auth, Team admin, BOQ building, the rate card
 CSV round-trip, duplicate/import, Client View (14 of them), GST on the Client
 PDF, PDF layout, line-item counts, role restrictions, a mixed BOQ through both
-PDFs, pre-count version compatibility, and diff accuracy.
+PDFs, pre-count version compatibility, diff accuracy, the rate card's
+unsaved-changes warning, and committing a CSV import.
 
 ## Running it
 
@@ -49,10 +50,14 @@ the records are real while they exist. In particular:
   script deletes them.
 - **One client contact** with a live share link is created. Deleting the project
   removes it.
-- **The rate card is never written to.** The CSV spec exports, uploads a
-  modified copy, asserts the preview describes the right changes, then
+- **The rate card is not written to by default.** The CSV spec exports, uploads
+  a modified copy, asserts the preview describes the right changes, then
   cancels — and the last test in that file re-exports to prove the card is
-  byte-for-byte unchanged. Previewing is the step worth testing anyway.
+  byte-for-byte unchanged.
+- Two specs *can* write to it, and both are opt-in or self-restoring.
+  `15-rate-card-import-commit.spec.ts` only runs with
+  `E2E_ALLOW_RATE_WRITES=1`; `14-rate-card-dirty.spec.ts` saves one field and
+  restores it in a `finally`. Leave the flag unset against production.
 - **Your own admin account is only read.** Nothing changes its password, role or
   details.
 
@@ -114,6 +119,8 @@ and tearing a hole in the audit trail. Deactivate them on `/team` instead.
 | `11-mixed-boq-pdf.spec.ts` | One BOQ with every shape of line at once — counted, uncounted, piece-priced, custom — through both PDFs |
 | `12-legacy-version.spec.ts` | A version snapshot written before counts existed, read back and restored |
 | `13-lifecycle-diff.spec.ts` | The lifecycle end to end, with the diff checked for accuracy rather than presence |
+| `14-rate-card-dirty.spec.ts` | The "unsaved changes" warning, checked in both directions — it must appear on a real edit and not on an undone one |
+| `15-rate-card-import-commit.spec.ts` | Committing a CSV import and the refresh that follows. **Writes to the rate card** — opt in with `E2E_ALLOW_RATE_WRITES=1`, and don't against production |
 
 ### A note on the Client View tests
 

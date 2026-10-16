@@ -10,6 +10,32 @@ import { categoryList, unitHint, unitOptions, type RateEntry } from "@/lib/rate-
 const ALL = "__all__";
 const CUSTOM_UNIT = "__custom_unit__";
 
+/**
+ * Whether two versions of the card are the same, field by field and in order.
+ *
+ * Order counts: a row's position in the array is the position it saves with.
+ * Ids count too, so swapping a row for a new one reads as a change even when
+ * every other field happens to match.
+ */
+function sameCard(a: RateEntry[], b: RateEntry[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  return a.every((row, i) => {
+    const other = b[i];
+    return (
+      row.id === other.id &&
+      row.category === other.category &&
+      row.name === other.name &&
+      row.material === other.material &&
+      row.finish === other.finish &&
+      row.unit === other.unit &&
+      row.rate === other.rate &&
+      row.cost === other.cost &&
+      row.defaultScope === other.defaultScope
+    );
+  });
+}
+
 export default function RateCardEditor({
   canEdit,
   canSeeCost,
@@ -24,8 +50,29 @@ export default function RateCardEditor({
 }) {
   const { message, toast } = useToast();
   const [entries, setEntries] = useState<RateEntry[]>(initialEntries);
-  const [dirty, setDirty] = useState(false);
+  /**
+   * The card as the server last sent it.
+   *
+   * "Unsaved changes" is this compared against what's on screen, rather than a
+   * flag set by the act of typing. A latch can't tell an edit from an edit that
+   * was undone: adding a row and deleting it again, or typing a character and
+   * removing it, left the warning showing over a table identical to the
+   * database — and the warning tells people not to upload a CSV, so a false one
+   * blocks real work.
+   */
+  const [baseline, setBaseline] = useState<RateEntry[]>(initialEntries);
+  const dirty = useMemo(() => !sameCard(entries, baseline), [entries, baseline]);
   const [pending, startTransition] = useTransition();
+
+  // Read inside the effect below without making it re-run on every edit.
+  const dirtyRef = useRef(dirty);
+  dirtyRef.current = dirty;
+  /**
+   * Set just after a save, so the payload that follows is taken wholesale: rows
+   * added in this session go up with temporary ids and come back with real
+   * ones, which would otherwise read as a difference and block the adoption.
+   */
+  const adoptNextPayload = useRef(false);
 
   /**
    * Adopt fresh server data — after a CSV import, say, which calls
@@ -38,8 +85,12 @@ export default function RateCardEditor({
   useEffect(() => {
     if (initialEntries === lastServerEntries.current) return;
     lastServerEntries.current = initialEntries;
-    if (!dirty) setEntries(initialEntries);
-  }, [initialEntries, dirty]);
+    setBaseline(initialEntries);
+    if (adoptNextPayload.current || !dirtyRef.current) {
+      setEntries(initialEntries);
+      adoptNextPayload.current = false;
+    }
+  }, [initialEntries]);
 
   const categories = useMemo(() => categoryList(entries), [entries]);
   // Default to the first category rather than all 250-odd rows — the whole card
@@ -68,12 +119,10 @@ export default function RateCardEditor({
 
   const patch = (index: number, changes: Partial<RateEntry>) => {
     setEntries((prev) => prev.map((entry, i) => (i === index ? { ...entry, ...changes } : entry)));
-    setDirty(true);
   };
 
   const removeRow = (index: number) => {
     setEntries((prev) => prev.filter((_, i) => i !== index));
-    setDirty(true);
   };
 
   const addRow = () => {
@@ -92,14 +141,17 @@ export default function RateCardEditor({
         defaultScope: "",
       },
     ]);
-    setDirty(true);
   };
 
   const save = () => {
     startTransition(async () => {
-      const result = await saveRateCard(entries);
+      const saved = entries;
+      const result = await saveRateCard(saved);
       if (result.ok) {
-        setDirty(false);
+        // Clears the warning immediately; the revalidated payload that follows
+        // is then adopted, bringing real ids for any rows added here.
+        setBaseline(saved);
+        adoptNextPayload.current = true;
         toast("Rate card saved for the whole team");
       } else {
         toast(result.error ?? "Could not save the rate card");
