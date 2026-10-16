@@ -60,29 +60,29 @@ function sameCard(a: RateEntry[], b: RateEntry[]): boolean {
  *
  * A native datalist rather than a custom menu: it filters as you type, it
  * keeps the keyboard behaviour of a plain input, and there is nothing to get
- * out of step with the value.
+ * out of step with the value. The list itself is rendered once for the whole
+ * table and referenced by id — one per row meant several elements sharing an
+ * id, which is invalid and makes the lists hard to reason about.
  */
 function ComboField({
   value,
-  options,
+  listId,
   disabled,
   isNew,
   newLabel,
   onChange,
 }: {
   value: string;
-  options: string[];
+  /** Id of a datalist rendered once beneath the table. */
+  listId: string;
   disabled: boolean;
-  /** Typed something the card has never seen in this column. */
+  /** Typed something the saved card has never used in this column. */
   isNew: boolean;
   newLabel: string;
   onChange: (value: string) => void;
 }) {
-  // One list per distinct set of options, shared by every row offering them.
-  const listId = useMemo(() => `rc-${hashOptions(options)}`, [options]);
-
   return (
-    <div className="combo-cell">
+    <div className={`combo-cell${isNew ? " has-flag" : ""}`}>
       <input
         value={value}
         list={disabled ? undefined : listId}
@@ -90,13 +90,6 @@ function ComboField({
         autoComplete="off"
         onChange={(e) => onChange(e.target.value)}
       />
-      {!disabled ? (
-        <datalist id={listId}>
-          {options.map((option) => (
-            <option key={option} value={option} />
-          ))}
-        </datalist>
-      ) : null}
       {isNew ? (
         <span className="new-value-flag" title={`This ${newLabel} isn't on the rate card yet — check the spelling`}>
           new
@@ -113,7 +106,25 @@ function hashOptions(options: string[]): string {
   for (let i = 0; i < joined.length; i++) {
     hash = (hash * 31 + joined.charCodeAt(i)) | 0;
   }
-  return (hash >>> 0).toString(36);
+  return `rc-${(hash >>> 0).toString(36)}`;
+}
+
+/**
+ * The four suggestion lists a row needs, drawn from the SAVED card.
+ *
+ * Not from the rows on screen. A material someone is half-way through
+ * mistyping is in those rows, and offering it back as a suggestion is how the
+ * mistake spreads to the next person instead of being caught. It also keeps
+ * the list and the "new" marker telling the same story: if a value isn't
+ * offered, it's flagged.
+ */
+function rowSuggestions(saved: RateEntry[], entry: RateEntry) {
+  return {
+    category: categorySuggestions(saved),
+    name: descriptionSuggestions(saved, entry.category),
+    material: materialSuggestions(saved, entry.category, entry.name),
+    finish: finishSuggestions(saved, entry.category, entry.name, entry.material),
+  };
 }
 
 export default function RateCardEditor({
@@ -209,6 +220,21 @@ export default function RateCardEditor({
         );
       });
   }, [entries, category, search, clashing]);
+
+  /**
+   * Every distinct suggestion list the visible rows need, rendered once below
+   * the table. Keyed by content, so rows wanting the same list share one.
+   */
+  const suggestionLists = useMemo(() => {
+    const lists = new Map<string, string[]>();
+    for (const { entry } of visible) {
+      const sets = rowSuggestions(baseline, entry);
+      for (const options of [sets.category, sets.name, sets.material, sets.finish]) {
+        lists.set(hashOptions(options), options);
+      }
+    }
+    return lists;
+  }, [visible, baseline]);
 
   const patch = (index: number, changes: Partial<RateEntry>) => {
     setEntries((prev) => prev.map((entry, i) => (i === index ? { ...entry, ...changes } : entry)));
@@ -373,7 +399,8 @@ export default function RateCardEditor({
 
       {canEdit && clashing.size > 0 && blockingGroups.length === 0 ? (
         <div className="hint-text" style={{ marginTop: 0 }}>
-          ⚠ {clashing.size} rows already on the card share their Category + Description + Material + Finish
+          ⚠ {clashing.size}{" "}
+          rows already on the card share their Category + Description + Material + Finish
           with another row, so only the first of each is reachable when building a BOQ. They were there
           before this edit, so they don&apos;t block saving —{" "}
           <button
@@ -395,25 +422,31 @@ export default function RateCardEditor({
         <table className="ratecard">
           <thead>
             <tr>
+              {/* These used to total 113%, so the browser shrank every column
+                  by a different amount and Category lost its last letters. */}
               <th style={{ width: "14%" }}>Category</th>
-              <th style={{ width: "22%" }}>Description</th>
-              <th style={{ width: "19%" }}>Material</th>
-              <th style={{ width: "19%" }}>Finish</th>
-              <th style={{ width: "8%" }}>Unit</th>
+              <th style={{ width: "19%" }}>Description</th>
+              <th style={{ width: "16%" }}>Material</th>
+              <th style={{ width: "16%" }}>Finish</th>
+              <th style={{ width: "9%" }}>Unit</th>
               <th style={{ width: "9%" }}>Rate ₹</th>
-              {canSeeCost ? <th style={{ width: "9%" }}>Cost ₹</th> : null}
-              <th style={{ width: "13%" }}>Default scope note</th>
-              <th />
+              {canSeeCost ? <th style={{ width: "8%" }}>Cost ₹</th> : null}
+              <th style={{ width: "9%" }}>Default scope note</th>
+              {/* Fixed, so the two row actions can't steal width from the
+                  columns people actually read. */}
+              <th style={{ width: 52 }} />
             </tr>
           </thead>
           <tbody>
-            {visible.map(({ entry, index }) => (
+            {visible.map(({ entry, index }) => {
+              const suggest = rowSuggestions(baseline, entry);
+              return (
               <tr key={entry.id} className={clashing.has(index) ? "dup-row" : undefined}>
                 <td>
                   <ComboField
                     value={entry.category}
                     disabled={!canEdit}
-                    options={categorySuggestions(entries)}
+                    listId={hashOptions(suggest.category)}
                     isNew={isNewValue(baseline, (e) => e.category, entry.category)}
                     newLabel="new category"
                     onChange={(value) => patch(index, { category: value })}
@@ -423,7 +456,7 @@ export default function RateCardEditor({
                   <ComboField
                     value={entry.name}
                     disabled={!canEdit}
-                    options={descriptionSuggestions(entries, entry.category)}
+                    listId={hashOptions(suggest.name)}
                     isNew={isNewValue(baseline, (e) => e.name, entry.name)}
                     newLabel="new description"
                     onChange={(value) => patch(index, { name: value })}
@@ -433,7 +466,7 @@ export default function RateCardEditor({
                   <ComboField
                     value={entry.material}
                     disabled={!canEdit}
-                    options={materialSuggestions(entries, entry.category, entry.name)}
+                    listId={hashOptions(suggest.material)}
                     isNew={isNewValue(baseline, (e) => e.material, entry.material)}
                     newLabel="new material"
                     onChange={(value) => patch(index, { material: value })}
@@ -443,7 +476,7 @@ export default function RateCardEditor({
                   <ComboField
                     value={entry.finish}
                     disabled={!canEdit}
-                    options={finishSuggestions(entries, entry.category, entry.name, entry.material)}
+                    listId={hashOptions(suggest.finish)}
                     isNew={isNewValue(baseline, (e) => e.finish, entry.finish)}
                     newLabel="new finish"
                     onChange={(value) => patch(index, { finish: value })}
@@ -537,10 +570,22 @@ export default function RateCardEditor({
                   ) : null}
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       )}
+
+      {/* One datalist per distinct set of suggestions, for the whole table. */}
+      {canEdit
+        ? [...suggestionLists].map(([id, options]) => (
+            <datalist id={id} key={id}>
+              {options.map((option) => (
+                <option key={option} value={option} />
+              ))}
+            </datalist>
+          ))
+        : null}
 
       <p className="hint-text">
         Unit drives the entry form: SQFT asks for length × breadth, RFT for a single length, CFT for length ×
