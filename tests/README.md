@@ -3,11 +3,16 @@
 Playwright, driving the real app in a real browser. Nothing is mocked: each
 test signs in, clicks through the UI, and checks what the database gave back.
 
-93 tests across fifteen areas — auth, Team admin, BOQ building, the rate card
+99 tests across sixteen areas — auth, Team admin, BOQ building, the rate card
 CSV round-trip, duplicate/import, Client View (14 of them), GST on the Client
 PDF, PDF layout, line-item counts, role restrictions, a mixed BOQ through both
 PDFs, pre-count version compatibility, diff accuracy, the rate card's
-unsaved-changes warning, and committing a CSV import.
+unsaved-changes warning, committing a CSV import, and rate card item
+identity.
+
+Plus `unit-rate-card-identity.ts`, a plain script of 24 checks over the
+functions that decide when two rate card rows are the same item. Run it with
+`npx tsx tests/unit-rate-card-identity.ts`.
 
 ## Running it
 
@@ -121,6 +126,7 @@ and tearing a hole in the audit trail. Deactivate them on `/team` instead.
 | `13-lifecycle-diff.spec.ts` | The lifecycle end to end, with the diff checked for accuracy rather than presence |
 | `14-rate-card-dirty.spec.ts` | The "unsaved changes" warning, checked in both directions — it must appear on a real edit and not on an undone one |
 | `15-rate-card-import-commit.spec.ts` | Committing a CSV import and the refresh that follows. **Writes to the rate card** — opt in with `E2E_ALLOW_RATE_WRITES=1`, and don't against production |
+| `16-rate-card-identity.spec.ts` | Typable fields with existing spellings suggested, duplicating a row, and the guard that stops a save adding a clash. Two of its tests **write to the rate card** and need the same opt-in |
 
 ### A note on the Client View tests
 

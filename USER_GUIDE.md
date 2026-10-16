@@ -210,11 +210,49 @@ To edit it:
 3. Click **Save rate card** — it's shared with the whole team immediately.
 
 - **＋ Add rate item** adds a row to the category you're filtered to.
+- **⧉ Duplicate** copies a row and drops the copy right underneath it. Use it
+  for a variant — same Category, Description and Material, different Finish and
+  price. It beats retyping three fields that have to match exactly, which is how
+  near-miss spellings creep in. The copy is an exact duplicate until you change
+  something, and the app will say so until you do.
 - **Unit** is a dropdown that tells you what each unit does: "SQFT — length ×
   breadth", "Nos. — typed quantity". Pick **Custom unit…** to type one that
   isn't listed; it then appears in every other row's dropdown.
 - **Reset to defaults** wipes your edits back to the shipped rate card. It asks
   first.
+
+### Typing a Category, Description, Material or Finish
+
+These four stay **typable** — you're never stuck picking from a list. As you
+type, the spellings already on the rate card appear beneath the box, so the
+existing wording is one click away.
+
+If what you've typed isn't on the card yet, a small **new** tag appears in the
+corner of that box. That's not an error; it's there so adding a genuinely new
+finish looks different from fat-fingering one that already exists. If you see
+**new** on something you expected to be familiar, check the spelling.
+
+### Why duplicates matter, and the check when you save
+
+Those four columns together — **Category + Description + Material + Finish** —
+are what identify an item. Two rows sharing all four are indistinguishable once
+someone is picking an item in a BOQ, and the app takes the first one it finds.
+The second row's price can never be quoted. It isn't a harmless copy; it's a
+rate nobody can reach.
+
+So when you save, the app checks. If your edit has created a new clash, the save
+stops and tells you which item, with the prices involved. Change the Finish or
+the Material so they can be told apart, or delete one.
+
+Two details worth knowing:
+
+- Spelling differences in case or spacing don't count as "different". `Ply` and
+  `ply ` are the same material.
+- **Clashes that were already on the card don't block you.** The rate card
+  shipped with some, and refusing every save until they were all resolved would
+  just stop the screen working. You'll see a note listing them and a
+  **⚠ Duplicates only** option in the category dropdown so you can work through
+  them when you have time. The rule is only that a save can't *add* one.
 
 **Bulk edit** — see [Bulk rate card edit in Excel](#bulk-rate-card-edit-in-excel).
 

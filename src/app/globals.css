@@ -586,3 +586,23 @@ table.ratecard textarea.scope-cell:focus{outline:none;border-color:var(--brass-b
 /* Sits under the Count box: the billed quantity, so the multiplication is
    visible rather than something you have to do in your head. */
 .qty-total-hint{display:block;margin-top:3px;font-size:10px;color:var(--brass);white-space:nowrap}
+
+/* Rate card: a typable field with existing values suggested beneath it. The
+   "new" flag sits inside the cell so it can't widen the column. */
+.combo-cell{position:relative;display:block}
+.combo-cell input{padding-right:34px}
+.new-value-flag{position:absolute;right:4px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:8px;letter-spacing:.06em;text-transform:uppercase;color:var(--brass);border:1px solid #D9C69A;border-radius:999px;padding:0 4px;background:var(--card-soft)}
+
+/* Rows sharing Category + Description + Material + Finish with another row. */
+tr.dup-row td{background:#FBF1EC}
+tr.dup-row td:first-child{box-shadow:inset 3px 0 0 #C2724F}
+
+.row-actions{display:flex;gap:2px;align-items:center;justify-content:flex-end}
+/* Deliberately not .rm-btn: a copy action sharing the remove button's class
+   makes every "click delete" selector ambiguous. */
+.dup-btn{background:none;border:0;cursor:pointer;color:var(--muted);font-size:13px;line-height:1;padding:3px 4px;border-radius:3px}
+.dup-btn:hover{color:var(--brass);background:var(--card-soft)}
+
+/* A button that reads as a link, for an action inside a sentence. */
+.link-button{background:none;border:0;padding:0;font:inherit;color:var(--brass);text-decoration:underline;cursor:pointer}
+.link-button:hover{color:var(--brass-bright)}

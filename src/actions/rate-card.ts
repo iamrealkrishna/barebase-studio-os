@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
 import { BULK_TX, prisma } from "@/lib/db";
 import { DEFAULT_RATE_CARD } from "@/lib/default-rate-card";
-import type { RateEntry } from "@/lib/rate-card";
+import { describeKey, newDuplicateGroups, type RateEntry } from "@/lib/rate-card";
 
 export type RateCardResult = { ok: boolean; error?: string };
 
@@ -34,6 +34,37 @@ export async function saveRateCard(entries: RateEntry[]): Promise<RateCardResult
   if (user.role !== "ADMIN") return { ok: false, error: "Only an admin can edit the rate card." };
 
   const usable = entries.filter((entry) => entry.category.trim() && entry.name.trim());
+
+  /**
+   * Refuse clashes this save would introduce.
+   *
+   * Category + Description + Material + Finish is what identifies an item, and
+   * `findRateRow` takes the first match — so a second row under the same four
+   * columns is unreachable, and its price can never be quoted.
+   *
+   * Measured against what's stored rather than against zero: the card already
+   * carries clashes from before this rule existed, and rejecting every save
+   * until they were all resolved would simply stop the screen working. The
+   * guard is that a save can't add one.
+   */
+  const stored = await prisma.rateItem.findMany({
+    where: { orgId: user.orgId },
+    select: { category: true, name: true, material: true, finish: true, unit: true, rate: true, cost: true },
+  });
+  const added = newDuplicateGroups(
+    usable,
+    stored.map((row) => ({ ...row, id: "", defaultScope: "" })),
+  );
+  if (added.length > 0) {
+    const first = describeKey(added[0].entries[0]);
+    return {
+      ok: false,
+      error:
+        added.length === 1
+          ? `Two rows describe the same item: ${first}. Change the Finish or Material so they can be told apart, or delete one.`
+          : `${added.length} items would end up with more than one row, starting with ${first}. Each needs a different Finish or Material.`,
+    };
+  }
 
   await prisma.$transaction(async (tx) => {
     const existing = await tx.rateItem.findMany({ where: { orgId: user.orgId }, select: { id: true } });
