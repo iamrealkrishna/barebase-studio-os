@@ -5,10 +5,127 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { resetRateCard, saveRateCard } from "@/actions/rate-card";
 import RateCardBulkEdit from "@/components/RateCardBulkEdit";
 import { Toast, useToast } from "@/components/Toast";
-import { categoryList, unitHint, unitOptions, type RateEntry } from "@/lib/rate-card";
+import {
+  categoryList,
+  categorySuggestions,
+  describeKey,
+  descriptionSuggestions,
+  duplicateIndexes,
+  finishSuggestions,
+  isNewValue,
+  materialSuggestions,
+  newDuplicateGroups,
+  unitHint,
+  unitOptions,
+  type RateEntry,
+} from "@/lib/rate-card";
 
 const ALL = "__all__";
+const DUPLICATES = "__duplicates__";
 const CUSTOM_UNIT = "__custom_unit__";
+
+/**
+ * Whether two versions of the card are the same, field by field and in order.
+ *
+ * Order counts: a row's position in the array is the position it saves with.
+ * Ids count too, so swapping a row for a new one reads as a change even when
+ * every other field happens to match.
+ */
+function sameCard(a: RateEntry[], b: RateEntry[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  return a.every((row, i) => {
+    const other = b[i];
+    return (
+      row.id === other.id &&
+      row.category === other.category &&
+      row.name === other.name &&
+      row.material === other.material &&
+      row.finish === other.finish &&
+      row.unit === other.unit &&
+      row.rate === other.rate &&
+      row.cost === other.cost &&
+      row.defaultScope === other.defaultScope
+    );
+  });
+}
+
+/**
+ * A text box with the values already on the card offered beneath it.
+ *
+ * Typable, so a genuinely new material is just typed — the designers were
+ * never blocked, they were unassisted. Offering what already exists is what
+ * stops "Gypsum Board" acquiring a sibling called "Gypsom Board", which the
+ * app would treat as a different material forever.
+ *
+ * A native datalist rather than a custom menu: it filters as you type, it
+ * keeps the keyboard behaviour of a plain input, and there is nothing to get
+ * out of step with the value. The list itself is rendered once for the whole
+ * table and referenced by id — one per row meant several elements sharing an
+ * id, which is invalid and makes the lists hard to reason about.
+ */
+function ComboField({
+  value,
+  listId,
+  disabled,
+  isNew,
+  newLabel,
+  onChange,
+}: {
+  value: string;
+  /** Id of a datalist rendered once beneath the table. */
+  listId: string;
+  disabled: boolean;
+  /** Typed something the saved card has never used in this column. */
+  isNew: boolean;
+  newLabel: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className={`combo-cell${isNew ? " has-flag" : ""}`}>
+      <input
+        value={value}
+        list={disabled ? undefined : listId}
+        disabled={disabled}
+        autoComplete="off"
+        onChange={(e) => onChange(e.target.value)}
+      />
+      {isNew ? (
+        <span className="new-value-flag" title={`This ${newLabel} isn't on the rate card yet — check the spelling`}>
+          new
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+/** Stable id for a set of options, so identical lists share one datalist. */
+function hashOptions(options: string[]): string {
+  let hash = 0;
+  const joined = options.join("\u0000");
+  for (let i = 0; i < joined.length; i++) {
+    hash = (hash * 31 + joined.charCodeAt(i)) | 0;
+  }
+  return `rc-${(hash >>> 0).toString(36)}`;
+}
+
+/**
+ * The four suggestion lists a row needs, drawn from the SAVED card.
+ *
+ * Not from the rows on screen. A material someone is half-way through
+ * mistyping is in those rows, and offering it back as a suggestion is how the
+ * mistake spreads to the next person instead of being caught. It also keeps
+ * the list and the "new" marker telling the same story: if a value isn't
+ * offered, it's flagged.
+ */
+function rowSuggestions(saved: RateEntry[], entry: RateEntry) {
+  return {
+    category: categorySuggestions(saved),
+    name: descriptionSuggestions(saved, entry.category),
+    material: materialSuggestions(saved, entry.category, entry.name),
+    finish: finishSuggestions(saved, entry.category, entry.name, entry.material),
+  };
+}
 
 export default function RateCardEditor({
   canEdit,
@@ -24,8 +141,29 @@ export default function RateCardEditor({
 }) {
   const { message, toast } = useToast();
   const [entries, setEntries] = useState<RateEntry[]>(initialEntries);
-  const [dirty, setDirty] = useState(false);
+  /**
+   * The card as the server last sent it.
+   *
+   * "Unsaved changes" is this compared against what's on screen, rather than a
+   * flag set by the act of typing. A latch can't tell an edit from an edit that
+   * was undone: adding a row and deleting it again, or typing a character and
+   * removing it, left the warning showing over a table identical to the
+   * database — and the warning tells people not to upload a CSV, so a false one
+   * blocks real work.
+   */
+  const [baseline, setBaseline] = useState<RateEntry[]>(initialEntries);
+  const dirty = useMemo(() => !sameCard(entries, baseline), [entries, baseline]);
   const [pending, startTransition] = useTransition();
+
+  // Read inside the effect below without making it re-run on every edit.
+  const dirtyRef = useRef(dirty);
+  dirtyRef.current = dirty;
+  /**
+   * Set just after a save, so the payload that follows is taken wholesale: rows
+   * added in this session go up with temporary ids and come back with real
+   * ones, which would otherwise read as a difference and block the adoption.
+   */
+  const adoptNextPayload = useRef(false);
 
   /**
    * Adopt fresh server data — after a CSV import, say, which calls
@@ -38,8 +176,12 @@ export default function RateCardEditor({
   useEffect(() => {
     if (initialEntries === lastServerEntries.current) return;
     lastServerEntries.current = initialEntries;
-    if (!dirty) setEntries(initialEntries);
-  }, [initialEntries, dirty]);
+    setBaseline(initialEntries);
+    if (adoptNextPayload.current || !dirtyRef.current) {
+      setEntries(initialEntries);
+      adoptNextPayload.current = false;
+    }
+  }, [initialEntries]);
 
   const categories = useMemo(() => categoryList(entries), [entries]);
   // Default to the first category rather than all 250-odd rows — the whole card
@@ -53,27 +195,53 @@ export default function RateCardEditor({
   // every other row straight away.
   const units = useMemo(() => unitOptions(entries), [entries]);
 
+  /** Rows sharing Category + Description + Material + Finish with another row. */
+  const clashing = useMemo(() => duplicateIndexes(entries), [entries]);
+  /**
+   * Only the clashes this session is responsible for block a save. The stored
+   * card already carries plenty, and holding someone's unrelated edit hostage
+   * to those would just teach them to avoid the screen.
+   */
+  const blockingGroups = useMemo(() => newDuplicateGroups(entries, baseline), [entries, baseline]);
+
   const visible = useMemo(() => {
     const needle = search.trim().toLowerCase();
     return entries
       .map((entry, index) => ({ entry, index }))
-      .filter(({ entry }) => {
-        if (category !== ALL && entry.category !== category) return false;
+      .filter(({ entry, index }) => {
+        if (category === DUPLICATES) {
+          if (!clashing.has(index)) return false;
+        } else if (category !== ALL && entry.category !== category) {
+          return false;
+        }
         if (!needle) return true;
-        return [entry.name, entry.material, entry.finish, entry.unit].some((field) =>
+        return [entry.category, entry.name, entry.material, entry.finish, entry.unit].some((field) =>
           field.toLowerCase().includes(needle),
         );
       });
-  }, [entries, category, search]);
+  }, [entries, category, search, clashing]);
+
+  /**
+   * Every distinct suggestion list the visible rows need, rendered once below
+   * the table. Keyed by content, so rows wanting the same list share one.
+   */
+  const suggestionLists = useMemo(() => {
+    const lists = new Map<string, string[]>();
+    for (const { entry } of visible) {
+      const sets = rowSuggestions(baseline, entry);
+      for (const options of [sets.category, sets.name, sets.material, sets.finish]) {
+        lists.set(hashOptions(options), options);
+      }
+    }
+    return lists;
+  }, [visible, baseline]);
 
   const patch = (index: number, changes: Partial<RateEntry>) => {
     setEntries((prev) => prev.map((entry, i) => (i === index ? { ...entry, ...changes } : entry)));
-    setDirty(true);
   };
 
   const removeRow = (index: number) => {
     setEntries((prev) => prev.filter((_, i) => i !== index));
-    setDirty(true);
   };
 
   const addRow = () => {
@@ -92,14 +260,47 @@ export default function RateCardEditor({
         defaultScope: "",
       },
     ]);
-    setDirty(true);
+  };
+
+  /**
+   * Copy a row and drop the copy directly beneath it.
+   *
+   * The common case is a variant: same category, description and material, a
+   * different finish at a different price. Copying beats retyping three fields
+   * that have to match exactly — retyping them is how the near-miss spellings
+   * get in. The copy is a duplicate until its finish is changed, and the
+   * warning says so, which is the nudge to change it.
+   */
+  const duplicateRow = (index: number) => {
+    setEntries((prev) => {
+      const copy = {
+        ...prev[index],
+        id: `new:${Math.random().toString(36).slice(2, 11)}`,
+      };
+      return [...prev.slice(0, index + 1), copy, ...prev.slice(index + 1)];
+    });
   };
 
   const save = () => {
+    if (blockingGroups.length > 0) {
+      const first = blockingGroups[0];
+      toast(
+        blockingGroups.length === 1
+          ? `Two rows now share the same item: ${describeKey(first.entries[0])}. Change the finish, or delete one.`
+          : `${blockingGroups.length} items now have more than one row — the first is ${describeKey(first.entries[0])}.`,
+      );
+      setCategory(DUPLICATES);
+      setSearch("");
+      return;
+    }
     startTransition(async () => {
-      const result = await saveRateCard(entries);
+      const saved = entries;
+      const result = await saveRateCard(saved);
       if (result.ok) {
-        setDirty(false);
+        // Clears the warning immediately; the revalidated payload that follows
+        // is then adopted, bringing real ids for any rows added here.
+        setBaseline(saved);
+        adoptNextPayload.current = true;
         toast("Rate card saved for the whole team");
       } else {
         toast(result.error ?? "Could not save the rate card");
@@ -139,10 +340,13 @@ export default function RateCardEditor({
               {c} ({entries.filter((e) => e.category === c).length})
             </option>
           ))}
+          {clashing.size > 0 ? (
+            <option value={DUPLICATES}>⚠ Duplicates only ({clashing.size})</option>
+          ) : null}
         </select>
         <input
           type="search"
-          placeholder="Search description, material, finish…"
+          placeholder="Search category, description, material, finish…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -161,37 +365,122 @@ export default function RateCardEditor({
         ) : null}
       </div>
 
+      {canEdit && blockingGroups.length > 0 ? (
+        <div className="flash err">
+          <b>
+            {blockingGroups.length === 1
+              ? "Two rows now describe the same item."
+              : `${blockingGroups.length} items now have more than one row.`}
+          </b>{" "}
+          Category, Description, Material and Finish together are what identify an item, so a second row
+          with all four the same can never be picked in a BOQ — the first one always wins, and its price is
+          the only one anyone gets. Change the Finish (or Material) to tell them apart, or delete one.
+          <ul style={{ margin: "6px 0 0", paddingLeft: 18 }}>
+            {blockingGroups.slice(0, 5).map((group) => (
+              <li key={group.key}>
+                {describeKey(group.entries[0])}
+                {group.conflicting ? (
+                  <>
+                    {" "}
+                    — priced{" "}
+                    {group.entries
+                      .map((row) => `₹${row.rate}/${row.unit.trim() || "—"}`)
+                      .join(" and ")}
+                  </>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+          {blockingGroups.length > 5 ? (
+            <div style={{ marginTop: 4 }}>…and {blockingGroups.length - 5} more.</div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {canEdit && clashing.size > 0 && blockingGroups.length === 0 ? (
+        <div className="hint-text" style={{ marginTop: 0 }}>
+          ⚠ {clashing.size}{" "}
+          rows already on the card share their Category + Description + Material + Finish
+          with another row, so only the first of each is reachable when building a BOQ. They were there
+          before this edit, so they don&apos;t block saving —{" "}
+          <button
+            className="link-button"
+            onClick={() => {
+              setCategory(DUPLICATES);
+              setSearch("");
+            }}
+          >
+            review them
+          </button>{" "}
+          when you get a chance.
+        </div>
+      ) : null}
+
       {visible.length === 0 ? (
         <div className="mini-empty">Nothing matches that filter.</div>
       ) : (
         <table className="ratecard">
           <thead>
             <tr>
+              {/* These used to total 113%, so the browser shrank every column
+                  by a different amount and Category lost its last letters. */}
               <th style={{ width: "14%" }}>Category</th>
-              <th style={{ width: "22%" }}>Description</th>
-              <th style={{ width: "19%" }}>Material</th>
-              <th style={{ width: "19%" }}>Finish</th>
-              <th style={{ width: "8%" }}>Unit</th>
+              <th style={{ width: "19%" }}>Description</th>
+              <th style={{ width: "16%" }}>Material</th>
+              <th style={{ width: "16%" }}>Finish</th>
+              <th style={{ width: "9%" }}>Unit</th>
               <th style={{ width: "9%" }}>Rate ₹</th>
-              {canSeeCost ? <th style={{ width: "9%" }}>Cost ₹</th> : null}
-              <th style={{ width: "13%" }}>Default scope note</th>
-              <th />
+              {canSeeCost ? <th style={{ width: "8%" }}>Cost ₹</th> : null}
+              <th style={{ width: "9%" }}>Default scope note</th>
+              {/* Fixed, so the two row actions can't steal width from the
+                  columns people actually read. */}
+              <th style={{ width: 52 }} />
             </tr>
           </thead>
           <tbody>
-            {visible.map(({ entry, index }) => (
-              <tr key={entry.id}>
+            {visible.map(({ entry, index }) => {
+              const suggest = rowSuggestions(baseline, entry);
+              return (
+              <tr key={entry.id} className={clashing.has(index) ? "dup-row" : undefined}>
                 <td>
-                  <input value={entry.category} disabled={!canEdit} onChange={(e) => patch(index, { category: e.target.value })} />
+                  <ComboField
+                    value={entry.category}
+                    disabled={!canEdit}
+                    listId={hashOptions(suggest.category)}
+                    isNew={isNewValue(baseline, (e) => e.category, entry.category)}
+                    newLabel="new category"
+                    onChange={(value) => patch(index, { category: value })}
+                  />
                 </td>
                 <td>
-                  <input value={entry.name} disabled={!canEdit} onChange={(e) => patch(index, { name: e.target.value })} />
+                  <ComboField
+                    value={entry.name}
+                    disabled={!canEdit}
+                    listId={hashOptions(suggest.name)}
+                    isNew={isNewValue(baseline, (e) => e.name, entry.name)}
+                    newLabel="new description"
+                    onChange={(value) => patch(index, { name: value })}
+                  />
                 </td>
                 <td>
-                  <input value={entry.material} disabled={!canEdit} onChange={(e) => patch(index, { material: e.target.value })} />
+                  <ComboField
+                    value={entry.material}
+                    disabled={!canEdit}
+                    listId={hashOptions(suggest.material)}
+                    isNew={isNewValue(baseline, (e) => e.material, entry.material)}
+                    newLabel="new material"
+                    onChange={(value) => patch(index, { material: value })}
+                  />
                 </td>
                 <td>
-                  <input value={entry.finish} disabled={!canEdit} onChange={(e) => patch(index, { finish: e.target.value })} />
+                  <ComboField
+                    value={entry.finish}
+                    disabled={!canEdit}
+                    listId={hashOptions(suggest.finish)}
+                    isNew={isNewValue(baseline, (e) => e.finish, entry.finish)}
+                    newLabel="new finish"
+                    onChange={(value) => patch(index, { finish: value })}
+                  />
                 </td>
                 <td>
                   {customUnitRow === index ? (
@@ -266,16 +555,37 @@ export default function RateCardEditor({
                 </td>
                 <td>
                   {canEdit ? (
-                    <button className="rm-btn" title="Delete" onClick={() => removeRow(index)}>
-                      ✕
-                    </button>
+                    <div className="row-actions">
+                      <button
+                        className="dup-btn"
+                        title="Duplicate this row — for a variant with a different finish or price"
+                        onClick={() => duplicateRow(index)}
+                      >
+                        ⧉
+                      </button>
+                      <button className="rm-btn" title="Delete" onClick={() => removeRow(index)}>
+                        ✕
+                      </button>
+                    </div>
                   ) : null}
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       )}
+
+      {/* One datalist per distinct set of suggestions, for the whole table. */}
+      {canEdit
+        ? [...suggestionLists].map(([id, options]) => (
+            <datalist id={id} key={id}>
+              {options.map((option) => (
+                <option key={option} value={option} />
+              ))}
+            </datalist>
+          ))
+        : null}
 
       <p className="hint-text">
         Unit drives the entry form: SQFT asks for length × breadth, RFT for a single length, CFT for length ×

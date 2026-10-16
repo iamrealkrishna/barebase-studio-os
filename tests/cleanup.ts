@@ -38,11 +38,23 @@ async function main() {
   console.log(dryRun ? "DRY RUN — nothing will be deleted.\n" : "Deleting test records.\n");
 
   // ------------------------------------------------------------- projects
+  /**
+   * Matched on the client name as well as the project name.
+   *
+   * A test that edits "Property / project" renames the project, dropping the
+   * prefix and hiding the row from a name-only sweep — which is exactly how a
+   * batch of test projects once survived a cleanup run. Every project this
+   * suite creates carries a prefixed client name too, so the two together
+   * leave nothing behind.
+   */
   const projects = await prisma.project.findMany({
-    where: { name: { startsWith: PREFIX } },
+    where: {
+      OR: [{ name: { startsWith: PREFIX } }, { clientName: { startsWith: PREFIX } }],
+    },
     select: {
       id: true,
       name: true,
+      clientName: true,
       _count: { select: { sections: true, versions: true, contacts: true, auditEvents: true } },
     },
     orderBy: { createdAt: "asc" },
