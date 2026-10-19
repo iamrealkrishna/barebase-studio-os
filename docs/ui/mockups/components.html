@@ -1,0 +1,39 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"><style>
+.wrap{width:1200px;padding:36px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.sec{padding:20px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.sw{width:100%;height:56px;border-radius:8px;border:1px solid #D8D1BF}.swl{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.swl div{font-size:12px}
+.toast{background:#24231E;color:#F4F1E8;border-radius:10px;padding:10px 14px;display:flex;gap:14px;align-items:center;font-size:13px}
+.err{border-color:#A8452F!important}.errt{color:#A8452F;font-size:12px;margin-top:4px}
+</style></head><body><div class="wrap">
+<h1 style="font-size:28px">Component sheet</h1><div class="muted" style="margin:4px 0 24px">Barebase Studio OS · building blocks every screen uses</div>
+<div class="grid">
+<div class="card sec"><div class="lbl">Colour</div><div class="swl">
+<div><div class="sw" style="background:#9C7A3C"></div><b>Brass</b> #9C7A3C<br><span class="muted">primary accent</span></div>
+<div><div class="sw" style="background:#24231E"></div><b>Ink</b> #24231E<br><span class="muted">text, sidebar</span></div>
+<div><div class="sw" style="background:#F4F1E8"></div><b>Paper</b> #F4F1E8<br><span class="muted">background</span></div>
+<div><div class="sw" style="background:#D8D1BF"></div><b>Line</b> #D8D1BF<br><span class="muted">borders</span></div>
+<div><div class="sw" style="background:#465241"></div><b>Green</b> #465241<br><span class="muted">approved, in</span></div>
+<div><div class="sw" style="background:#A8452F"></div><b>Red</b> #A8452F<br><span class="muted">overdue, error</span></div></div></div>
+<div class="card sec"><div class="lbl">Type</div>
+<div class="serif" style="font-size:28px;margin-top:12px">Page title 28</div>
+<div class="serif" style="font-size:20px;margin-top:8px">Section heading 20</div>
+<div style="font-size:14px;margin-top:10px">Body text 14 · system sans</div>
+<div class="small muted" style="margin-top:6px">Caption 12 · quiet</div>
+<div class="lbl" style="margin-top:12px">Label 11 caps</div>
+<div class="num serif" style="font-size:26px;margin-top:10px">₹12,34,567</div><div class="small muted">Money: Indian format, tabular figures</div></div>
+<div class="card sec"><div class="lbl">Buttons</div>
+<div class="row"><span class="btn pri">+ New project</span><span class="muted small">primary, one per screen</span></div>
+<div class="row"><span class="btn brass">Send to client</span><span class="muted small">key commit action</span></div>
+<div class="row"><span class="btn">Download PDF</span><span class="btn ghost">View all →</span></div>
+<div class="row"><span class="btn danger">Reject</span><span class="muted small">destructive</span></div></div>
+<div class="card sec"><div class="lbl">Status chips</div>
+<div class="row"><span class="chip c-draft">Draft</span><span class="chip c-pend">Pending approval</span><span class="chip c-info">Sent</span></div>
+<div class="row"><span class="chip c-ok">Approved</span><span class="chip c-ok">Paid</span><span class="chip c-bad">Rejected</span><span class="chip c-bad">Overdue</span></div>
+<div class="small muted" style="margin-top:12px">One colour per meaning, everywhere: grey draft, brass waiting, blue sent, green done, red problem.</div></div>
+<div class="card sec"><div class="lbl">Form fields</div>
+<div style="margin-top:12px"><div class="small" style="font-weight:600;margin-bottom:4px">Amount (₹)</div><div class="input num">1,00,000</div><div class="small muted" style="margin-top:4px">One lakh rupees</div></div>
+<div style="margin-top:12px"><div class="small" style="font-weight:600;margin-bottom:4px">GSTIN</div><div class="input err">29ABCDE1234</div><div class="errt">GSTIN is 15 characters, like 29ABCDE1234F1Z5</div></div></div>
+<div class="card sec"><div class="lbl">Progress and feedback</div>
+<div style="margin-top:14px" class="small">Carpentry install <span style="float:right" class="num">68%</span></div><div class="bar" style="margin-top:6px"><i style="width:68%"></i></div>
+<div style="margin-top:14px" class="small">Site prep <span style="float:right;color:#A8452F" class="num">12% · delayed</span></div><div class="bar" style="margin-top:6px"><i style="width:12%;background:#A8452F"></i></div>
+<div class="toast" style="margin-top:18px">Line deleted <span style="margin-left:auto;color:#D9B977;font-weight:700">Undo</span></div></div>
+</div></div></body></html>

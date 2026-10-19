@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Barebase Platform — Pending reimbursements</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; font-family: -apple-system, "Segoe UI", Calibri, sans-serif; background: #F4F1E8; color: #24231E; }
+  h1, h2, h3 { font-family: Cambria, Georgia, serif; margin: 0; }
+  a { color: #7C5E28; text-decoration: none; }
+  a:hover { color: #24231E; }
+</style>
+</helmet>
+
+<div style="width: 100%; min-height: 1024px; display: flex; flex-wrap: wrap; background: #F4F1E8;">
+  <div style="width: 240px; flex: 0 0 240px; min-height: 1024px; background: #24231E; display: flex; flex-direction: column; padding: 24px 16px; box-sizing: border-box; gap: 4px;">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 4px 8px 28px 8px;">
+      <div style="width: 34px; height: 34px; border-radius: 8px; background: #9C7A3C; display: flex; align-items: center; justify-content: center; flex: 0 0 34px;">
+        <span style="font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 17px; color: #FBF9F3;">B</span>
+      </div>
+      <div>
+        <div style="font-family: Cambria, Georgia, serif; font-size: 15px; font-weight: 700; color: #FBF9F3; letter-spacing: 0.3px;">Barebase</div>
+        <div style="font-size: 10.5px; color: #9C957F; letter-spacing: 0.6px; text-transform: uppercase;">Platform</div>
+      </div>
+    </div>
+    <a href="Main.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Home</span></span>
+      
+    </a>
+    <a href="Insights.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Insights</span></span>
+      
+    </a>
+    <a href="Leads.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Leads</span></span>
+      <span style="font-size: 10.5px; font-weight: 700; color: #24231E; background: #9C7A3C; border-radius: 10px; padding: 1px 7px;">8</span>
+    </a>
+    <a href="Projects.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Projects</span></span>
+      
+    </a>
+    <a href="OrgFinance.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; background: #362F23;">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FBF9F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/></svg><span style="font-size: 13.5px; color: #FBF9F3; font-weight: 600;">Finance</span></span>
+      
+    </a>
+    <a href="Team.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><circle cx="17.5" cy="7" r="3"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Team</span></span>
+      
+    </a>
+    <a href="OrgSettings.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px;  margin-top: auto;">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Org Settings</span></span>
+      
+    </a>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 12px 8px 4px 8px; border-top: 1px solid #3A342A; margin-top: 8px;">
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: #9C7A3C; display: flex; align-items: center; justify-content: center; flex: 0 0 30px;"><span style="font-size: 12.5px; font-weight: 700; color: #FBF9F3;">KA</span></div>
+      <div style="min-width: 0;"><div style="font-size: 12.5px; font-weight: 600; color: #FBF9F3;">Krishna</div><div style="font-size: 10.5px; color: #9C957F;">Admin</div></div>
+    </div>
+  </div>
+
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column;">
+    <div style="height: 68px; flex: 0 0 68px; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; border-bottom: 1px solid #D8D1BF; background: #FBF9F3; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 10px; background: #F4F1E8; border: 1px solid #D8D1BF; border-radius: 8px; padding: 8px 14px; width: 340px; max-width: 100%;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span style="font-size: 13px; color: #8A8672;">Search projects, leads, clients…</span></div>
+      <div style="display: flex; align-items: center; gap: 18px;">
+        <a href="Journeys.dc.html" style="font-size: 12px; font-weight: 600; color: #55524A;">All journeys</a>
+        <a href="Approvals.dc.html" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #7C5E28; background: #F3E6C7; border-radius: 999px; padding: 4px 11px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7C5E28" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>5 to approve</a>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55524A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: #9C7A3C; display: flex; align-items: center; justify-content: center;"><span style="font-size: 13px; font-weight: 700; color: #FBF9F3;">KA</span></div>
+      </div>
+    </div>
+
+    <div style="flex: 1 1 auto; padding: 28px 32px 56px 32px; display: flex; flex-direction: column; gap: 20px;">
+      
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+        <div><h1 style="font-size: 26px;">Finance</h1><div style="font-size: 13px; color: #55524A; margin-top: 4px;">Approved claims waiting to be paid out · paid every Friday</div></div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+      </div>
+      <div style="display: flex; gap: 24px; border-bottom: 1px solid #D8D1BF; flex-wrap: wrap;"><a href="OrgFinance.dc.html" style="font-size: 13.5px; color: #7A755F; padding-bottom: 10px;">Dashboard</a><a href="BillingDue.dc.html" style="font-size: 13.5px; color: #7A755F; padding-bottom: 10px;">Billing due</a><a href="SentTracker.dc.html" style="font-size: 13.5px; color: #7A755F; padding-bottom: 10px;">Sent &amp; due</a><a href="MyClaims.dc.html" style="font-size: 13.5px; color: #7A755F; padding-bottom: 10px;">My claims</a><a href="Reimbursements.dc.html" style="font-size: 13.5px; font-weight: 700; color: #24231E; border-bottom: 2px solid #9C7A3C; padding-bottom: 10px;">Pending reimbursements</a><a href="Transactions.dc.html" style="font-size: 13.5px; color: #7A755F; padding-bottom: 10px;">All transactions</a><a href="GstTds.dc.html" style="font-size: 13.5px; color: #7A755F; padding-bottom: 10px;">GST and TDS</a></div>
+      <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; overflow: hidden;">
+        <div style="display: grid; grid-template-columns: 0.3fr 1.2fr 2fr 1.3fr 1.2fr 1fr 0.9fr 1.1fr; gap: 10px; padding: 12px 20px; font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 1px solid #D8D1BF;"><span></span><span>Person</span><span>Claim</span><span>Project</span><span>Approved by</span><span>Pay to</span><span style="text-align: right;">Amount</span><span>Status</span></div>
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="3"><div style="display: grid; grid-template-columns: 0.3fr 1.2fr 2fr 1.3fr 1.2fr 1fr 0.9fr 1.1fr; gap: 10px; padding: 13px 20px; font-size: 13px; align-items: center; border-bottom: 1px solid #EFEBDD;"><button onClick="{{r.toggle}}" style="font: inherit; font-size: 17px; background: none; border: none; cursor: pointer; padding: 0; color: #9C7A3C;">{{r.box}}</button><b>{{r.who}}</b><span>{{r.what}}</span><span>{{r.p}}</span><span style="color: #55524A;">{{r.ap}}</span><span style="color: #55524A;">{{r.acc}}</span><b style="text-align: right; font-variant-numeric: tabular-nums;">{{r.amt}}</b><span style="font-size: 12px; font-weight: 600; color: #465241;">{{r.st}}</span></div></sc-for>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 20px; background: #F4F1E8; flex-wrap: wrap;">
+          <span style="font-size: 13px;">Selected: <b>{{n}} claims · {{total}}</b></span>
+          <sc-if value="{{notPaid}}" hint-placeholder-val="{{true}}"><button onClick="{{pay}}" style="padding: 9px 16px; border-radius: 8px; border: 1px solid #24231E; background: #24231E; color: #FBF9F3; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;">Mark paid and download bank file</button></sc-if>
+          <sc-if value="{{paid}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #465241; font-weight: 700;">Paid · each person notified · entries added to <a href="Transactions.dc.html">All transactions</a></span></sc-if>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #8A8672;">Only approved claims appear here. Keertan's ₹1,860 is still waiting in <a href="Approvals.dc.html" style="font-weight: 600;">Approvals</a>.</div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    
+    const st = this.state || {};
+    const paid = !!st.paid;
+    const off = st.off || {};
+    const rows0 = [
+      { id: 'r1', who: 'Mansi', what: 'Client lunch · Terrace Residency', p: 'Terrace Residency', a: 2340, ap: 'Ridhi · 12 Oct', acc: 'HDFC ··4471' },
+      { id: 'r2', who: 'Anamika', what: 'Fuel · 186 km at ₹9', p: 'Office', a: 1674, ap: 'Ridhi · 13 Oct', acc: 'SBI ··0932' },
+      { id: 'r3', who: 'Site supervisor', what: 'Labour advance · helpers, week 42', p: 'Villa Prakruthi', a: 6000, ap: 'Mansi · 14 Oct', acc: 'UPI' },
+    ];
+    const fmt = (n) => '₹' + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const on = rows0.filter((r) => !off[r.id]);
+    const total = on.reduce((s, r) => s + r.a, 0);
+    return { rows: rows0.map((r) => ({ ...r, amt: fmt(r.a), box: off[r.id] ? '☐' : '☑', st: paid && !off[r.id] ? 'Paid today' : 'Approved · to pay', toggle: () => this.setState({ off: { ...off, [r.id]: !off[r.id] } }) })),
+      total: fmt(total), n: on.length, notPaid: !paid, paid, pay: () => this.setState({ paid: true }) };
+
+  }
+}
+</script>
+</body>
+</html>

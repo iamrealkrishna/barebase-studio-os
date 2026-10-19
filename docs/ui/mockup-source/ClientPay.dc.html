@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Barebase — Client payment (phone)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; font-family: -apple-system, "Segoe UI", Calibri, sans-serif; background: #F4F1E8; color: #24231E; }
+  h1, h2, h3 { font-family: Cambria, Georgia, serif; margin: 0; }
+  a { color: #7C5E28; text-decoration: none; }
+  a:hover { color: #24231E; }
+</style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #F4F1E8; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box;">
+  <div style="background: #24231E; color: #FBF9F3; padding: 16px 20px 18px 20px; flex: 0 0 auto;">
+    <a href="ClientPortal.dc.html" style="font-size: 12px; color: #9C957F;">← Villa Prakruthi · Payments</a>
+    <div style="font-family: Cambria, Georgia, serif; font-size: 22px; font-weight: 700; margin-top: 6px;">Pay PI-26-0044</div>
+  </div>
+  <div style="flex: 1 1 auto; overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px;">
+    <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 14px;"><div style="font-size: 11px; font-weight: 700; color: #8A8672; text-transform: uppercase;">Balance due</div><div style="font-family: Cambria, Georgia, serif; font-size: 30px; font-weight: 700;">₹2,84,625</div><div style="font-size: 12.5px; color: #A8452F; font-weight: 600;">Was due 12 Oct</div><div style="font-size: 12.5px; color: #55524A; margin-top: 6px;">Stage 3 · Carpentry 40% · ₹1,09,342 already received on 14 Oct</div></div>
+    <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 14px; font-size: 13px; line-height: 1.7;"><b>Bank transfer</b><br>Account: Barebase (name as on letterhead)<br>A/c no. and IFSC: shown once Finance adds them<br><b style="display: block; margin-top: 8px;">UPI</b>Scan the QR on the proforma PDF</div>
+    <div style="font-size: 12.5px; color: #7C5E28; font-weight: 600;">Download proforma PDF</div>
+  </div>
+  <div style="flex: 0 0 auto; padding: 12px 18px 18px 18px; border-top: 1px solid #D8D1BF; background: #FBF9F3;">
+    <sc-if value="{{notPaid}}" hint-placeholder-val="{{true}}"><button onClick="{{pay}}" style="width: 100%; height: 50px; border-radius: 10px; border: none; background: #9C7A3C; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer;">I've paid · add reference</button></sc-if>
+    <sc-if value="{{paid}}" hint-placeholder-val="{{false}}"><div style="text-align: center; font-size: 14px; color: #465241; font-weight: 700; padding: 8px 0;">Thanks. Barebase will confirm and send a receipt.</div><a href="ClientPayments.dc.html" style="display: block; text-align: center; font-size: 12px; color: #8A8672;">(Team view: confirm it in Client payments →)</a></sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {}; return { notPaid: !st.p, paid: !!st.p, pay: () => this.setState({ p: 1 }) };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Barebase Platform — BOQ</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; font-family: -apple-system, "Segoe UI", Calibri, sans-serif; background: #F4F1E8; color: #24231E; }
+  h1, h2, h3 { font-family: Cambria, Georgia, serif; margin: 0; }
+  a { color: #7C5E28; text-decoration: none; }
+  a:hover { color: #24231E; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #D8D1BF; border-radius: 6px; }
+</style>
+</helmet>
+
+<div style="width: 100%; min-height: 1024px; display: flex; background: #F4F1E8;">
+
+  <!-- ============ SIDEBAR (project-scoped: only this project's sub-parts) ============ -->
+  <div style="width: 240px; flex: 0 0 240px; min-height: 1024px; background: #24231E; display: flex; flex-direction: column; padding: 24px 16px; box-sizing: border-box; gap: 4px;">
+
+    <div style="display: flex; align-items: center; gap: 10px; padding: 4px 8px 20px 8px;">
+      <div style="width: 34px; height: 34px; border-radius: 8px; background: #9C7A3C; display: flex; align-items: center; justify-content: center; flex: 0 0 34px;">
+        <span style="font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 17px; color: #FBF9F3;">B</span>
+      </div>
+      <div>
+        <div style="font-family: Cambria, Georgia, serif; font-size: 15px; font-weight: 700; color: #FBF9F3; letter-spacing: 0.3px;">Barebase</div>
+        <div style="font-size: 10.5px; color: #9C957F; letter-spacing: 0.6px; text-transform: uppercase;">Platform</div>
+      </div>
+    </div>
+
+    <a href="Projects.dc.html" style="display: flex; align-items: center; gap: 8px; padding: 6px 8px 18px 8px; font-size: 12px; color: #9C957F;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9C957F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+      All Projects
+    </a>
+
+    <div style="padding: 0 8px 16px 8px; border-bottom: 1px solid #3A342A; margin-bottom: 10px;">
+      <div style="font-family: Cambria, Georgia, serif; font-size: 16px; font-weight: 700; color: #FBF9F3; line-height: 1.25;">Villa Prakruthi</div>
+      <div style="font-size: 11px; color: #9C957F; margin-top: 3px;">Sarjapur Road · R. Iyengar</div>
+    </div>
+
+    <a href="ProjectOverview.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span style="font-size: 13.5px; color: #C9C4B4;">Overview</span>
+    </a>
+
+    <a href="Files.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      <span style="font-size: 13.5px; color: #C9C4B4; flex: 1 1 auto;">Files</span>
+    </a>
+
+    <a href="BOQ.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; background: #362F23;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FBF9F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M4 5v14h16V5M8 9h8M8 13h8M8 17h5"/></svg>
+      <span style="font-size: 13.5px; color: #FBF9F3; font-weight: 600;">BOQ</span>
+    </a>
+
+    <a href="Finance.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="14.5" r="1.4" fill="#B9B2A0" stroke="none"/></svg>
+      <span style="font-size: 13.5px; color: #C9C4B4;">Finance</span>
+    </a>
+    <a href="HomeBudget.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.4 6.4"/></svg>
+        <span style="font-size: 13.5px; color: #C9C4B4;">Home budget</span>
+      </div>
+      <span style="font-size: 10.5px; font-weight: 700; color: #FBF9F3; background: #A8452F; border-radius: 10px; padding: 1px 7px;">2</span>
+    </a>
+
+    <a href="Milestones.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 3v3h6V3"/><path d="M8 12l2.5 2.5L16 9"/></svg>
+        <span style="font-size: 13.5px; color: #C9C4B4;">Milestones &amp; DPR</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9C957F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+      <span style="font-size: 10.5px; font-weight: 700; color: #FBF9F3; background: #A8452F; border-radius: 10px; padding: 1px 7px;">2</span>
+    </a>
+
+    <a href="Snags.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 1 21h22L12 2z"/><path d="M12 9v5M12 17.5h.01"/></svg>
+      <span style="font-size: 13.5px; color: #C9C4B4;">Snags</span>
+    </a>
+
+    <div style="display: flex; align-items: center; gap: 10px; padding: 12px 8px 4px 8px; border-top: 1px solid #3A342A; margin-top: auto;">
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: #9C7A3C; display: flex; align-items: center; justify-content: center; flex: 0 0 30px;">
+        <span style="font-size: 12.5px; font-weight: 700; color: #FBF9F3;">KA</span>
+      </div>
+      <div style="min-width: 0;">
+        <div style="font-size: 12.5px; font-weight: 600; color: #FBF9F3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Krishna</div>
+        <div style="font-size: 10.5px; color: #9C957F;">Admin</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MAIN ============ -->
+  <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column;">
+
+    <!-- Project bar: two tiers, no wrapping -->
+    <div style="flex: 0 0 auto; background: #24231E; padding: 0 32px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0 0 0; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+          <a href="Projects.dc.html" style="font-size: 12.5px; color: #B9B2A0; white-space: nowrap;">All projects</a>
+          <span style="color: #6B6554;">/</span>
+          <span style="font-family: Cambria, Georgia, serif; font-size: 17px; font-weight: 700; color: #FBF9F3; white-space: nowrap;">Villa Prakruthi</span>
+          <span style="font-size: 12.5px; color: #9C957F; white-space: nowrap;">Sarjapur Road</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px; white-space: nowrap;">
+          <span style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #8FA487;"><span style="width: 7px; height: 7px; border-radius: 50%; background: #8FA487;"></span>All changes saved</span>
+          <span style="width: 1px; height: 20px; background: #3A342A;"></span>
+          <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #C9C4B4;">Cost &amp; margin<span style="width: 32px; height: 18px; border-radius: 999px; background: #3A342A; position: relative; display: block;"><span style="position: absolute; left: 2px; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: #B9B2A0;"></span></span></span>
+          <button style="padding: 7px 13px; border-radius: 8px; border: 1px solid #55524A; background: transparent; font-size: 12px; font-weight: 600; color: #FBF9F3; cursor: pointer;">Internal PDF</button>
+          <a href="BOQSend.dc.html" style="padding: 7px 13px; border-radius: 8px; border: 1px solid #FBF9F3; background: #FBF9F3; font-size: 12px; font-weight: 700; color: #24231E;">Send to client</a>
+          <button style="padding: 7px 13px; border-radius: 8px; border: none; background: #9C7A3C; font-size: 12px; font-weight: 700; color: #FFFFFF; cursor: pointer;">Client PDF</button>
+        </div>
+      </div>
+      <div style="display: flex; align-items: flex-end; margin-top: 4px; overflow-x: auto;"><div style="display: flex; align-items: center; gap: 7px; padding: 12px 2px; margin-right: 26px; white-space: nowrap; font-size: 13px; font-weight: 700; color: #FBF9F3; border-bottom: 2px solid #9C7A3C;">Build BOQ</div><div style="display: flex; align-items: center; gap: 7px; padding: 12px 2px; margin-right: 26px; white-space: nowrap; font-size: 13px; color: #B9B2A0; border-bottom: 2px solid transparent;">Client View</div><div style="display: flex; align-items: center; gap: 7px; padding: 12px 2px; margin-right: 26px; white-space: nowrap; font-size: 13px; color: #B9B2A0; border-bottom: 2px solid transparent;">Client Review<span style="width: 17px; height: 17px; border-radius: 50%; background: #A8452F; color: #FBF9F3; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center;">2</span></div><div style="display: flex; align-items: center; gap: 7px; padding: 12px 2px; margin-right: 26px; white-space: nowrap; font-size: 13px; color: #B9B2A0; border-bottom: 2px solid transparent;">Versions &amp; Approvals</div></div>
+    </div>
+
+    <!-- Scrollable content -->
+    <div style="flex: 1 1 auto; padding: 24px 32px 56px 32px; display: flex; gap: 20px; align-items: flex-start;">
+
+      <!-- LEFT: builder -->
+      <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 18px;">
+
+        <!-- Project meta fields -->
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px;">
+          <div>
+            <div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px;">Client</div>
+            <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 8px; padding: 10px 12px; font-size: 13.5px; color: #24231E;">R. Iyengar</div>
+          </div>
+          <div>
+            <div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px;">Property / Project</div>
+            <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 8px; padding: 10px 12px; font-size: 13.5px; color: #24231E;">Villa Prakruthi, Sarjapur Road</div>
+          </div>
+          <div>
+            <div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px;">Prepared By</div>
+            <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 8px; padding: 10px 12px; font-size: 13.5px; color: #24231E;">Krishna</div>
+          </div>
+          <div>
+            <div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px;">Date</div>
+            <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 8px; padding: 10px 12px; font-size: 13.5px; color: #24231E;">20-09-2026</div>
+          </div>
+        </div>
+
+        <!-- Section filter row -->
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 8px; padding: 9px 14px; font-size: 13px; color: #24231E; font-weight: 600;">
+            All sections (8)
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#55524A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <button style="display: flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 8px; border: 1px solid #D8D1BF; background: #FBF9F3; font-size: 12.5px; font-weight: 600; color: #24231E; cursor: pointer;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#24231E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+            Import from project
+          </button>
+          <span style="font-size: 12px; color: #8A8672;">Showing every section</span>
+        </div>
+
+        <!-- Electrical Work -->
+        <div>
+          <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 8px; border-bottom: 2px solid #24231E; margin-bottom: 2px;">
+            <h3 style="font-size: 18px;">Electrical Work</h3>
+            <span style="font-size: 10.5px; color: #8A8672; background: #EFEBDD; border-radius: 999px; padding: 2px 9px;">1 item</span>
+            <span style="flex: 1 1 auto;"></span>
+            <span style="font-size: 13.5px; font-weight: 700; color: #24231E;">₹0</span>
+            <button style="display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 7px; border: none; background: #9C7A3C; font-size: 11.5px; font-weight: 700; color: #24231E; cursor: pointer;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#24231E" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Add item
+            </button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px; padding: 6px 4px 4px 4px;">
+            <span style="width: 20px;"></span>
+            <div style="flex: 1 1 auto; font-size: 10px; font-weight: 700; color: #B9AF95; text-transform: uppercase; letter-spacing: 0.5px;">Item</div>
+            <div style="font-size: 10px; font-weight: 700; color: #B9AF95; text-transform: uppercase; letter-spacing: 0.5px; width: 110px; text-align: right;">Qty @ Rate</div>
+            <div style="font-size: 10px; font-weight: 700; color: #B9AF95; text-transform: uppercase; letter-spacing: 0.5px; width: 60px; text-align: right;">Amount</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px; padding: 12px 4px; border-bottom: 1px solid #EFEBDD;">
+            <span style="font-size: 11px; color: #B9AF95; font-weight: 700; width: 20px;">01</span>
+            <div style="flex: 1 1 auto; min-width: 0;">
+              <div style="font-size: 13.5px; font-weight: 700; color: #24231E;">Concealed Wiring</div>
+              <div style="font-size: 11.5px; color: #8A8672; margin-top: 1px;">Electrical Works · Fireproof Copper Wire (Anchor/Polycab) · Standard</div>
+            </div>
+            <div style="font-size: 12.5px; color: #55524A; width: 110px; text-align: right;">0 RFT @ 100</div>
+            <div style="font-size: 13.5px; font-weight: 700; color: #24231E; width: 60px; text-align: right;">₹0</div>
+          </div>
+        </div>
+
+        <!-- Wall Works -->
+        <div>
+          <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 8px; border-bottom: 2px solid #24231E; margin-bottom: 2px; margin-top: 8px;">
+            <h3 style="font-size: 18px;">Wall Works</h3>
+            <span style="font-size: 10.5px; color: #8A8672; background: #EFEBDD; border-radius: 999px; padding: 2px 9px;">1 item</span>
+            <span style="flex: 1 1 auto;"></span>
+            <span style="font-size: 13.5px; font-weight: 700; color: #24231E;">₹40,500</span>
+            <button style="display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 7px; border: none; background: #9C7A3C; font-size: 11.5px; font-weight: 700; color: #24231E; cursor: pointer;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#24231E" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Add item
+            </button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px; padding: 6px 4px 4px 4px;">
+            <span style="width: 20px;"></span>
+            <div style="flex: 1 1 auto; font-size: 10px; font-weight: 700; color: #B9AF95; text-transform: uppercase; letter-spacing: 0.5px;">Item</div>
+            <div style="font-size: 10px; font-weight: 700; color: #B9AF95; text-transform: uppercase; letter-spacing: 0.5px; width: 110px; text-align: right;">Qty @ Rate</div>
+            <div style="font-size: 10px; font-weight: 700; color: #B9AF95; text-transform: uppercase; letter-spacing: 0.5px; width: 60px; text-align: right;">Amount</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px; padding: 12px 4px; border-bottom: 1px solid #EFEBDD;">
+            <span style="font-size: 11px; color: #B9AF95; font-weight: 700; width: 20px;">01</span>
+            <div style="flex: 1 1 auto; min-width: 0;">
+              <div style="font-size: 13.5px; font-weight: 700; color: #24231E;">Painting</div>
+              <div style="font-size: 11.5px; color: #8A8672; margin-top: 1px;">Civil &amp; Infra Works · Acrylic Emulsion · Smooth Finish</div>
+            </div>
+            <div style="font-size: 12.5px; color: #55524A; width: 110px; text-align: right;">900 SQFT @ 45</div>
+            <div style="font-size: 13.5px; font-weight: 700; color: #24231E; width: 60px; text-align: right;">₹40,500</div>
+          </div>
+        </div>
+
+        <!-- Other -->
+        <div>
+          <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 8px; border-bottom: 2px solid #24231E; margin-bottom: 2px; margin-top: 8px;">
+            <h3 style="font-size: 18px;">Other</h3>
+            <span style="font-size: 10.5px; color: #8A8672; background: #EFEBDD; border-radius: 999px; padding: 2px 9px;">1 item</span>
+            <span style="flex: 1 1 auto;"></span>
+            <span style="font-size: 13.5px; font-weight: 700; color: #24231E;">₹4,500</span>
+            <button style="display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 7px; border: none; background: #9C7A3C; font-size: 11.5px; font-weight: 700; color: #24231E; cursor: pointer;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#24231E" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Add item
+            </button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px; padding: 6px 4px 4px 4px;">
+            <span style="width: 20px;"></span>
+            <div style="flex: 1 1 auto; font-size: 10px; font-weight: 700; color: #B9AF95; text-transform: uppercase; letter-spacing: 0.5px;">Item</div>
+            <div style="font-size: 10px; font-weight: 700; color: #B9AF95; text-transform: uppercase; letter-spacing: 0.5px; width: 110px; text-align: right;">Qty @ Rate</div>
+            <div style="font-size: 10px; font-weight: 700; color: #B9AF95; text-transform: uppercase; letter-spacing: 0.5px; width: 60px; text-align: right;">Amount</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px; padding: 12px 4px; border-bottom: 1px solid #EFEBDD;">
+            <span style="font-size: 11px; color: #B9AF95; font-weight: 700; width: 20px;">01</span>
+            <div style="flex: 1 1 auto; min-width: 0;">
+              <div style="font-size: 13.5px; font-weight: 700; color: #24231E;">Floor Protection</div>
+              <div style="font-size: 11.5px; color: #8A8672; margin-top: 1px;">Civil &amp; Infra Works · Corrugated Sheets · Standard</div>
+            </div>
+            <div style="font-size: 12.5px; color: #55524A; width: 110px; text-align: right;">450 SQFT @ 10</div>
+            <div style="font-size: 13.5px; font-weight: 700; color: #24231E; width: 60px; text-align: right;">₹4,500</div>
+          </div>
+        </div>
+
+        <!-- Living Room -->
+        <div>
+          <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 8px; border-bottom: 2px solid #24231E; margin-bottom: 2px; margin-top: 8px;">
+            <h3 style="font-size: 18px;">Living Room</h3>
+            <span style="font-size: 10.5px; color: #8A8672; background: #EFEBDD; border-radius: 999px; padding: 2px 9px;">3 items</span>
+            <span style="flex: 1 1 auto;"></span>
+            <span style="font-size: 13.5px; font-weight: 700; color: #24231E;">₹1,17,875</span>
+            <button style="display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 7px; border: none; background: #9C7A3C; font-size: 11.5px; font-weight: 700; color: #24231E; cursor: pointer;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#24231E" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Add item
+            </button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px; padding: 6px 4px 4px 4px;">
+            <span style="width: 20px;"></span>
+            <div style="flex: 1 1 auto; font-size: 10px; font-weight: 700; color: #B9AF95; text-transform: uppercase; letter-spacing: 0.5px;">Item</div>
+            <div style="font-size: 10px; font-weight: 700; color: #B9AF95; text-transform: uppercase; letter-spacing: 0.5px; width: 110px; text-align: right;">Qty @ Rate</div>
+            <div style="font-size: 10px; font-weight: 700; color: #B9AF95; text-transform: uppercase; letter-spacing: 0.5px; width: 60px; text-align: right;">Amount</div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 14px; padding: 12px 4px; border-bottom: 1px solid #EFEBDD;">
+            <span style="font-size: 11px; color: #B9AF95; font-weight: 700; width: 20px;">01</span>
+            <div style="flex: 1 1 auto; min-width: 0;">
+              <div style="font-size: 13.5px; font-weight: 700; color: #24231E;">TV Unit</div>
+              <div style="font-size: 11.5px; color: #8A8672; margin-top: 1px;">Carpentry · Laminate · Matte</div>
+            </div>
+            <div style="font-size: 12.5px; color: #55524A; width: 110px; text-align: right;">20 SQFT @ 1,450</div>
+            <div style="font-size: 13.5px; font-weight: 700; color: #24231E; width: 60px; text-align: right;">₹29,000</div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 14px; padding: 12px 4px; border-bottom: 1px solid #EFEBDD;">
+            <span style="font-size: 11px; color: #B9AF95; font-weight: 700; width: 20px;">02</span>
+            <div style="flex: 1 1 auto; min-width: 0;">
+              <div style="font-size: 13.5px; font-weight: 700; color: #24231E;">False Ceiling</div>
+              <div style="font-size: 11.5px; color: #8A8672; margin-top: 1px;">Gypsum · Cove Lighting · Matte White</div>
+            </div>
+            <div style="font-size: 12.5px; color: #55524A; width: 110px; text-align: right;">168 SQFT @ 185</div>
+            <div style="font-size: 13.5px; font-weight: 700; color: #24231E; width: 60px; text-align: right;">₹31,080</div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 14px; padding: 12px 4px; border-bottom: 1px solid #EFEBDD;">
+            <span style="font-size: 11px; color: #B9AF95; font-weight: 700; width: 20px;">03</span>
+            <div style="flex: 1 1 auto; min-width: 0;">
+              <div style="font-size: 13.5px; font-weight: 700; color: #24231E;">Wardrobe <span style="font-weight: 400; color: #9C7A3C;">(Count of 2)</span></div>
+              <div style="font-size: 11.5px; color: #8A8672; margin-top: 1px;">Carpentry · Laminate · Matte</div>
+            </div>
+            <div style="font-size: 12.5px; color: #55524A; width: 110px; text-align: right;">48 SQFT @ 1,650</div>
+            <div style="font-size: 13.5px; font-weight: 700; color: #24231E; width: 60px; text-align: right;">₹1,58,400</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: summary sidebar, matches the live app -->
+      <div style="width: 300px; flex: 0 0 300px; background: #24231E; border-radius: 12px; padding: 22px; position: sticky; top: 24px;">
+        <div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 14px;">Summary</div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid #3A342A; margin-bottom: 14px;">
+          <div style="display: flex; justify-content: space-between; font-size: 12.5px;"><span style="color: #FBF9F3; font-weight: 600;">Electrical Work</span><span style="color: #C9C4B4;">₹0</span></div>
+          <div style="display: flex; justify-content: space-between; font-size: 12.5px;"><span style="color: #C9C4B4;">Wall Works</span><span style="color: #C9C4B4;">₹40,500</span></div>
+          <div style="display: flex; justify-content: space-between; font-size: 12.5px;"><span style="color: #C9C4B4;">Other</span><span style="color: #C9C4B4;">₹4,500</span></div>
+          <div style="display: flex; justify-content: space-between; font-size: 12.5px;"><span style="color: #C9C4B4;">Living Room</span><span style="color: #C9C4B4;">₹1,17,875</span></div>
+          <div style="display: flex; justify-content: space-between; font-size: 12.5px;"><span style="color: #C9C4B4;">Kitchen</span><span style="color: #C9C4B4;">₹1,85,100</span></div>
+          <div style="display: flex; justify-content: space-between; font-size: 12.5px;"><span style="color: #C9C4B4;">Master Bedroom</span><span style="color: #C9C4B4;">₹2,34,400</span></div>
+          <div style="display: flex; justify-content: space-between; font-size: 12.5px;"><span style="color: #C9C4B4;">Bedroom 2</span><span style="color: #C9C4B4;">₹2,26,300</span></div>
+          <div style="display: flex; justify-content: space-between; font-size: 12.5px;"><span style="color: #C9C4B4;">Bathroom</span><span style="color: #C9C4B4;">₹26,000</span></div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 14px;">
+          <span style="color: #FBF9F3;">Subtotal</span><span style="color: #FBF9F3;">₹8,34,675</span>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <span style="font-size: 12.5px; color: #C9C4B4;">Discount</span>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="width: 46px; background: #362F23; border: 1px solid #4A4436; border-radius: 6px; padding: 5px 8px; font-size: 12px; color: #FBF9F3; text-align: center;">0</div>
+            <div style="display: flex; align-items: center; gap: 3px; background: #362F23; border: 1px solid #4A4436; border-radius: 6px; padding: 5px 8px; font-size: 11.5px; color: #C9C4B4;">%
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#C9C4B4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #C9C4B4;">
+            <input type="checkbox" style="accent-color: #9C7A3C;"> Add GST
+          </label>
+          <div style="display: flex; align-items: center; gap: 4px; background: #362F23; border: 1px solid #4A4436; border-radius: 6px; padding: 5px 10px; font-size: 11.5px; color: #FBF9F3;">18%
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#C9C4B4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+
+        <div style="padding-top: 14px; border-top: 1px solid #3A342A;">
+          <div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Grand Total</div>
+          <div style="font-family: Cambria, Georgia, serif; font-size: 24px; font-weight: 700; color: #FBF9F3;">₹8,34,675</div>
+        </div>
+
+        <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #3A342A;">
+          <div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">Client-facing columns</div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #C9C4B4;"><input type="checkbox" checked style="accent-color: #9C7A3C;"> Material</label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #C9C4B4;"><input type="checkbox" checked style="accent-color: #9C7A3C;"> Finish</label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #C9C4B4;"><input type="checkbox" checked style="accent-color: #9C7A3C;"> Qty</label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #C9C4B4;"><input type="checkbox" checked style="accent-color: #9C7A3C;"> Rate per unit</label>
+          </div>
+          <div style="font-size: 10.5px; color: #8A8672; margin-top: 10px; line-height: 1.5;">Applies to Client View, the Client PDF and the Internal PDF.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

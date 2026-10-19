@@ -1,0 +1,452 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-09-20T02:10:00Z"
+  },
+  "title": "Barebase Platform — Homepage",
+  "launch": {
+    "view": "focused",
+    "file": "Main.dc.html"
+  },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1024,
+      "title": "Homepage",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Projects.dc.html": {
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 1180,
+      "title": "Projects",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "ProjectOverview.dc.html": {
+      "x": 3120,
+      "y": 0,
+      "w": 1440,
+      "h": 1180,
+      "title": "Project Overview",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "BOQ.dc.html": {
+      "x": 4680,
+      "y": 0,
+      "w": 1440,
+      "h": 1180,
+      "title": "BOQ",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Files.dc.html": {
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 1800,
+      "title": "Files",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Finance.dc.html": {
+      "x": 1560,
+      "y": 1300,
+      "w": 1440,
+      "h": 1180,
+      "title": "Project Finance",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Milestones.dc.html": {
+      "x": 3120,
+      "y": 1300,
+      "w": 1440,
+      "h": 1700,
+      "title": "Milestones & DPR",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Snags.dc.html": {
+      "x": 4680,
+      "y": 1300,
+      "w": 1440,
+      "h": 1180,
+      "title": "Snags",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Leads.dc.html": {
+      "x": 0,
+      "y": 2600,
+      "w": 1440,
+      "h": 1180,
+      "title": "Leads",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Approvals.dc.html": {
+      "x": 1560,
+      "y": 2600,
+      "w": 1440,
+      "h": 1180,
+      "title": "Approvals",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "OrgFinance.dc.html": {
+      "x": 3120,
+      "y": 2600,
+      "w": 1440,
+      "h": 1180,
+      "title": "Finance (company)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "PhoneDPR.dc.html": {
+      "x": 4680,
+      "y": 2600,
+      "w": 390,
+      "h": 844,
+      "title": "Phone · Daily report",
+      "is_interactive": true
+    },
+    "ClientPortal.dc.html": {
+      "x": 5150,
+      "y": 2600,
+      "w": 390,
+      "h": 844,
+      "title": "Phone · Client portal",
+      "is_interactive": true
+    },
+    "HomeBudget.dc.html": {
+      "x": 0,
+      "y": 3900,
+      "w": 1440,
+      "h": 1180,
+      "title": "Home budget · plan vs actual",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "ClientPurchases.dc.html": {
+      "x": 1560,
+      "y": 3900,
+      "w": 1440,
+      "h": 1300,
+      "title": "Home budget · client purchases",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Vendors.dc.html": {
+      "x": 3120,
+      "y": 3900,
+      "w": 1440,
+      "h": 1180,
+      "title": "Finance · vendors and bills",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "ProformaCreator.dc.html": {
+      "x": 0,
+      "y": 5320,
+      "w": 1440,
+      "h": 1180,
+      "title": "Finance · new proforma invoice",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "POCreator.dc.html": {
+      "x": 1560,
+      "y": 5320,
+      "w": 1440,
+      "h": 1180,
+      "title": "Finance · new purchase order",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "SentTracker.dc.html": {
+      "x": 3120,
+      "y": 5320,
+      "w": 1440,
+      "h": 1180,
+      "title": "Finance · sent and due",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "BillingDue.dc.html": {
+      "x": 4680,
+      "y": 5320,
+      "w": 1440,
+      "h": 1180,
+      "title": "Finance · billing due",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Insights.dc.html": {
+      "x": 0,
+      "y": 6640,
+      "w": 1440,
+      "h": 1700,
+      "title": "Insights",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "DPR.dc.html": {
+      "x": 1560,
+      "y": 6640,
+      "w": 1440,
+      "h": 1500,
+      "title": "Daily reports (DPR)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "BOQProgress.dc.html": {
+      "x": 3120,
+      "y": 6640,
+      "w": 1440,
+      "h": 1900,
+      "title": "Progress by BOQ line",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Journeys.dc.html": {
+      "x": 0,
+      "y": 8700,
+      "w": 1440,
+      "h": 1400,
+      "title": "All journeys (start here)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Login.dc.html": {
+      "x": 1560,
+      "y": 8700,
+      "w": 1440,
+      "h": 1180,
+      "title": "Sign in",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "LeadDetail.dc.html": {
+      "x": 3120,
+      "y": 8700,
+      "w": 1440,
+      "h": 1180,
+      "title": "Lead detail",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "NewProject.dc.html": {
+      "x": 4680,
+      "y": 8700,
+      "w": 1440,
+      "h": 1180,
+      "title": "New project from lead",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Team.dc.html": {
+      "x": 0,
+      "y": 10020,
+      "w": 1440,
+      "h": 1180,
+      "title": "Team",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "OrgSettings.dc.html": {
+      "x": 1560,
+      "y": 10020,
+      "w": 1440,
+      "h": 1180,
+      "title": "Org Settings",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Catalogue.dc.html": {
+      "x": 3120,
+      "y": 10020,
+      "w": 1440,
+      "h": 1180,
+      "title": "Rate card",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Notifications.dc.html": {
+      "x": 4680,
+      "y": 10020,
+      "w": 1440,
+      "h": 1180,
+      "title": "Notifications",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "MyClaims.dc.html": {
+      "x": 0,
+      "y": 11340,
+      "w": 1440,
+      "h": 1180,
+      "title": "Finance · my claims",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Reimbursements.dc.html": {
+      "x": 1560,
+      "y": 11340,
+      "w": 1440,
+      "h": 1180,
+      "title": "Finance · pending reimbursements",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Transactions.dc.html": {
+      "x": 3120,
+      "y": 11340,
+      "w": 1440,
+      "h": 1180,
+      "title": "Finance · all transactions",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "GstTds.dc.html": {
+      "x": 4680,
+      "y": 11340,
+      "w": 1440,
+      "h": 1180,
+      "title": "Finance · GST and TDS",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "ClientPayments.dc.html": {
+      "x": 0,
+      "y": 12660,
+      "w": 1440,
+      "h": 1180,
+      "title": "Project finance · client payments",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Expenses.dc.html": {
+      "x": 1560,
+      "y": 12660,
+      "w": 1440,
+      "h": 1180,
+      "title": "Project finance · expenses",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "BOQSend.dc.html": {
+      "x": 3120,
+      "y": 12660,
+      "w": 1440,
+      "h": 1180,
+      "title": "BOQ · send to client",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Handover.dc.html": {
+      "x": 4680,
+      "y": 12660,
+      "w": 1440,
+      "h": 1180,
+      "title": "Handover checklist",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "PhoneSnag.dc.html": {
+      "x": 0,
+      "y": 13980,
+      "w": 390,
+      "h": 844,
+      "title": "Phone · raise snag",
+      "is_interactive": true
+    },
+    "PhoneClaim.dc.html": {
+      "x": 470,
+      "y": 13980,
+      "w": 390,
+      "h": 844,
+      "title": "Phone · expense claim",
+      "is_interactive": true
+    },
+    "PhoneApprovals.dc.html": {
+      "x": 940,
+      "y": 13980,
+      "w": 390,
+      "h": 844,
+      "title": "Phone · approvals",
+      "is_interactive": true
+    },
+    "ClientBOQ.dc.html": {
+      "x": 1410,
+      "y": 13980,
+      "w": 390,
+      "h": 844,
+      "title": "Phone · client approves estimate",
+      "is_interactive": true
+    },
+    "ClientPay.dc.html": {
+      "x": 1880,
+      "y": 13980,
+      "w": 390,
+      "h": 844,
+      "title": "Phone · client pays",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Projects.dc.html",
+    "ProjectOverview.dc.html",
+    "BOQ.dc.html",
+    "Files.dc.html",
+    "Finance.dc.html",
+    "Milestones.dc.html",
+    "Snags.dc.html",
+    "Leads.dc.html",
+    "Approvals.dc.html",
+    "OrgFinance.dc.html",
+    "PhoneDPR.dc.html",
+    "ClientPortal.dc.html",
+    "HomeBudget.dc.html",
+    "ClientPurchases.dc.html",
+    "Vendors.dc.html",
+    "ProformaCreator.dc.html",
+    "POCreator.dc.html",
+    "SentTracker.dc.html",
+    "BillingDue.dc.html",
+    "Insights.dc.html",
+    "DPR.dc.html",
+    "BOQProgress.dc.html",
+    "Journeys.dc.html",
+    "Login.dc.html",
+    "LeadDetail.dc.html",
+    "NewProject.dc.html",
+    "Team.dc.html",
+    "OrgSettings.dc.html",
+    "Catalogue.dc.html",
+    "Notifications.dc.html",
+    "MyClaims.dc.html",
+    "Reimbursements.dc.html",
+    "Transactions.dc.html",
+    "GstTds.dc.html",
+    "ClientPayments.dc.html",
+    "Expenses.dc.html",
+    "BOQSend.dc.html",
+    "Handover.dc.html",
+    "PhoneSnag.dc.html",
+    "PhoneClaim.dc.html",
+    "PhoneApprovals.dc.html",
+    "ClientBOQ.dc.html",
+    "ClientPay.dc.html"
+  ],
+  "notes": {},
+  "designSystems": []
+}

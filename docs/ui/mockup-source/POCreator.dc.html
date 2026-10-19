@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Barebase Platform — New purchase order</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; font-family: -apple-system, "Segoe UI", Calibri, sans-serif; background: #F4F1E8; color: #24231E; }
+  h1, h2, h3 { font-family: Cambria, Georgia, serif; margin: 0; }
+  a { color: #7C5E28; text-decoration: none; }
+  a:hover { color: #24231E; }
+</style>
+</helmet>
+
+<div style="width: 100%; min-height: 1024px; display: flex; flex-wrap: wrap; background: #F4F1E8;">
+  <div style="width: 240px; flex: 0 0 240px; min-height: 1024px; background: #24231E; display: flex; flex-direction: column; padding: 24px 16px; box-sizing: border-box; gap: 4px;">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 4px 8px 20px 8px;">
+      <div style="width: 34px; height: 34px; border-radius: 8px; background: #9C7A3C; display: flex; align-items: center; justify-content: center; flex: 0 0 34px;">
+        <span style="font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 17px; color: #FBF9F3;">B</span>
+      </div>
+      <div>
+        <div style="font-family: Cambria, Georgia, serif; font-size: 15px; font-weight: 700; color: #FBF9F3; letter-spacing: 0.3px;">Barebase</div>
+        <div style="font-size: 10.5px; color: #9C957F; letter-spacing: 0.6px; text-transform: uppercase;">Platform</div>
+      </div>
+    </div>
+    <a href="Projects.dc.html" style="display: flex; align-items: center; gap: 8px; padding: 6px 8px 18px 8px; font-size: 12px; color: #9C957F;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9C957F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>All Projects</a>
+    <div style="padding: 0 8px 16px 8px; border-bottom: 1px solid #3A342A; margin-bottom: 10px;">
+      <div style="font-family: Cambria, Georgia, serif; font-size: 16px; font-weight: 700; color: #FBF9F3; line-height: 1.25;">Villa Prakruthi</div>
+      <div style="font-size: 11px; color: #9C957F; margin-top: 3px;">Sarjapur Road · R. Iyengar</div>
+    </div>
+    <a href="ProjectOverview.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Overview</span></span>
+      
+    </a>
+    <a href="Files.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Files</span></span>
+      
+    </a>
+    <a href="BOQ.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M4 5v14h16V5M8 9h8M8 13h8M8 17h5"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">BOQ</span></span>
+      
+    </a>
+    <a href="Finance.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; background: #362F23;">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FBF9F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/></svg><span style="font-size: 13.5px; color: #FBF9F3; font-weight: 600;">Finance</span></span>
+      <span style="font-size: 10.5px; font-weight: 700; color: #FBF9F3; background: #A8452F; border-radius: 10px; padding: 1px 7px;">1</span>
+    </a>
+    <a href="HomeBudget.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.4 6.4"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Home budget</span></span>
+      <span style="font-size: 10.5px; font-weight: 700; color: #FBF9F3; background: #A8452F; border-radius: 10px; padding: 1px 7px;">2</span>
+    </a>
+    <a href="Milestones.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 3v3h6V3"/><path d="M8 12l2.5 2.5L16 9"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Milestones &amp; DPR</span></span>
+      <span style="font-size: 10.5px; font-weight: 700; color: #FBF9F3; background: #A8452F; border-radius: 10px; padding: 1px 7px;">2</span>
+    </a>
+    <a href="Snags.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 1 21h22L12 2z"/><path d="M12 9v5M12 17.5h.01"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Snags</span></span>
+      <span style="font-size: 10.5px; font-weight: 700; color: #FBF9F3; background: #A8452F; border-radius: 10px; padding: 1px 7px;">4</span>
+    </a>
+    <div style="margin-top: auto;"></div>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 12px 8px 4px 8px; border-top: 1px solid #3A342A; margin-top: 8px;">
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: #9C7A3C; display: flex; align-items: center; justify-content: center; flex: 0 0 30px;"><span style="font-size: 12.5px; font-weight: 700; color: #FBF9F3;">KA</span></div>
+      <div style="min-width: 0;"><div style="font-size: 12.5px; font-weight: 600; color: #FBF9F3;">Krishna</div><div style="font-size: 10.5px; color: #9C957F;">Admin</div></div>
+    </div>
+  </div>
+
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column;">
+    <div style="height: 68px; flex: 0 0 68px; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; border-bottom: 1px solid #D8D1BF; background: #FBF9F3; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 10px; background: #F4F1E8; border: 1px solid #D8D1BF; border-radius: 8px; padding: 8px 14px; width: 340px; max-width: 100%;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span style="font-size: 13px; color: #8A8672;">Search projects, leads, clients…</span></div>
+      <div style="display: flex; align-items: center; gap: 18px;">
+        <a href="Journeys.dc.html" style="font-size: 12px; font-weight: 600; color: #55524A;">All journeys</a>
+        <a href="Approvals.dc.html" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #7C5E28; background: #F3E6C7; border-radius: 999px; padding: 4px 11px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7C5E28" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>5 to approve</a>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55524A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: #9C7A3C; display: flex; align-items: center; justify-content: center;"><span style="font-size: 13px; font-weight: 700; color: #FBF9F3;">KA</span></div>
+      </div>
+    </div>
+    <div style="flex: 0 0 auto; padding: 20px 32px 0 32px; border-bottom: 1px solid #D8D1BF; background: #F4F1E8;">
+      <div style="font-size: 12px; color: #8A8672;"><a href="Projects.dc.html" style="color: #8A8672;">Projects</a> › <a href="ProjectOverview.dc.html" style="color: #8A8672;">Villa Prakruthi</a> › New purchase order</div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 6px; padding-bottom: 16px;">
+        <h1 style="font-size: 26px;">New purchase order</h1>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;"><a href="Vendors.dc.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; background: #FBF9F3; color: #24231E; border: 1px solid #D8D1BF;">Cancel</a></div>
+      </div>
+    </div>
+
+    <div style="flex: 1 1 auto; padding: 24px 32px 56px 32px; display: flex; flex-direction: column; gap: 20px; max-width: 1180px;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+        <div><div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px;">Vendor</div><div style="background: #FFFFFF; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 13px;"><b>Sri Lakshmi Tiles</b> · Civil<div style="font-size: 12px; color: #8A8672; margin-top: 3px;">GSTIN [vendor GSTIN] · Karnataka · TDS 194C</div></div></div>
+        <div><div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px;">PO number and dates</div><div style="background: #FFFFFF; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 13px;"><b>BB-26-014/PO-07</b> · 15 Oct 2026<div style="font-size: 12px; color: #8A8672; margin-top: 3px;">Work to finish by <b style="color: #24231E;">24 Oct 2026</b> · deliver to site</div></div></div>
+        <div><div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px;">Bathroom budget</div><div style="background: #FFFFFF; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 13px;"><b>{{left}}</b> left of ₹18,200<div style="font-size: 12px; color: #8A8672; margin-top: 3px;">₹12,000 already ordered</div></div></div>
+      </div>
+      <div><div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px;">Lines from BOQ v3 · tick what this vendor will do</div>
+        <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; overflow-x: auto;"><div style="min-width: 760px;">
+          <div style="display: grid; grid-template-columns: 28px 2.2fr 1fr 0.9fr 0.9fr 0.8fr 1fr; gap: 10px; padding: 10px 16px; font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px;"><span></span><span>BOQ line</span><span>Qty</span><span style="text-align: right;">Order rate</span><span style="text-align: right;">Selling rate</span><span style="text-align: right;">Margin</span><span style="text-align: right;">Amount</span></div>
+          <sc-for list="{{lines}}" as="l" hint-placeholder-count="4">
+            <label style="{{l.rowStyle}}"><input type="checkbox" checked="{{l.checked}}" onChange="{{l.toggle}}" style="width: 18px; height: 18px; accent-color: #9C7A3C;"/><span><b>{{l.item}}</b><span style="display: block; font-size: 11px; color: #8A8672;">{{l.room}}</span></span><span>{{l.qtyText}}</span><span style="text-align: right;">{{l.orderText}}</span><span style="text-align: right; color: #8A8672;">{{l.sellText}}</span><span style="text-align: right; color: #465241; font-weight: 600;">{{l.marginText}}</span><span style="text-align: right; font-weight: 700;">{{l.amtText}}</span></label>
+          </sc-for>
+          <div style="display: flex; justify-content: flex-end; gap: 28px; padding: 12px 16px; border-top: 1px solid #D8D1BF; font-size: 13px; flex-wrap: wrap; font-variant-numeric: tabular-nums;"><span>Subtotal <b>{{sub}}</b></span><span>CGST 9% <b>{{gst}}</b></span><span>SGST 9% <b>{{gst}}</b></span><span style="font-size: 14px;">Total <b>{{total}}</b></span></div>
+        </div></div>
+        <div style="font-size: 12px; color: #8A8672; margin-top: 6px;">Selling rate and margin are visible only to you; the vendor's PO PDF shows order rates only. In words: {{totalWords}}.</div>
+      </div>
+      <sc-if value="{{isOver}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: #F6E1DA; border: 1px solid #E3C3B8; border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #8E3826;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#A8452F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><b>{{overText}} above the Bathroom budget left.</b> Add a reason to submit; the approver will see it.</div>
+      </sc-if>
+      <div><div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px;">Payment terms</div><div style="display: flex; gap: 8px; flex-wrap: wrap;"><sc-for list="{{terms}}" as="t" hint-placeholder-count="3"><button onClick="{{t.pick}}" style="{{t.style}}">{{t.x}}</button></sc-for></div></div>
+      <sc-if value="{{notSent}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;"><button onClick="{{submit}}" style="padding: 12px 22px; border-radius: 8px; border: 1px solid #24231E; background: #24231E; color: #FBF9F3; font-size: 14px; font-weight: 700; cursor: pointer;">Submit for approval</button><button style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; background: #FBF9F3; color: #24231E; border: 1px solid #D8D1BF;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#24231E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 10l6 6 6-6"/><path d="M4 20h16"/></svg>Preview PO PDF</button><span style="font-size: 12px; color: #8A8672;">Under ₹25,000: the design lead approves, then it goes to the vendor.</span></div>
+      </sc-if>
+      <sc-if value="{{sent}}" hint-placeholder-val="{{false}}">
+        <div style="background: #E8F0E3; border: 1px solid #C9D6C0; border-radius: 10px; padding: 14px 16px; font-size: 13px; color: #465241;"><b>PO-07 sent to Mansi for approval.</b> Once approved it's emailed to Sri Lakshmi Tiles with terms "{{termText}}" and tracked in <a href="SentTracker.dc.html" style="font-weight: 700;">Sent &amp; due</a> until the work is done and billed.</div>
+      </sc-if>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    
+    const inr = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
+    const A = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const B = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    const two = (x) => x < 20 ? A[x] : B[Math.floor(x / 10)] + (x % 10 ? ' ' + A[x % 10] : '');
+    const three = (x) => x >= 100 ? A[Math.floor(x / 100)] + ' hundred' + (x % 100 ? ' ' + two(x % 100) : '') : two(x);
+    const words = (n) => { n = Math.round(n); let s = ''; const cr = Math.floor(n / 1e7); n %= 1e7; const lk = Math.floor(n / 1e5); n %= 1e5; const th = Math.floor(n / 1000); n %= 1000;
+      if (cr) s += two(cr) + ' crore '; if (lk) s += two(lk) + ' lakh '; if (th) s += two(th) + ' thousand '; if (n) s += three(n);
+      s = s.trim().toLowerCase(); return s.charAt(0).toUpperCase() + s.slice(1) + ' rupees'; };
+
+    const st = this.state || {};
+    const base = [
+      { id: 'l1', item: 'Floor tile laying · anti-skid', room: 'Bathroom', qty: 45, unit: 'sq ft', sell: 70, order: 48 },
+      { id: 'l2', item: 'Waterproofing · 2 coats', room: 'Bathroom', qty: 45, unit: 'sq ft', sell: 60, order: 40 },
+      { id: 'l3', item: 'Grouting and finishing', room: 'Bathroom', qty: 1, unit: 'lumpsum', sell: 2600, order: 1900 },
+      { id: 'l4', item: 'Vanity counter fixing', room: 'Bathroom', qty: 1, unit: 'nos', sell: 2200, order: 1500 },
+    ];
+    const on = st.on || { l1: true, l2: true, l3: true, l4: false };
+    const lines = base.map((l) => {
+      const amt = l.qty * l.order, m = Math.round((l.sell - l.order) / l.sell * 100);
+      return { ...l, qtyText: l.qty + ' ' + l.unit, orderText: inr(l.order), sellText: inr(l.sell), amtText: inr(amt), marginText: m + '%', checked: !!on[l.id],
+        rowStyle: 'display: grid; grid-template-columns: 28px 2.2fr 1fr 0.9fr 0.9fr 0.8fr 1fr; gap: 10px; align-items: center; padding: 12px 16px; border-top: 1px solid #EFEBDD; font-size: 13px; font-variant-numeric: tabular-nums; ' + (on[l.id] ? '' : 'color: #9A9484;'),
+        toggle: () => this.setState({ on: { ...on, [l.id]: !on[l.id] }, sent: false }) };
+    });
+    const sub = base.reduce((s, l) => s + (on[l.id] ? l.qty * l.order : 0), 0);
+    const half = Math.round(sub * 0.09), total = sub + 2 * half;
+    const left = 6200, over = sub - left;
+    const terms = ['30% advance · 60% on completion · 10% after snags close', '50% advance · 50% on completion', 'Full payment on completion'];
+    const t = st.t || 0;
+    const chipS = (onn) => 'padding: 7px 12px; border-radius: 999px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; text-align: left; border: 1px solid ' + (onn ? '#24231E; background: #24231E; color: #FBF9F3;' : '#D8D1BF; background: #FBF9F3; color: #24231E;');
+    return { lines, sub: inr(sub), gst: inr(half), total: inr(total), totalWords: words(total), left: inr(left),
+      isOver: over > 0, notOver: over <= 0, overText: inr(over),
+      terms: terms.map((x, i) => ({ x, style: chipS(i === t), pick: () => this.setState({ t: i }) })), termText: terms[t],
+      sent: !!st.sent, notSent: !st.sent, submit: () => this.setState({ sent: true }) };
+
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Barebase Platform — Projects</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; font-family: -apple-system, "Segoe UI", Calibri, sans-serif; background: #F4F1E8; color: #24231E; }
+  h1, h2, h3 { font-family: Cambria, Georgia, serif; margin: 0; }
+  a { color: #7C5E28; text-decoration: none; }
+  a:hover { color: #24231E; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #D8D1BF; border-radius: 6px; }
+</style>
+</helmet>
+
+<div style="width: 100%; min-height: 1024px; display: flex; background: #F4F1E8;">
+
+  <!-- ============ SIDEBAR ============ -->
+  <div style="width: 240px; flex: 0 0 240px; min-height: 1024px; background: #24231E; display: flex; flex-direction: column; padding: 24px 16px; box-sizing: border-box; gap: 4px;">
+
+    <div style="display: flex; align-items: center; gap: 10px; padding: 4px 8px 28px 8px;">
+      <div style="width: 34px; height: 34px; border-radius: 8px; background: #9C7A3C; display: flex; align-items: center; justify-content: center; flex: 0 0 34px;">
+        <span style="font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 17px; color: #FBF9F3;">B</span>
+      </div>
+      <div>
+        <div style="font-family: Cambria, Georgia, serif; font-size: 15px; font-weight: 700; color: #FBF9F3; letter-spacing: 0.3px;">Barebase</div>
+        <div style="font-size: 10.5px; color: #9C957F; letter-spacing: 0.6px; text-transform: uppercase;">Platform</div>
+      </div>
+    </div>
+
+    <a href="Main.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+      <span style="font-size: 13.5px; color: #C9C4B4;">Home</span>
+    </a>
+
+    <a href="Insights.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; "><span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Insights</span></span></a>
+    <a href="Leads.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+        <span style="font-size: 13.5px; color: #C9C4B4;">Leads</span>
+      </div>
+      <span style="font-size: 10.5px; font-weight: 700; color: #24231E; background: #9C7A3C; border-radius: 10px; padding: 1px 7px;">8</span>
+    </a>
+
+    <!-- Projects (active, current page) -->
+    <a href="Projects.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; background: #362F23;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FBF9F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+      <span style="font-size: 13.5px; color: #FBF9F3; font-weight: 600;">Projects</span>
+    </a>
+
+    <!-- Finance (org-wide) -->
+    <a href="OrgFinance.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="14.5" r="1.4" fill="#B9B2A0" stroke="none"/></svg>
+      <span style="font-size: 13.5px; color: #C9C4B4;">Finance</span>
+    </a>
+
+    <!-- Team -->
+    <a href="Team.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><circle cx="17.5" cy="7" r="3"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+      <span style="font-size: 13.5px; color: #C9C4B4;">Team</span>
+    </a>
+
+    <!-- Org Settings -->
+    <a href="OrgSettings.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; margin-top: auto;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 0 1-4 0v-.09A1.7 1.7 0 0 0 8.96 19a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 0 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.96a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1.04-1.56V3a2 2 0 0 1 4 0v.09A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.56 1.04H21a2 2 0 0 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg>
+      <span style="font-size: 13.5px; color: #C9C4B4;">Org Settings</span>
+    </a>
+
+    <div style="display: flex; align-items: center; gap: 10px; padding: 12px 8px 4px 8px; border-top: 1px solid #3A342A; margin-top: 8px;">
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: #9C7A3C; display: flex; align-items: center; justify-content: center; flex: 0 0 30px;">
+        <span style="font-size: 12.5px; font-weight: 700; color: #FBF9F3;">KA</span>
+      </div>
+      <div style="min-width: 0;">
+        <div style="font-size: 12.5px; font-weight: 600; color: #FBF9F3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Krishna</div>
+        <div style="font-size: 10.5px; color: #9C957F;">Admin</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MAIN ============ -->
+  <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column;">
+
+    <!-- Top bar -->
+    <div style="height: 68px; flex: 0 0 68px; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; border-bottom: 1px solid #D8D1BF; background: #FBF9F3;">
+      <div style="display: flex; align-items: center; gap: 10px; background: #F4F1E8; border: 1px solid #D8D1BF; border-radius: 8px; padding: 8px 14px; width: 340px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <span style="font-size: 13px; color: #8A8672;">Search projects, clients…</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55524A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: #9C7A3C; display: flex; align-items: center; justify-content: center;">
+          <span style="font-size: 13px; font-weight: 700; color: #FBF9F3;">KA</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrollable content -->
+    <div style="flex: 1 1 auto; padding: 28px 32px 56px 32px; display: flex; flex-direction: column; gap: 20px;">
+
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <h1 style="font-size: 24px; color: #24231E;">Projects</h1>
+          <div style="font-size: 13px; color: #55524A; margin-top: 4px;">9 projects · 2 need attention</div>
+        </div>
+        <a href="NewProject.dc.html" style="display: flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 8px; border: none; background: #24231E; font-size: 13px; font-weight: 600; color: #FBF9F3; cursor: pointer;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FBF9F3" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          New Project
+        </a>
+      </div>
+
+      <!-- Summary stats -->
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px;">
+        <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 16px 18px;">
+          <div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px;">Total BOQ Value</div>
+          <div style="font-family: Cambria, Georgia, serif; font-size: 22px; font-weight: 700; margin-top: 6px;">₹2,05,24,268</div>
+          <div style="font-size: 11px; color: #8A8672; margin-top: 3px;">Across 9 projects</div>
+        </div>
+        <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 16px 18px;">
+          <div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px;">Collected</div>
+          <div style="font-family: Cambria, Georgia, serif; font-size: 22px; font-weight: 700; margin-top: 6px; color: #465241;">₹1,25,20,000</div>
+          <div style="font-size: 11px; color: #8A8672; margin-top: 3px;">61% of total value</div>
+        </div>
+        <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 16px 18px;">
+          <div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px;">Avg. Progress</div>
+          <div style="font-family: Cambria, Georgia, serif; font-size: 22px; font-weight: 700; margin-top: 6px;">53%</div>
+          <div style="font-size: 11px; color: #8A8672; margin-top: 3px;">Across active projects</div>
+        </div>
+        <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 16px 18px;">
+          <div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px;">Needs Attention</div>
+          <div style="font-family: Cambria, Georgia, serif; font-size: 22px; font-weight: 700; margin-top: 6px; color: #A8452F;">2</div>
+          <div style="font-size: 11px; color: #8A8672; margin-top: 3px;">1 delayed · 1 awaiting client</div>
+        </div>
+      </div>
+
+      <!-- Filter pills -->
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <div style="padding: 7px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 700; color: #FBF9F3; background: #24231E;">All (9)</div>
+        <div style="padding: 7px 14px; border-radius: 999px; font-size: 12.5px; color: #55524A; border: 1px solid #D8D1BF;">On Track (3)</div>
+        <div style="padding: 7px 14px; border-radius: 999px; font-size: 12.5px; color: #55524A; border: 1px solid #D8D1BF;">Awaiting Client (1)</div>
+        <div style="padding: 7px 14px; border-radius: 999px; font-size: 12.5px; color: #A8452F; border: 1px solid #E2B6A9;">Delayed (1)</div>
+        <div style="padding: 7px 14px; border-radius: 999px; font-size: 12.5px; color: #55524A; border: 1px solid #D8D1BF;">Completed (1)</div>
+        <div style="padding: 7px 14px; border-radius: 999px; font-size: 12.5px; color: #55524A; border: 1px solid #D8D1BF;">On Hold (1)</div>
+      </div>
+
+      <!-- Table -->
+      <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; overflow: hidden;">
+
+        <div style="display: grid; grid-template-columns: 2.2fr 1.2fr 1fr 1.3fr 1fr 1.1fr 0.9fr; gap: 10px; padding: 12px 22px; background: #EFEBDD; font-size: 10.5px; font-weight: 700; color: #55524A; text-transform: uppercase; letter-spacing: 0.3px;">
+          <div>Project</div>
+          <div>Client</div>
+          <div>Prepared By</div>
+          <div>Progress</div>
+          <div>Status</div>
+          <div style="text-align: right;">BOQ Value</div>
+          <div style="text-align: right;">Updated</div>
+        </div>
+
+        <!-- Row 1: Villa Prakruthi (links to BOQ) -->
+        <a href="ProjectOverview.dc.html" style="display: grid; grid-template-columns: 2.2fr 1.2fr 1fr 1.3fr 1fr 1.1fr 0.9fr; gap: 10px; padding: 14px 22px; align-items: center; border-top: 1px solid #EFEBDD; font-size: 12.5px;">
+          <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <div style="width: 34px; height: 34px; border-radius: 8px; background: #EAE5D6; flex: 0 0 34px; display: flex; align-items: center; justify-content: center; font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 12px; color: #7C5E28;">VP</div>
+            <span style="color: #24231E; font-weight: 600;">Villa Prakruthi, Sarjapur Road</span>
+          </div>
+          <div style="color: #55524A;">R. Iyengar</div>
+          <div style="color: #55524A;">Krishna</div>
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #55524A; margin-bottom: 3px;"><span>Execution</span><span>68%</span></div>
+            <div style="height: 5px; border-radius: 3px; background: #EFEBDD;"><div style="width: 68%; height: 100%; border-radius: 3px; background: #465241;"></div></div>
+          </div>
+          <div><span style="font-size: 10.5px; font-weight: 700; color: #465241; background: #E8F0E3; border-radius: 10px; padding: 3px 10px;">On track</span></div>
+          <div style="color: #24231E; font-weight: 600; text-align: right;">₹21,74,268</div>
+          <div style="color: #8A8672; text-align: right;">2h ago</div>
+        </a>
+
+        <!-- Row 2: Terrace Residency -->
+        <div style="display: grid; grid-template-columns: 2.2fr 1.2fr 1fr 1.3fr 1fr 1.1fr 0.9fr; gap: 10px; padding: 14px 22px; align-items: center; border-top: 1px solid #EFEBDD; font-size: 12.5px;">
+          <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <div style="width: 34px; height: 34px; border-radius: 8px; background: #EAE5D6; flex: 0 0 34px; display: flex; align-items: center; justify-content: center; font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 12px; color: #7C5E28;">TR</div>
+            <span style="color: #24231E; font-weight: 600;">Terrace Residency, Whitefield</span>
+          </div>
+          <div style="color: #55524A;">N. &amp; S. Menon</div>
+          <div style="color: #55524A;">Ridhi</div>
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #55524A; margin-bottom: 3px;"><span>BOQ approval</span><span>40%</span></div>
+            <div style="height: 5px; border-radius: 3px; background: #EFEBDD;"><div style="width: 40%; height: 100%; border-radius: 3px; background: #9C7A3C;"></div></div>
+          </div>
+          <div><span style="font-size: 10.5px; font-weight: 700; color: #7C5E28; background: #FBF0DC; border-radius: 10px; padding: 3px 10px;">Awaiting client</span></div>
+          <div style="color: #24231E; font-weight: 600; text-align: right;">₹14,80,000</div>
+          <div style="color: #8A8672; text-align: right;">5h ago</div>
+        </div>
+
+        <!-- Row 3: Hebbal Business Loft -->
+        <div style="display: grid; grid-template-columns: 2.2fr 1.2fr 1fr 1.3fr 1fr 1.1fr 0.9fr; gap: 10px; padding: 14px 22px; align-items: center; border-top: 1px solid #EFEBDD; font-size: 12.5px;">
+          <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <div style="width: 34px; height: 34px; border-radius: 8px; background: #EAE5D6; flex: 0 0 34px; display: flex; align-items: center; justify-content: center; font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 12px; color: #7C5E28;">HB</div>
+            <span style="color: #24231E; font-weight: 600;">Hebbal Business Loft</span>
+          </div>
+          <div style="color: #55524A;">Kestrel Workspaces</div>
+          <div style="color: #55524A;">Mansi</div>
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #55524A; margin-bottom: 3px;"><span>Snag closure</span><span>82%</span></div>
+            <div style="height: 5px; border-radius: 3px; background: #EFEBDD;"><div style="width: 82%; height: 100%; border-radius: 3px; background: #465241;"></div></div>
+          </div>
+          <div><span style="font-size: 10.5px; font-weight: 700; color: #465241; background: #E8F0E3; border-radius: 10px; padding: 3px 10px;">On track</span></div>
+          <div style="color: #24231E; font-weight: 600; text-align: right;">₹32,60,000</div>
+          <div style="color: #8A8672; text-align: right;">1d ago</div>
+        </div>
+
+        <!-- Row 4: Ashvin Court -->
+        <div style="display: grid; grid-template-columns: 2.2fr 1.2fr 1fr 1.3fr 1fr 1.1fr 0.9fr; gap: 10px; padding: 14px 22px; align-items: center; border-top: 1px solid #EFEBDD; font-size: 12.5px;">
+          <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <div style="width: 34px; height: 34px; border-radius: 8px; background: #EAE5D6; flex: 0 0 34px; display: flex; align-items: center; justify-content: center; font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 12px; color: #7C5E28;">AC</div>
+            <span style="color: #24231E; font-weight: 600;">Ashvin Court, Indiranagar</span>
+          </div>
+          <div style="color: #55524A;">P. Bhatt</div>
+          <div style="color: #55524A;">Krishna</div>
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #55524A; margin-bottom: 3px;"><span>Site prep</span><span>12%</span></div>
+            <div style="height: 5px; border-radius: 3px; background: #EFEBDD;"><div style="width: 12%; height: 100%; border-radius: 3px; background: #A8452F;"></div></div>
+          </div>
+          <div><span style="font-size: 10.5px; font-weight: 700; color: #A8452F; background: #FBEAE5; border-radius: 10px; padding: 3px 10px;">Delayed</span></div>
+          <div style="color: #24231E; font-weight: 600; text-align: right;">₹18,90,000</div>
+          <div style="color: #8A8672; text-align: right;">1d ago</div>
+        </div>
+
+        <!-- Row 5: Lakeview Residency -->
+        <div style="display: grid; grid-template-columns: 2.2fr 1.2fr 1fr 1.3fr 1fr 1.1fr 0.9fr; gap: 10px; padding: 14px 22px; align-items: center; border-top: 1px solid #EFEBDD; font-size: 12.5px;">
+          <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <div style="width: 34px; height: 34px; border-radius: 8px; background: #EAE5D6; flex: 0 0 34px; display: flex; align-items: center; justify-content: center; font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 12px; color: #7C5E28;">LR</div>
+            <span style="color: #24231E; font-weight: 600;">Lakeview Residency, Sarjapur</span>
+          </div>
+          <div style="color: #55524A;">A. &amp; K. Rao</div>
+          <div style="color: #55524A;">Ridhi</div>
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #55524A; margin-bottom: 3px;"><span>Design finalization</span><span>25%</span></div>
+            <div style="height: 5px; border-radius: 3px; background: #EFEBDD;"><div style="width: 25%; height: 100%; border-radius: 3px; background: #9C7A3C;"></div></div>
+          </div>
+          <div><span style="font-size: 10.5px; font-weight: 700; color: #55524A; background: #EFEBDD; border-radius: 10px; padding: 3px 10px;">Active</span></div>
+          <div style="color: #24231E; font-weight: 600; text-align: right;">₹26,40,000</div>
+          <div style="color: #8A8672; text-align: right;">2d ago</div>
+        </div>
+
+        <!-- Row 6: Kestrel Workspaces Phase 2 -->
+        <div style="display: grid; grid-template-columns: 2.2fr 1.2fr 1fr 1.3fr 1fr 1.1fr 0.9fr; gap: 10px; padding: 14px 22px; align-items: center; border-top: 1px solid #EFEBDD; font-size: 12.5px;">
+          <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <div style="width: 34px; height: 34px; border-radius: 8px; background: #EAE5D6; flex: 0 0 34px; display: flex; align-items: center; justify-content: center; font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 12px; color: #7C5E28;">KW</div>
+            <span style="color: #24231E; font-weight: 600;">Kestrel Workspaces — Phase 2</span>
+          </div>
+          <div style="color: #55524A;">Kestrel Workspaces</div>
+          <div style="color: #55524A;">Mansi</div>
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #55524A; margin-bottom: 3px;"><span>Pre-execution</span><span>5%</span></div>
+            <div style="height: 5px; border-radius: 3px; background: #EFEBDD;"><div style="width: 5%; height: 100%; border-radius: 3px; background: #9C7A3C;"></div></div>
+          </div>
+          <div><span style="font-size: 10.5px; font-weight: 700; color: #55524A; background: #EFEBDD; border-radius: 10px; padding: 3px 10px;">Active</span></div>
+          <div style="color: #24231E; font-weight: 600; text-align: right;">₹19,20,000</div>
+          <div style="color: #8A8672; text-align: right;">3d ago</div>
+        </div>
+
+        <!-- Row 7: Green Meadows Bungalow -->
+        <div style="display: grid; grid-template-columns: 2.2fr 1.2fr 1fr 1.3fr 1fr 1.1fr 0.9fr; gap: 10px; padding: 14px 22px; align-items: center; border-top: 1px solid #EFEBDD; font-size: 12.5px;">
+          <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <div style="width: 34px; height: 34px; border-radius: 8px; background: #EAE5D6; flex: 0 0 34px; display: flex; align-items: center; justify-content: center; font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 12px; color: #7C5E28;">GM</div>
+            <span style="color: #24231E; font-weight: 600;">Green Meadows Bungalow</span>
+          </div>
+          <div style="color: #55524A;">S. Kapoor</div>
+          <div style="color: #55524A;">Keertan</div>
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #55524A; margin-bottom: 3px;"><span>Handover pending</span><span>95%</span></div>
+            <div style="height: 5px; border-radius: 3px; background: #EFEBDD;"><div style="width: 95%; height: 100%; border-radius: 3px; background: #465241;"></div></div>
+          </div>
+          <div><span style="font-size: 10.5px; font-weight: 700; color: #465241; background: #E8F0E3; border-radius: 10px; padding: 3px 10px;">On track</span></div>
+          <div style="color: #24231E; font-weight: 600; text-align: right;">₹41,10,000</div>
+          <div style="color: #8A8672; text-align: right;">4d ago</div>
+        </div>
+
+        <!-- Row 8: Cedar Heights Apartment (completed) -->
+        <div style="display: grid; grid-template-columns: 2.2fr 1.2fr 1fr 1.3fr 1fr 1.1fr 0.9fr; gap: 10px; padding: 14px 22px; align-items: center; border-top: 1px solid #EFEBDD; font-size: 12.5px;">
+          <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <div style="width: 34px; height: 34px; border-radius: 8px; background: #EAE5D6; flex: 0 0 34px; display: flex; align-items: center; justify-content: center; font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 12px; color: #7C5E28;">CH</div>
+            <span style="color: #24231E; font-weight: 600;">Cedar Heights Apartment</span>
+          </div>
+          <div style="color: #55524A;">V. Nair</div>
+          <div style="color: #55524A;">Krishna</div>
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #55524A; margin-bottom: 3px;"><span>Handed over</span><span>100%</span></div>
+            <div style="height: 5px; border-radius: 3px; background: #EFEBDD;"><div style="width: 100%; height: 100%; border-radius: 3px; background: #8A8672;"></div></div>
+          </div>
+          <div><span style="font-size: 10.5px; font-weight: 700; color: #55524A; background: #EFEBDD; border-radius: 10px; padding: 3px 10px;">Completed</span></div>
+          <div style="color: #24231E; font-weight: 600; text-align: right;">₹22,00,000</div>
+          <div style="color: #8A8672; text-align: right;">2w ago</div>
+        </div>
+
+        <!-- Row 9: Palm Grove Weekend Home (on hold) -->
+        <div style="display: grid; grid-template-columns: 2.2fr 1.2fr 1fr 1.3fr 1fr 1.1fr 0.9fr; gap: 10px; padding: 14px 22px; align-items: center; border-top: 1px solid #EFEBDD; font-size: 12.5px; opacity: 0.75;">
+          <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <div style="width: 34px; height: 34px; border-radius: 8px; background: #EAE5D6; flex: 0 0 34px; display: flex; align-items: center; justify-content: center; font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 12px; color: #7C5E28;">PG</div>
+            <span style="color: #24231E; font-weight: 600;">Palm Grove Weekend Home</span>
+          </div>
+          <div style="color: #55524A;">M. Chandran</div>
+          <div style="color: #55524A;">Ridhi</div>
+          <div style="font-size: 11px; color: #8A8672;">Paused by client</div>
+          <div><span style="font-size: 10.5px; font-weight: 700; color: #8A8672; background: #EFEBDD; border-radius: 10px; padding: 3px 10px;">On hold</span></div>
+          <div style="color: #24231E; font-weight: 600; text-align: right;">₹9,50,000</div>
+          <div style="color: #8A8672; text-align: right;">3w ago</div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1024}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

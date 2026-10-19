@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Barebase — Approvals (phone)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; font-family: -apple-system, "Segoe UI", Calibri, sans-serif; background: #F4F1E8; color: #24231E; }
+  h1, h2, h3 { font-family: Cambria, Georgia, serif; margin: 0; }
+  a { color: #7C5E28; text-decoration: none; }
+  a:hover { color: #24231E; }
+</style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #F4F1E8; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box;">
+  <div style="background: #24231E; color: #FBF9F3; padding: 16px 20px 18px 20px; flex: 0 0 auto;">
+    <a href="Approvals.dc.html" style="font-size: 12px; color: #9C957F;">← Approvals on desktop</a>
+    <div style="font-family: Cambria, Georgia, serif; font-size: 22px; font-weight: 700; margin-top: 6px;">To approve</div>
+  </div>
+  <div style="flex: 1 1 auto; overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px;">
+    <div style="font-size: 13px; color: #55524A;">{{left}} waiting for you</div>
+    <sc-for list="{{items}}" as="i" hint-placeholder-count="3">
+      <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; gap: 8px;"><b style="font-size: 14px;">{{i.t}}</b><b style="font-size: 15px;">{{i.a}}</b></div>
+        <div style="font-size: 12.5px; color: #8A8672;">{{i.s}}</div>
+        <div style="font-size: 12.5px; color: #465241;">{{i.note}}</div>
+        <sc-if value="{{i.open}}" hint-placeholder-val="{{true}}"><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;"><button onClick="{{i.no}}" style="height: 44px; border-radius: 10px; border: 1px solid #D8D1BF; background: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer;">Send back</button><button onClick="{{i.ok}}" style="height: 44px; border-radius: 10px; border: none; background: #24231E; color: #FBF9F3; font: inherit; font-weight: 700; cursor: pointer;">Approve</button></div></sc-if>
+        <sc-if value="{{i.done}}" hint-placeholder-val="{{false}}"><div style="font-size: 13px; font-weight: 700; color: #465241;">{{i.res}}</div></sc-if>
+      </div>
+    </sc-for>
+    <div style="font-size: 12px; color: #8A8672; text-align: center;">Arrives as a WhatsApp link · opens straight here, no app to install</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    
+    const st = this.state || {};
+    const d = st.d || {};
+    const items = [
+      { id: 'p1', t: 'PO-07 · Sri Lakshmi Tiles', s: 'Villa Prakruthi · bathroom tiles', a: '₹34,220', note: 'Within budget · ₹6,200 left after this' },
+      { id: 'p2', t: 'Bill RC/118 · Ravi Carpentry', s: 'Villa Prakruthi · wardrobe carcass', a: '₹64,000', note: 'Matches PO-03 · work 75% done' },
+      { id: 'p3', t: 'Claim · Keertan', s: 'Cabs to site · 4 trips', a: '₹1,860', note: 'Receipts attached' },
+    ];
+    return { items: items.map((i) => ({ ...i, open: !d[i.id], done: !!d[i.id], res: d[i.id] || '', ok: () => this.setState({ d: { ...d, [i.id]: 'Approved ✓' } }), no: () => this.setState({ d: { ...d, [i.id]: 'Sent back' } }) })), left: items.filter((i) => !d[i.id]).length };
+
+  }
+}
+</script>
+</body>
+</html>

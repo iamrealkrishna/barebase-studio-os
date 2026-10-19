@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Barebase — Client portal (phone)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; font-family: -apple-system, "Segoe UI", Calibri, sans-serif; background: #F4F1E8; color: #24231E; }
+  h1, h2, h3 { font-family: Cambria, Georgia, serif; margin: 0; }
+  a { color: #7C5E28; text-decoration: none; }
+  a:hover { color: #24231E; }
+</style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #F4F1E8; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box;">
+
+  <div style="background: #FBF9F3; border-bottom: 1px solid #D8D1BF; padding: 16px 20px 0 20px; flex: 0 0 auto;">
+    <div style="display: flex; align-items: center; gap: 10px;"><div style="width: 30px; height: 30px; border-radius: 7px; background: #9C7A3C; display: flex; align-items: center; justify-content: center;"><span style="font-family: Cambria, Georgia, serif; font-weight: 700; color: #FBF9F3;">B</span></div><div><div style="font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 16px;">Barebase</div><div style="font-size: 12px; color: #7A755F;">Villa Prakruthi · for R. Iyengar</div></div></div>
+    <div style="display: flex; gap: 16px; margin-top: 12px;"><sc-for list="{{tabs}}" as="t" hint-placeholder-count="4"><button onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button></sc-for></div>
+  </div>
+  <div style="flex: 1 1 auto; overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 14px;">
+    <sc-if value="{{isProgress}}" hint-placeholder-val="{{true}}">
+      <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 16px;"><div style="font-size: 11px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px;">Overall progress</div><div style="font-family: Cambria, Georgia, serif; font-size: 34px; font-weight: 700;">62%</div><div style="width: 100%; height: 6px; background: #EFEBDD; border-radius: 4px; overflow: hidden;"><div style="width: 62%; height: 100%; background: #465241;"></div></div><div style="font-size: 13px; color: #55524A; margin-top: 8px;">Next: Painting starts 14 Oct · Handover planned mid-November</div></div>
+      <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 14px;"><div style="font-size: 14px;"><b>Today · Thu 15 Oct</b></div><div style="font-size: 13px; color: #55524A; margin-top: 4px;">Wardrobe carcass fixed in both bedrooms; kitchen base units levelled.</div><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 10px;"><div style="aspect-ratio: 1; border-radius: 8px; background: #D9D1BC;"></div><div style="aspect-ratio: 1; border-radius: 8px; background: #CFC6AE;"></div><div style="aspect-ratio: 1; border-radius: 8px; background: #E3DCC8;"></div></div></div>
+      <div style="background: #F3E6C7; border: 1px solid #E6D3A6; border-radius: 12px; padding: 14px;"><div style="font-size: 13px;"><b>Payment due</b> · Stage 3 · Carpentry 40%</div><div style="font-family: Cambria, Georgia, serif; font-size: 22px; font-weight: 700;">₹2,41,208</div><div style="font-size: 12.5px; color: #7C5E28; font-weight: 600;">Balance of ₹3,33,870 · bank details →</div></div>
+    </sc-if>
+    <sc-if value="{{isBudget}}" hint-placeholder-val="{{false}}">
+      <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 16px;"><div style="font-size: 11px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px;">Your home budget</div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px;"><span style="font-family: Cambria, Georgia, serif; font-size: 26px; font-weight: 700;">₹16,25,175</span><span style="font-size: 12.5px; font-weight: 700; color: #A8452F;">+₹25,175 over plan</span></div>
+        <div style="font-size: 12.5px; color: #55524A;">Planned ₹16,00,000 at kick-off. Includes Barebase's work and what you buy directly.</div></div>
+      <div style="background: #F6E1DA; border: 1px solid #E3C3B8; border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #8E3826;"><b>We need from you:</b> curtain choice and track positions (was due 14 Oct), and light fixture weights by 17 Oct.</div>
+      <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px;"><b>Barebase interiors (BOQ)</b><span><span style="color: #A8452F; font-weight: 700;">+₹34,675 (4%)</span></span></div>
+        <div style="position: relative; height: 14px; width: 100%;">
+      <div style="position: absolute; left: 0; top: 2px; height: 10px; width: 83.3%; background: #E6E0D0; border-radius: 3px;"></div>
+      <div style="position: absolute; left: 0; top: 4px; height: 6px; width: 87.0%; background: #A8452F; border-radius: 3px;"></div>
+      <div style="position: absolute; left: 83.3%; top: 0; height: 14px; width: 2px; background: #24231E;"></div>
+    </div>
+        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #8A8672;"><span>Plan ₹8,00,000</span><span>Selected ₹8,34,675</span></div>
+      </div><div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px;"><b>Appliances</b><span><span style="color: #A8452F; font-weight: 700;">+₹36,000 (14%)</span></span></div>
+        <div style="position: relative; height: 14px; width: 100%;">
+      <div style="position: absolute; left: 0; top: 2px; height: 10px; width: 76.0%; background: #E6E0D0; border-radius: 3px;"></div>
+      <div style="position: absolute; left: 0; top: 4px; height: 6px; width: 87.0%; background: #A8452F; border-radius: 3px;"></div>
+      <div style="position: absolute; left: 76.0%; top: 0; height: 14px; width: 2px; background: #24231E;"></div>
+    </div>
+        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #8A8672;"><span>Plan ₹2,50,000</span><span>Selected ₹2,86,000</span></div>
+      </div><div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px;"><b>Loose furniture</b><span><span style="color: #465241; font-weight: 700;">−₹22,000 (10%)</span></span></div>
+        <div style="position: relative; height: 14px; width: 100%;">
+      <div style="position: absolute; left: 0; top: 2px; height: 10px; width: 87.0%; background: #E6E0D0; border-radius: 3px;"></div>
+      <div style="position: absolute; left: 0; top: 4px; height: 6px; width: 78.3%; background: #465241; border-radius: 3px;"></div>
+      <div style="position: absolute; left: 87.0%; top: 0; height: 14px; width: 2px; background: #24231E;"></div>
+    </div>
+        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #8A8672;"><span>Plan ₹2,20,000</span><span>Selected ₹1,98,000</span></div>
+      </div><div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px;"><b>Lighting fixtures</b><span><span style="color: #A8452F; font-weight: 700;">+₹12,500 (16%)</span></span></div>
+        <div style="position: relative; height: 14px; width: 100%;">
+      <div style="position: absolute; left: 0; top: 2px; height: 10px; width: 75.2%; background: #E6E0D0; border-radius: 3px;"></div>
+      <div style="position: absolute; left: 0; top: 4px; height: 6px; width: 87.0%; background: #A8452F; border-radius: 3px;"></div>
+      <div style="position: absolute; left: 75.2%; top: 0; height: 14px; width: 2px; background: #24231E;"></div>
+    </div>
+        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #8A8672;"><span>Plan ₹80,000</span><span>Selected ₹92,500</span></div>
+      </div><div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px;"><b>Rugs</b><span><span style="color: #A8452F; font-weight: 700;">+₹14,000 (23%)</span></span></div>
+        <div style="position: relative; height: 14px; width: 100%;">
+      <div style="position: absolute; left: 0; top: 2px; height: 10px; width: 70.5%; background: #E6E0D0; border-radius: 3px;"></div>
+      <div style="position: absolute; left: 0; top: 4px; height: 6px; width: 87.0%; background: #A8452F; border-radius: 3px;"></div>
+      <div style="position: absolute; left: 70.5%; top: 0; height: 14px; width: 2px; background: #24231E;"></div>
+    </div>
+        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #8A8672;"><span>Plan ₹60,000</span><span>Selected ₹74,000</span></div>
+      </div><div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px;"><b>Curtains and blinds</b><span><span style="color: #8A8672;">Not selected</span></span></div>
+        <div style="position: relative; height: 14px; width: 100%;">
+      <div style="position: absolute; left: 0; top: 2px; height: 10px; width: 87.0%; background: #E6E0D0; border-radius: 3px;"></div>
+      <div style="position: absolute; left: 0; top: 4px; height: 6px; width: 0.0%; background: #465241; border-radius: 3px;"></div>
+      <div style="position: absolute; left: 87.0%; top: 0; height: 14px; width: 2px; background: #24231E;"></div>
+    </div>
+        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #8A8672;"><span>Plan ₹90,000</span><span>Choose by 14 Oct</span></div>
+      </div><div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px;"><b>Art and décor</b><span><span style="color: #8A8672;">Not selected</span></span></div>
+        <div style="position: relative; height: 14px; width: 100%;">
+      <div style="position: absolute; left: 0; top: 2px; height: 10px; width: 87.0%; background: #E6E0D0; border-radius: 3px;"></div>
+      <div style="position: absolute; left: 0; top: 4px; height: 6px; width: 0.0%; background: #465241; border-radius: 3px;"></div>
+      <div style="position: absolute; left: 87.0%; top: 0; height: 14px; width: 2px; background: #24231E;"></div>
+    </div>
+        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #8A8672;"><span>Plan ₹50,000</span><span>Choose by Nov</span></div>
+      </div>
+    </sc-if>
+    <sc-if value="{{isEstimate}}" hint-placeholder-val="{{false}}">
+      <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 16px;"><div style="font-size: 13px; color: #7A755F;">Estimate v3 · approved 18 Sep</div><div style="font-family: Cambria, Georgia, serif; font-size: 28px; font-weight: 700;">₹8,34,675</div><div style="font-size: 12px; color: #8A8672;">before GST · 8 rooms</div></div><a href="ClientBOQ.dc.html" style="display: block; text-align: center; font-size: 13px; font-weight: 700; padding: 4px 0;">See every line and what changed →</a>
+      <div style="display: flex; justify-content: space-between; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 14px;"><span>Master Bedroom</span><b>₹2,34,400</b></div><div style="display: flex; justify-content: space-between; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 14px;"><span>Bedroom 2</span><b>₹2,26,300</b></div><div style="display: flex; justify-content: space-between; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 14px;"><span>Kitchen</span><b>₹1,85,100</b></div><div style="display: flex; justify-content: space-between; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 14px;"><span>Living Room</span><b>₹1,17,875</b></div><div style="display: flex; justify-content: space-between; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 14px;"><span>Wall Works</span><b>₹40,500</b></div><div style="display: flex; justify-content: space-between; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 14px;"><span>Bathroom</span><b>₹26,000</b></div>
+      <div style="font-size: 12px; color: #8A8672;">Open a room to see each item and its scope of work. No changes are waiting for your review.</div>
+    </sc-if>
+    <sc-if value="{{isPayments}}" hint-placeholder-val="{{false}}"><a href="ClientPay.dc.html" style="display: block; text-align: center; background: #9C7A3C; color: #FFFFFF; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 700;">Pay ₹2,84,625 now</a>
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 14px; gap: 10px;"><span>1 · Booking 10%<br><b>₹83,468</b></span><span style="font-size: 11px; font-weight: 700; color: #465241; background: #E8F0E3; border-radius: 999px; padding: 3px 10px; white-space: nowrap;">Received</span></div><div style="display: flex; justify-content: space-between; align-items: center; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 14px; gap: 10px;"><span>2 · Design freeze 40%<br><b>₹3,33,870</b></span><span style="font-size: 11px; font-weight: 700; color: #465241; background: #E8F0E3; border-radius: 999px; padding: 3px 10px; white-space: nowrap;">Received</span></div><div style="display: flex; justify-content: space-between; align-items: center; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 14px; gap: 10px;"><span>3 · Carpentry 40%<br><b>₹3,33,870</b></span><span style="font-size: 11px; font-weight: 700; color: #7C5E28; background: #F3E6C7; border-radius: 999px; padding: 3px 10px; white-space: nowrap;">₹2,41,208 due</span></div><div style="display: flex; justify-content: space-between; align-items: center; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 14px; gap: 10px;"><span>4 · Handover 10%<br><b>₹83,467</b></span><span style="font-size: 11px; font-weight: 700; color: #5E5A4F; background: #ECE8DD; border-radius: 999px; padding: 3px 10px; white-space: nowrap;">Upcoming</span></div>
+    </sc-if>
+    <sc-if value="{{isDocs}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; gap: 12px; align-items: center; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 14px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C7A3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span style="flex: 1 1 auto;">GFC Drawings — Ground floor<br><span style="font-size: 12px; color: #8A8672;">V3 · PDF</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A8672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 10l6 6 6-6"/><path d="M4 20h16"/></svg></div><div style="display: flex; gap: 12px; align-items: center; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 14px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C7A3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span style="flex: 1 1 auto;">GFC Drawings — First floor<br><span style="font-size: 12px; color: #8A8672;">V3 · PDF</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A8672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 10l6 6 6-6"/><path d="M4 20h16"/></svg></div><div style="display: flex; gap: 12px; align-items: center; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 14px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C7A3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span style="flex: 1 1 auto;">Electrical layout<br><span style="font-size: 12px; color: #8A8672;">V2 · PDF</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A8672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 10l6 6 6-6"/><path d="M4 20h16"/></svg></div><div style="display: flex; gap: 12px; align-items: center; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px 14px; font-size: 14px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C7A3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span style="flex: 1 1 auto;">Estimate v3<br><span style="font-size: 12px; color: #8A8672;">PDF</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A8672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 10l6 6 6-6"/><path d="M4 20h16"/></svg></div>
+    </sc-if>
+  </div>
+  <div style="flex: 0 0 auto; padding: 12px 18px 18px 18px; border-top: 1px solid #D8D1BF; background: #FBF9F3;">
+    <button style="width: 100%; height: 48px; border-radius: 10px; border: 1px solid #D8D1BF; background: #FFFFFF; font-size: 14px; font-weight: 600; color: #24231E; cursor: pointer;">Raise an issue</button>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    
+    const st = this.state || {};
+    const tab = st.tab || 'progress';
+    const mk = (id, label) => ({ id, label, style: 'background: none; border: none; border-bottom-style: solid; font-family: inherit; font-size: 13px; padding: 10px 0; cursor: pointer; border-bottom: 2px solid ' + (tab === id ? '#9C7A3C' : 'transparent') + '; font-weight: ' + (tab === id ? '700' : '400') + '; color: ' + (tab === id ? '#24231E' : '#7A755F') + ';', pick: () => this.setState({ tab: id }) });
+    const tabs = [mk('progress', 'Progress'), mk('budget', 'Budget'), mk('estimate', 'Estimate'), mk('payments', 'Payments'), mk('docs', 'Docs')];
+    return { tabs, isProgress: tab === 'progress', isBudget: tab === 'budget', isEstimate: tab === 'estimate', isPayments: tab === 'payments', isDocs: tab === 'docs' };
+
+  }
+}
+</script>
+</body>
+</html>

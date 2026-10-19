@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Barebase Platform — Approvals</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; font-family: -apple-system, "Segoe UI", Calibri, sans-serif; background: #F4F1E8; color: #24231E; }
+  h1, h2, h3 { font-family: Cambria, Georgia, serif; margin: 0; }
+  a { color: #7C5E28; text-decoration: none; }
+  a:hover { color: #24231E; }
+</style>
+</helmet>
+
+<div style="width: 100%; min-height: 1024px; display: flex; flex-wrap: wrap; background: #F4F1E8;">
+  <div style="width: 240px; flex: 0 0 240px; min-height: 1024px; background: #24231E; display: flex; flex-direction: column; padding: 24px 16px; box-sizing: border-box; gap: 4px;">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 4px 8px 28px 8px;">
+      <div style="width: 34px; height: 34px; border-radius: 8px; background: #9C7A3C; display: flex; align-items: center; justify-content: center; flex: 0 0 34px;">
+        <span style="font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 17px; color: #FBF9F3;">B</span>
+      </div>
+      <div>
+        <div style="font-family: Cambria, Georgia, serif; font-size: 15px; font-weight: 700; color: #FBF9F3; letter-spacing: 0.3px;">Barebase</div>
+        <div style="font-size: 10.5px; color: #9C957F; letter-spacing: 0.6px; text-transform: uppercase;">Platform</div>
+      </div>
+    </div>
+    <a href="Main.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Home</span></span>
+      
+    </a>
+    <a href="Insights.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; "><span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Insights</span></span></a>
+    <a href="Leads.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Leads</span></span>
+      <span style="font-size: 10.5px; font-weight: 700; color: #24231E; background: #9C7A3C; border-radius: 10px; padding: 1px 7px;">8</span>
+    </a>
+    <a href="Projects.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Projects</span></span>
+      
+    </a>
+    <a href="OrgFinance.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Finance</span></span>
+      
+    </a>
+    <a href="Team.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><circle cx="17.5" cy="7" r="3"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Team</span></span>
+      
+    </a>
+    <a href="OrgSettings.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px;  margin-top: auto;">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Org Settings</span></span>
+      
+    </a>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 12px 8px 4px 8px; border-top: 1px solid #3A342A; margin-top: 8px;">
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: #9C7A3C; display: flex; align-items: center; justify-content: center; flex: 0 0 30px;"><span style="font-size: 12.5px; font-weight: 700; color: #FBF9F3;">KA</span></div>
+      <div style="min-width: 0;"><div style="font-size: 12.5px; font-weight: 600; color: #FBF9F3;">Krishna</div><div style="font-size: 10.5px; color: #9C957F;">Admin</div></div>
+    </div>
+  </div>
+
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column;">
+    <div style="height: 68px; flex: 0 0 68px; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; border-bottom: 1px solid #D8D1BF; background: #FBF9F3; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 10px; background: #F4F1E8; border: 1px solid #D8D1BF; border-radius: 8px; padding: 8px 14px; width: 340px; max-width: 100%;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span style="font-size: 13px; color: #8A8672;">Search projects, leads, clients…</span></div>
+      <div style="display: flex; align-items: center; gap: 18px;">
+        <a href="Journeys.dc.html" style="font-size: 12px; font-weight: 600; color: #55524A;">All journeys</a>
+        <a href="Approvals.dc.html" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #7C5E28; background: #F3E6C7; border-radius: 999px; padding: 4px 11px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7C5E28" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>5 to approve</a>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55524A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: #9C7A3C; display: flex; align-items: center; justify-content: center;"><span style="font-size: 13px; font-weight: 700; color: #FBF9F3;">KA</span></div>
+      </div>
+    </div>
+
+    <div style="flex: 1 1 auto; padding: 28px 32px 56px 32px; display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;"><h1 style="font-size: 26px;">Approvals</h1><span style="font-size: 12px; font-weight: 700; color: #7C5E28; background: #F3E6C7; border-radius: 999px; padding: 3px 11px;">{{left}} waiting for you</span></div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;"><span style="font-size: 12px; border: 1px solid #D8D1BF; background: #FBF9F3; border-radius: 999px; padding: 5px 12px;">All types ▾</span><span style="font-size: 12px; border: 1px solid #D8D1BF; background: #FBF9F3; border-radius: 999px; padding: 5px 12px;">All projects ▾</span><span style="font-size: 12px; border: 1px solid #D8D1BF; background: #FBF9F3; border-radius: 999px; padding: 5px 12px;">Waiting over 2 days</span></div>
+      <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+        <div style="background: #24231E; color: #FBF9F3; border-radius: 10px; padding: 10px 16px; font-size: 13px;">{{toast}}</div>
+      </sc-if>
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;">
+        <div style="flex: 1 1 340px; max-width: 460px; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; overflow: hidden;">
+          <sc-for list="{{list}}" as="item" hint-placeholder-count="5">
+            <button onClick="{{item.pick}}" style="{{item.rowStyle}}">
+              <div style="flex: 1 1 auto; min-width: 0;"><div style="font-size: 13.5px; font-weight: 700;">{{item.title}}</div><div style="font-size: 11.5px; color: #8A8672; margin-top: 2px;">{{item.sub}}</div></div>
+              <div style="text-align: right; flex: 0 0 auto;"><div style="font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums;">{{item.amount}}</div><div style="{{item.waitStyle}}">{{item.waitText}}</div></div>
+            </button>
+          </sc-for>
+        </div>
+        <div style="flex: 999 1 420px; min-width: 0; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 22px 24px; display: flex; flex-direction: column; gap: 16px;">
+          <div><div style="font-size: 12px; color: #8A8672;">{{cur.kind}}</div><h2 style="font-size: 22px; margin-top: 2px;">{{cur.head}}</h2></div>
+          <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;"><span style="font-family: Cambria, Georgia, serif; font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums;">{{cur.amount}}</span><span style="font-size: 13px; color: #7A755F;">{{cur.words}}</span></div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+            <div style="border: 1px solid #D8D1BF; border-radius: 10px; padding: 10px 12px; background: #FFFFFF;"><div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase;">PO or budget</div><div style="font-weight: 700; margin-top: 2px;">{{cur.c1}}</div></div>
+            <div style="border: 1px solid #D8D1BF; border-radius: 10px; padding: 10px 12px; background: #FFFFFF;"><div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase;">Paid so far</div><div style="font-weight: 700; margin-top: 2px;">{{cur.c2}}</div></div>
+            <div style="border: 1px solid #D8D1BF; border-radius: 10px; padding: 10px 12px; background: #FFFFFF;"><div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase;">After this</div><div style="font-weight: 700; margin-top: 2px;">{{cur.c3}}</div></div>
+            <div style="border: 1px solid #D8D1BF; border-radius: 10px; padding: 10px 12px; background: #FFFFFF;"><div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase;">Budget left</div><div style="font-weight: 700; margin-top: 2px; color: #465241;">{{cur.c4}}</div></div>
+          </div>
+          <div style="font-size: 12.5px;"><b>Approval path</b><div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px;"><span style="font-size: 11px; font-weight: 700; color: #465241; background: #E8F0E3; border-radius: 999px; padding: 3px 10px;">{{cur.path1}}</span>→<span style="font-size: 11px; font-weight: 700; color: #7C5E28; background: #F3E6C7; border-radius: 999px; padding: 3px 10px;">{{cur.path2}}</span>→<span style="font-size: 11px; font-weight: 700; color: #5E5A4F; background: #ECE8DD; border-radius: 999px; padding: 3px 10px;">{{cur.path3}}</span></div></div>
+          <div style="font-size: 12.5px;"><b>Note from requester</b><div style="color: #55524A; margin-top: 4px;">{{cur.note}}</div></div>
+          <sc-if value="{{curDone}}" hint-placeholder-val="{{false}}">
+            <div style="border-top: 1px solid #D8D1BF; padding-top: 16px; font-size: 13px; font-weight: 700; color: #465241;">{{curStatus}} · all items done</div>
+          </sc-if>
+          <sc-if value="{{curOpen}}" hint-placeholder-val="{{true}}">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-top: 1px solid #D8D1BF; padding-top: 16px;">
+              <button onClick="{{approve}}" style="padding: 11px 24px; border-radius: 8px; border: 1px solid #9C7A3C; background: #9C7A3C; color: #FFFFFF; font-size: 13.5px; font-weight: 700; cursor: pointer;">Approve</button>
+              <button onClick="{{hold}}" style="padding: 11px 18px; border-radius: 8px; border: 1px solid #D8D1BF; background: #FBF9F3; color: #24231E; font-size: 13.5px; font-weight: 600; cursor: pointer;">Hold</button>
+              <button onClick="{{reject}}" style="padding: 11px 18px; border-radius: 8px; border: 1px solid #E3C3B8; background: #FFFFFF; color: #A8452F; font-size: 13.5px; font-weight: 600; cursor: pointer;">Reject</button>
+              <span style="font-size: 11.5px; color: #8A8672; margin-left: auto;">Hold and Reject ask for a note</span>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    
+    const items = [
+      { id: 'a1', title: 'Vendor payment · Ravi Carpentry', sub: 'Villa Prakruthi · against bill RC/118 · level 1 of 1', amount: '₹64,000', words: 'Sixty-four thousand rupees · incl. GST ₹9,763 · TDS ₹543', wait: '3 days', late: true, kind: 'Vendor payment · PR-26-0142', head: 'Ravi Carpentry · Villa Prakruthi', c1: '₹1,58,000', c2: '₹46,000', c3: '₹1,10,000', c4: '₹54,100', path1: 'Requested · Mansi', path2: 'Level 1 · Ridhi (you)', path3: 'Finance pays', note: 'Carcass for both wardrobes installed, shutters next week.' },
+      { id: 'a2', title: 'Purchase order · Stone Gallery', sub: 'Terrace Residency · 6 lines · level 1 of 1', amount: '₹86,500', words: 'Eighty-six thousand five hundred rupees', wait: '5 h', late: false, kind: 'Purchase order · PO-05', head: 'Stone Gallery · Terrace Residency', c1: '₹86,500', c2: '₹0', c3: '₹86,500', c4: '₹1,12,000', path1: 'Requested · Mansi', path2: 'Level 1 · Ridhi (you)', path3: 'Sent to vendor', note: 'Kitchen counter granite, Black Galaxy, 6 slabs.' },
+      { id: 'a3', title: 'Reimbursement · Keertan', sub: 'Office · cabs to site, 4 trips', amount: '₹1,860', words: 'One thousand eight hundred sixty rupees', wait: '1 day', late: false, kind: 'Reimbursement · CL-26-0311', head: 'Keertan · cabs to site', c1: '4 trips', c2: '₹0', c3: '₹1,860', c4: 'Office', path1: 'Submitted · Keertan', path2: 'Level 1 · Ridhi (you)', path3: 'Finance pays out', note: 'Villa Prakruthi and Ashvin Court site visits.' },
+      { id: 'a4', title: 'Site expense · Mansi', sub: 'Hebbal Business Loft · tile adhesive', amount: '₹12,300', words: 'Twelve thousand three hundred rupees', wait: '1 day', late: false, kind: 'Site expense · EX-26-0207', head: 'Mansi · tile adhesive', c1: '12 bags', c2: '₹0', c3: '₹12,300', c4: '₹22,000', path1: 'Submitted · Mansi', path2: 'Level 1 · Ridhi (you)', path3: 'Finance pays', note: 'Urgent: bathroom tiling stopped for lack of adhesive.' },
+      { id: 'a5', title: 'Change order · Ashvin Court', sub: 'Kitchen shutter finish upgrade', amount: '+₹42,000', words: 'Forty-two thousand rupees more', wait: '2 days', late: false, kind: 'Change order · CO-03', head: 'Ashvin Court · kitchen shutters', c1: '₹26,10,000', c2: '+₹42,000', c3: '₹26,52,000', c4: 'Approved by client', path1: 'Raised · Keertan', path2: 'Level 1 · Ridhi (you)', path3: 'BOQ v5', note: 'Client asked for acrylic instead of laminate.' },
+    ];
+    const st = this.state || {};
+    const sel = st.sel || 'a1';
+    const done = st.done || {};
+    const list = items.map((it) => {
+      const d = done[it.id];
+      const on = it.id === sel;
+      return { ...it,
+        rowStyle: 'display: flex; width: 100%; text-align: left; font: inherit; color: #24231E; border: none; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #EFEBDD; cursor: pointer; background: ' + (on ? '#F3E6C7;' : 'transparent;'),
+        waitStyle: 'font-size: 11.5px; color: ' + (it.late ? '#A8452F' : '#8A8672') + ';',
+        waitText: d ? d : it.wait,
+        pick: () => this.setState({ sel: it.id }) };
+    });
+    const cur = list.find((x) => x.id === sel);
+    const act = (label) => () => {
+      const next = { ...done, [sel]: label };
+      const open = items.find((x) => !next[x.id]);
+      this.setState({ done: next, sel: open ? open.id : sel, toast: label + ': ' + cur.title });
+    };
+    const left = items.filter((x) => !done[x.id]).length;
+    return { list, cur, curOpen: !done[sel], curDone: !!done[sel], curStatus: done[sel] || '', toast: st.toast || '', hasToast: !!st.toast, left,
+      approve: act('Approved'), hold: act('On hold'), reject: act('Rejected') };
+
+  }
+}
+</script>
+</body>
+</html>

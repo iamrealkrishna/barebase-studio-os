@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Barebase — Daily report (phone)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; font-family: -apple-system, "Segoe UI", Calibri, sans-serif; background: #F4F1E8; color: #24231E; }
+  h1, h2, h3 { font-family: Cambria, Georgia, serif; margin: 0; }
+  a { color: #7C5E28; text-decoration: none; }
+  a:hover { color: #24231E; }
+</style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #F4F1E8; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box;">
+
+  <div style="background: #24231E; color: #FBF9F3; padding: 16px 20px 18px 20px; flex: 0 0 auto;">
+    <a href="Milestones.dc.html" style="font-size: 12px; color: #9C957F;">← Villa Prakruthi · Thu 15 Oct</a>
+    <div style="font-family: Cambria, Georgia, serif; font-size: 22px; font-weight: 700; margin-top: 6px;">Daily report</div>
+  </div>
+  <sc-if value="{{notSent}}" hint-placeholder-val="{{true}}">
+  <div style="flex: 1 1 auto; overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 16px;">
+    <div><div style="font-size: 12px; font-weight: 700; color: #55524A; margin-bottom: 6px;">Progress today · added automatically</div>
+      <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; font-size: 13.5px;">
+        <div style="display: flex; justify-content: space-between;"><span>Wardrobe · Master Bedroom</span><b>50 → 75%</b></div>
+        <div style="display: flex; justify-content: space-between;"><span>Kitchen base units</span><b>30 → 55%</b></div>
+        <div style="font-size: 12px; color: #7C5E28; font-weight: 600;">+ Update another line</div>
+      </div></div>
+    <div><div style="font-size: 12px; font-weight: 700; color: #55524A; margin-bottom: 6px;">Photos ({{photoCount}})</div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;">
+        <sc-for list="{{thumbs}}" as="t" hint-placeholder-count="3"><div style="aspect-ratio: 1; border-radius: 10px; background: {{t.tone}};"></div></sc-for>
+        <sc-if value="{{canAdd}}" hint-placeholder-val="{{true}}"><button onClick="{{addPhoto}}" style="aspect-ratio: 1; border-radius: 10px; border: 1.5px dashed #9C7A3C; background: #FFFFFF; display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9C7A3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/></svg></button></sc-if>
+      </div></div>
+    <div><div style="font-size: 12px; font-weight: 700; color: #55524A; margin-bottom: 6px;">Work done</div>
+      <div style="background: #FFFFFF; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px; font-size: 14px; min-height: 52px;">Carcass fixed in both wardrobes; kitchen base units levelled.</div></div>
+    <div><div style="font-size: 12px; font-weight: 700; color: #55524A; margin-bottom: 8px;">Manpower · prefilled from yesterday</div>
+      <div style="display: flex; flex-direction: column; gap: 8px;"><div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 14px;">Carpenters</span><span style="display: flex; align-items: center; gap: 12px;"><button onClick="{{cDn}}" style="width: 44px; height: 44px; border-radius: 10px; border: 1px solid #D8D1BF; background: #FBF9F3; font-size: 20px; color: #24231E; cursor: pointer;">−</button><span style="width: 22px; text-align: center; font-weight: 700; font-size: 15px;">{{c}}</span><button onClick="{{cUp}}" style="width: 44px; height: 44px; border-radius: 10px; border: 1px solid #D8D1BF; background: #FBF9F3; font-size: 20px; color: #24231E; cursor: pointer;">+</button></span></div><div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 14px;">Helpers</span><span style="display: flex; align-items: center; gap: 12px;"><button onClick="{{hDn}}" style="width: 44px; height: 44px; border-radius: 10px; border: 1px solid #D8D1BF; background: #FBF9F3; font-size: 20px; color: #24231E; cursor: pointer;">−</button><span style="width: 22px; text-align: center; font-weight: 700; font-size: 15px;">{{h}}</span><button onClick="{{hUp}}" style="width: 44px; height: 44px; border-radius: 10px; border: 1px solid #D8D1BF; background: #FBF9F3; font-size: 20px; color: #24231E; cursor: pointer;">+</button></span></div><div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 14px;">Electricians</span><span style="display: flex; align-items: center; gap: 12px;"><button onClick="{{eDn}}" style="width: 44px; height: 44px; border-radius: 10px; border: 1px solid #D8D1BF; background: #FBF9F3; font-size: 20px; color: #24231E; cursor: pointer;">−</button><span style="width: 22px; text-align: center; font-weight: 700; font-size: 15px;">{{e}}</span><button onClick="{{eUp}}" style="width: 44px; height: 44px; border-radius: 10px; border: 1px solid #D8D1BF; background: #FBF9F3; font-size: 20px; color: #24231E; cursor: pointer;">+</button></span></div></div></div>
+    <div><div style="font-size: 12px; font-weight: 700; color: #55524A; margin-bottom: 6px;">Blockers <span style="font-weight: 400; color: #8A8672;">(optional)</span></div>
+      <div style="background: #FFFFFF; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px; font-size: 14px; color: #9A9484;">Anything stopping work?</div></div>
+  </div>
+  <div style="flex: 0 0 auto; padding: 12px 18px 18px 18px; border-top: 1px solid #D8D1BF; background: #FBF9F3;">
+    <button onClick="{{submit}}" style="width: 100%; height: 50px; border-radius: 10px; border: none; background: #9C7A3C; color: #FFFFFF; font-size: 15px; font-weight: 700; cursor: pointer;">Submit report</button>
+    <div style="text-align: center; font-size: 12px; color: #8A8672; margin-top: 6px;">Shared with client · manpower and blockers stay internal</div>
+  </div>
+  </sc-if>
+  <sc-if value="{{sent}}" hint-placeholder-val="{{false}}">
+    <div style="flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center;">
+      <div style="width: 64px; height: 64px; border-radius: 50%; background: #E8F0E3; display: flex; align-items: center; justify-content: center;"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#465241" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <div style="font-family: Cambria, Georgia, serif; font-size: 22px; font-weight: 700;">Report filed</div>
+      <div style="font-size: 14px; color: #55524A;">R. Iyengar can see today's progress and photos in their portal.</div>
+      <a href="ClientPortal.dc.html" style="margin-top: 8px; padding: 12px 20px; border-radius: 10px; border: 1px solid #D8D1BF; background: #FBF9F3; font-size: 14px; font-weight: 600; color: #24231E;">See what the client sees</a>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    
+    const st = this.state || {};
+    const photos = st.photos || 3;
+    const crew = st.crew || { c: 4, h: 2, e: 1 };
+    const sent = !!st.sent;
+    const step = (k, d) => () => this.setState({ crew: { ...crew, [k]: Math.max(0, crew[k] + d) } });
+    const thumbs = Array.from({ length: photos }, (_, i) => ({ key: i, tone: ['#D9D1BC', '#CFC6AE', '#E3DCC8', '#C9BFA5'][i % 4] }));
+    return { thumbs, photoCount: photos, canAdd: photos < 8, addPhoto: () => this.setState({ photos: photos + 1 }),
+      c: crew.c, h: crew.h, e: crew.e, cUp: step('c', 1), cDn: step('c', -1), hUp: step('h', 1), hDn: step('h', -1), eUp: step('e', 1), eDn: step('e', -1),
+      sent, notSent: !sent, submit: () => this.setState({ sent: true }) };
+
+  }
+}
+</script>
+</body>
+</html>

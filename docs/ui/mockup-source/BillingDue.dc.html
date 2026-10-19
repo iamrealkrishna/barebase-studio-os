@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Barebase Platform — Billing due</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; font-family: -apple-system, "Segoe UI", Calibri, sans-serif; background: #F4F1E8; color: #24231E; }
+  h1, h2, h3 { font-family: Cambria, Georgia, serif; margin: 0; }
+  a { color: #7C5E28; text-decoration: none; }
+  a:hover { color: #24231E; }
+</style>
+</helmet>
+
+<div style="width: 100%; min-height: 1024px; display: flex; flex-wrap: wrap; background: #F4F1E8;">
+  <div style="width: 240px; flex: 0 0 240px; min-height: 1024px; background: #24231E; display: flex; flex-direction: column; padding: 24px 16px; box-sizing: border-box; gap: 4px;">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 4px 8px 28px 8px;">
+      <div style="width: 34px; height: 34px; border-radius: 8px; background: #9C7A3C; display: flex; align-items: center; justify-content: center; flex: 0 0 34px;">
+        <span style="font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 17px; color: #FBF9F3;">B</span>
+      </div>
+      <div>
+        <div style="font-family: Cambria, Georgia, serif; font-size: 15px; font-weight: 700; color: #FBF9F3; letter-spacing: 0.3px;">Barebase</div>
+        <div style="font-size: 10.5px; color: #9C957F; letter-spacing: 0.6px; text-transform: uppercase;">Platform</div>
+      </div>
+    </div>
+    <a href="Main.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Home</span></span>
+      
+    </a>
+    <a href="Insights.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; "><span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Insights</span></span></a>
+    <a href="Leads.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Leads</span></span>
+      <span style="font-size: 10.5px; font-weight: 700; color: #24231E; background: #9C7A3C; border-radius: 10px; padding: 1px 7px;">8</span>
+    </a>
+    <a href="Projects.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Projects</span></span>
+      
+    </a>
+    <a href="OrgFinance.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; background: #362F23;">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FBF9F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/></svg><span style="font-size: 13.5px; color: #FBF9F3; font-weight: 600;">Finance</span></span>
+      
+    </a>
+    <a href="Team.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; ">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><circle cx="17.5" cy="7" r="3"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Team</span></span>
+      
+    </a>
+    <a href="OrgSettings.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px;  margin-top: auto;">
+      <span style="display: flex; align-items: center; gap: 12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span style="font-size: 13.5px; color: #C9C4B4; ">Org Settings</span></span>
+      
+    </a>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 12px 8px 4px 8px; border-top: 1px solid #3A342A; margin-top: 8px;">
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: #9C7A3C; display: flex; align-items: center; justify-content: center; flex: 0 0 30px;"><span style="font-size: 12.5px; font-weight: 700; color: #FBF9F3;">KA</span></div>
+      <div style="min-width: 0;"><div style="font-size: 12.5px; font-weight: 600; color: #FBF9F3;">Krishna</div><div style="font-size: 10.5px; color: #9C957F;">Admin</div></div>
+    </div>
+  </div>
+
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column;">
+    <div style="height: 68px; flex: 0 0 68px; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; border-bottom: 1px solid #D8D1BF; background: #FBF9F3; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 10px; background: #F4F1E8; border: 1px solid #D8D1BF; border-radius: 8px; padding: 8px 14px; width: 340px; max-width: 100%;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8672" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span style="font-size: 13px; color: #8A8672;">Search projects, leads, clients…</span></div>
+      <div style="display: flex; align-items: center; gap: 18px;">
+        <a href="Journeys.dc.html" style="font-size: 12px; font-weight: 600; color: #55524A;">All journeys</a>
+        <a href="Approvals.dc.html" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #7C5E28; background: #F3E6C7; border-radius: 999px; padding: 4px 11px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7C5E28" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>5 to approve</a>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55524A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: #9C7A3C; display: flex; align-items: center; justify-content: center;"><span style="font-size: 13px; font-weight: 700; color: #FBF9F3;">KA</span></div>
+      </div>
+    </div>
+
+    <div style="flex: 1 1 auto; padding: 28px 32px 56px 32px; display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+        <div><h1 style="font-size: 26px;">Finance</h1><div style="font-size: 13px; color: #55524A; margin-top: 4px;">Proformas drafted automatically from milestones. Check one and send it in a click.</div></div>
+        <sc-if value="{{anyReady}}" hint-placeholder-val="{{true}}"><button onClick="{{sendAll}}" style="padding: 10px 18px; border-radius: 8px; border: 1px solid #9C7A3C; background: #9C7A3C; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;">Send all ready ({{readyCount}})</button></sc-if>
+      </div>
+      <div style="display: flex; gap: 24px; border-bottom: 1px solid #D8D1BF; flex-wrap: wrap;"><a href="OrgFinance.dc.html" style="font-size: 13.5px; color: #7A755F; padding-bottom: 10px;">Dashboard</a><a href="BillingDue.dc.html" style="font-size: 13.5px; font-weight: 700; color: #24231E; border-bottom: 2px solid #9C7A3C; padding-bottom: 10px;">Billing due</a><a href="SentTracker.dc.html" style="font-size: 13.5px; color: #7A755F; padding-bottom: 10px;">Sent &amp; due</a><a href="MyClaims.dc.html" style="font-size: 13.5px; color: #7A755F; padding-bottom: 10px;">My claims</a><a href="Reimbursements.dc.html" style="font-size: 13.5px; color: #7A755F; padding-bottom: 10px;">Pending reimbursements</a><a href="Transactions.dc.html" style="font-size: 13.5px; color: #7A755F; padding-bottom: 10px;">All transactions</a><a href="GstTds.dc.html" style="font-size: 13.5px; color: #7A755F; padding-bottom: 10px;">GST and TDS</a></div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 18px 20px;"><div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px;">Ready to send</div><div style="font-family: Cambria, Georgia, serif; font-size: 26px; font-weight: 700; margin-top: 8px; color: #7C5E28;">{{readyTotal}}</div><div style="font-size: 11.5px; color: #8A8672; margin-top: 4px;">{{readyCount}} proformas drafted, incl. GST</div></div>
+        <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 18px 20px;">
+          <div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px;">Next 30 days</div>
+          <div style="font-family: Cambria, Georgia, serif; font-size: 26px; font-weight: 700; margin-top: 8px; color: #24231E;">₹98,491</div>
+          <div style="font-size: 11.5px; color: #8A8672; margin-top: 4px;">1 more stage comes due · Villa Prakruthi</div>
+        </div>
+        <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 18px 20px;">
+          <div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px;">Billed from milestones</div>
+          <div style="font-family: Cambria, Georgia, serif; font-size: 26px; font-weight: 700; margin-top: 8px; color: #24231E;">₹27,46,000</div>
+          <div style="font-size: 11.5px; color: #8A8672; margin-top: 4px;">this month · 5 proformas</div>
+        </div>
+        <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 18px 20px;">
+          <div style="font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px;">Average send time</div>
+          <div style="font-family: Cambria, Georgia, serif; font-size: 26px; font-weight: 700; margin-top: 8px; color: #465241;">0.6 days</div>
+          <div style="font-size: 11.5px; color: #8A8672; margin-top: 4px;">from milestone due to proforma sent</div>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;">
+        <div style="flex: 999 1 620px; min-width: 0; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; overflow-x: auto;"><div style="min-width: 760px;">
+          <div style="display: grid; grid-template-columns: 1.5fr 1.7fr 1.5fr 1fr 1.6fr 1.1fr; gap: 12px; padding: 12px 18px; font-size: 10.5px; font-weight: 700; color: #8A8672; text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 1px solid #D8D1BF;"><span>Project</span><span>Milestone</span><span>Payment stage</span><span style="text-align: right;">Proforma</span><span>Status</span><span></span></div>
+          <sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+            <div onClick="{{r.pick}}" style="{{r.rowStyle}}">
+              <span><b style="display: block;">{{r.project}}</b><span style="font-size: 11px; color: #8A8672;">{{r.client}}</span></span>
+              <span><b style="display: block; font-weight: 600;">{{r.milestone}}</b><span style="font-size: 11px; color: #8A8672;">{{r.when}}</span></span>
+              <span style="font-size: 12.5px;">{{r.stage}}</span>
+              <span style="text-align: right; font-weight: 700;">{{r.totalText}}</span>
+              <span style="{{r.stateStyle}}">{{r.stateText}}</span>
+              <span style="text-align: right;"><sc-if value="{{r.canSend}}" hint-placeholder-val="{{true}}"><button onClick="{{r.send}}" style="padding: 8px 14px; border-radius: 8px; border: 1px solid #9C7A3C; background: #9C7A3C; color: #FFFFFF; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;">Send proforma</button></sc-if><sc-if value="{{r.isSent}}" hint-placeholder-val="{{false}}"><span style="font-size: 12.5px; color: #465241; font-weight: 700;">Sent ✓</span></sc-if><sc-if value="{{r.notReady}}" hint-placeholder-val="{{false}}"><button onClick="{{r.make}}" style="padding: 8px 14px; border-radius: 8px; border: 1px solid #D8D1BF; background: #FFFFFF; color: #24231E; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;">Create now</button></sc-if></span>
+            </div>
+          </sc-for>
+        </div></div>
+        <div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+          <div style="background: #FFFFFF; border: 1px solid #D8D1BF; border-radius: 8px; padding: 20px 22px; box-shadow: 0 8px 24px rgba(36,35,30,0.06); font-size: 12.5px;">
+            <div style="display: flex; justify-content: space-between; gap: 10px; align-items: baseline; border-bottom: 2px solid #24231E; padding-bottom: 10px;"><span style="font-family: Cambria, Georgia, serif; font-weight: 700; font-size: 15px;">PROFORMA INVOICE</span><span style="color: #55524A;">{{cur.pi}}</span></div>
+            <div style="padding: 10px 0; line-height: 1.6;"><b>{{cur.client}}</b> · {{cur.project}}<br><span style="color: #55524A;">For: {{cur.stage}}<br>Milestone: {{cur.milestone}}</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>Taxable</span><span style="font-variant-numeric: tabular-nums;">{{cur.baseText}}</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0; color: #55524A;"><span>CGST 9%</span><span style="font-variant-numeric: tabular-nums;">{{cur.half}}</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0; color: #55524A;"><span>SGST 9%</span><span style="font-variant-numeric: tabular-nums;">{{cur.half}}</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0 4px 0; border-top: 1px solid #24231E; font-weight: 700; font-size: 14px;"><span>Total</span><span style="font-variant-numeric: tabular-nums;">{{cur.totalText}}</span></div>
+            <div style="color: #55524A; margin-top: 4px;">{{cur.words}} only · due {{cur.due}}</div>
+            <div style="display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;"><sc-if value="{{cur.canSend}}" hint-placeholder-val="{{true}}"><button onClick="{{cur.send}}" style="padding: 9px 16px; border-radius: 8px; border: 1px solid #9C7A3C; background: #9C7A3C; color: #FFFFFF; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;">Send to client</button></sc-if><a href="ProformaCreator.dc.html" style="padding: 9px 14px; border-radius: 8px; border: 1px solid #D8D1BF; background: #FBF9F3; font-size: 12.5px; font-weight: 600; color: #24231E;">Edit before sending</a></div>
+          </div>
+          <div style="background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 18px 20px;">
+            <h3 style="font-size: 15px;">Billing rule</h3>
+            <div style="font-size: 12.5px; color: #55524A; margin: 4px 0 10px;">Draft each proforma automatically:</div>
+            <div style="display: flex; flex-direction: column; gap: 8px;"><sc-for list="{{rules}}" as="o" hint-placeholder-count="2"><button onClick="{{o.pick}}" style="{{o.style}}"><span><b style="display: block; font-size: 13px;">{{o.label}}</b><span style="font-size: 11.5px; color: #55524A;">{{o.sub}}</span></span></button></sc-for></div>
+            <div style="font-size: 11.5px; color: #8A8672; margin-top: 10px;">A person always presses Send; nothing goes to a client automatically. Finance and the project's lead designer are notified when a draft is ready.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    
+    const inr = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
+    const A = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const B = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    const two = (x) => x < 20 ? A[x] : B[Math.floor(x / 10)] + (x % 10 ? ' ' + A[x % 10] : '');
+    const three = (x) => x >= 100 ? A[Math.floor(x / 100)] + ' hundred' + (x % 100 ? ' ' + two(x % 100) : '') : two(x);
+    const words = (n) => { n = Math.round(n); let s = ''; const cr = Math.floor(n / 1e7); n %= 1e7; const lk = Math.floor(n / 1e5); n %= 1e5; const th = Math.floor(n / 1000); n %= 1000;
+      if (cr) s += two(cr) + ' crore '; if (lk) s += two(lk) + ' lakh '; if (th) s += two(th) + ' thousand '; if (n) s += three(n);
+      s = s.trim().toLowerCase(); return s.charAt(0).toUpperCase() + s.slice(1) + ' rupees'; };
+
+    const st = this.state || {};
+    const rows0 = [
+      { id: 'b1', project: 'Hebbal Business Loft', client: 'Kestrel Workspaces', milestone: 'Electrical and data first fix', when: 'Completed 14 Oct', stage: 'Stage 3 · 25% of ₹48,20,000', base: 1205000, pi: 'PI-26-0048', ready: true, state: 'Milestone complete · proforma drafted', due: '22 Oct' },
+      { id: 'b2', project: 'Ashvin Court', client: 'P. Bhatt', milestone: 'Demolition and civil', when: 'Due 17 Oct · 90% done', stage: 'Stage 2 · 20% of ₹26,10,000', base: 522000, pi: 'PI-26-0049', ready: true, state: 'Due in 2 days · proforma drafted', due: '24 Oct' },
+      { id: 'b3', project: 'Villa Prakruthi', client: 'R. Iyengar', milestone: 'Final fix, clean and handover', when: 'Due 15 Nov', stage: 'Stage 4 · 10% of ₹8,34,675', base: 83467, pi: '—', ready: false, state: 'Drafts automatically on 12 Nov', due: '22 Nov', pi2: 'PI-26-0050' },
+    ];
+    const sent = st.sent || {};
+    const made = st.made || {};
+    const sel = st.sel || 'b1';
+    const rule = st.rule || 'before';
+    const rows = rows0.map((r0) => {
+      const r = made[r0.id] ? { ...r0, ready: true, pi: r0.pi2, state: 'Created early · proforma drafted' } : r0;
+      const half = Math.round(r.base * 0.09), total = r.base + 2 * half, isSent = !!sent[r.id];
+      return { ...r, totalText: inr(total), baseText: inr(r.base), half: inr(half), words: words(total),
+        canSend: r.ready && !isSent, isSent, notReady: !r.ready,
+        make: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState({ made: { ...made, [r.id]: true }, sel: r.id }); },
+        stateText: isSent ? 'Sent just now · tracked in Sent & due' : r.state,
+        stateStyle: 'font-size: 12px; font-weight: 600; color: ' + (isSent ? '#465241' : r.ready ? '#7C5E28' : '#8A8672') + ';',
+        rowStyle: 'display: grid; grid-template-columns: 1.5fr 1.7fr 1.5fr 1fr 1.6fr 1.1fr; gap: 12px; align-items: center; padding: 14px 18px; border-bottom: 1px solid #EFEBDD; font-size: 13px; cursor: pointer; font-variant-numeric: tabular-nums; background: ' + (r.id === sel ? '#F3E6C7;' : 'transparent;'),
+        pick: () => this.setState({ sel: r.id }),
+        send: () => this.setState({ sent: { ...sent, [r.id]: true }, sel: r.id }) };
+    });
+    const cur = rows.find((r) => r.id === sel);
+    const readyLeft = rows.filter((r) => r.canSend);
+    const readyTotal = rows.filter((r) => r.ready && !sent[r.id]).reduce((s, r) => s + r.base + 2 * Math.round(r.base * 0.09), 0);
+    const ruleOpt = (id, label, sub) => ({ label, sub, style: 'display: flex; gap: 10px; width: 100%; text-align: left; font: inherit; color: #24231E; align-items: flex-start; padding: 10px 12px; border-radius: 10px; cursor: pointer; border: ' + (rule === id ? '2px solid #9C7A3C; background: #F3E6C7;' : '1px solid #D8D1BF; background: #FFFFFF;'), pick: () => this.setState({ rule: id }) });
+    return { rows, cur, readyCount: readyLeft.length, readyTotal: inr(readyTotal), anyReady: readyLeft.length > 1,
+      sendAll: () => { const n = { ...sent }; rows.forEach((r) => { if (r.ready) n[r.id] = true; }); this.setState({ sent: n }); },
+      rules: [ruleOpt('before', '3 days before the milestone is due', 'Gives you time to check it; recommended'), ruleOpt('done', 'When the milestone is marked complete', 'Bills only finished work')] };
+
+  }
+}
+</script>
+</body>
+</html>

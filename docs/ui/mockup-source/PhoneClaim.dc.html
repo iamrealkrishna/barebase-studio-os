@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Barebase — Expense claim (phone)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body { margin: 0; font-family: -apple-system, "Segoe UI", Calibri, sans-serif; background: #F4F1E8; color: #24231E; }
+  h1, h2, h3 { font-family: Cambria, Georgia, serif; margin: 0; }
+  a { color: #7C5E28; text-decoration: none; }
+  a:hover { color: #24231E; }
+</style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #F4F1E8; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box;">
+  <div style="background: #24231E; color: #FBF9F3; padding: 16px 20px 18px 20px; flex: 0 0 auto;">
+    <a href="MyClaims.dc.html" style="font-size: 12px; color: #9C957F;">← My claims</a>
+    <div style="font-family: Cambria, Georgia, serif; font-size: 22px; font-weight: 700; margin-top: 6px;">New expense</div>
+  </div>
+  <sc-if value="{{notSent}}" hint-placeholder-val="{{true}}">
+  <div style="flex: 1 1 auto; overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; gap: 12px; align-items: center; background: #FBF9F3; border: 1px solid #D8D1BF; border-radius: 12px; padding: 12px;"><div style="width: 64px; height: 84px; border-radius: 6px; background: #E3DCC8; flex: 0 0 64px;"></div><div style="font-size: 13px;"><b>Receipt photographed</b><div style="color: #465241; margin-top: 2px;">Read: Hardware store · ₹1,920 · 16 Oct</div><div style="color: #8A8672; margin-top: 2px;">Retake</div></div></div>
+    <div><div style="font-size: 12px; font-weight: 700; color: #55524A; margin-bottom: 6px;">Amount</div><div style="background: #FFFFFF; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px; font-size: 22px; font-weight: 700; font-family: Cambria, Georgia, serif;">₹1,920</div><div style="font-size: 11.5px; color: #8A8672; margin-top: 4px;">One thousand nine hundred twenty rupees</div></div>
+    <div><div style="font-size: 12px; font-weight: 700; color: #55524A; margin-bottom: 6px;">Project</div><div style="background: #FFFFFF; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px; font-size: 14px; ">Villa Prakruthi ▾</div></div>
+    <div><div style="font-size: 12px; font-weight: 700; color: #55524A; margin-bottom: 6px;">What for</div><div style="background: #FFFFFF; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px; font-size: 14px; ">Tile adhesive · 4 bags (emergency)</div></div>
+    <div><div style="font-size: 12px; font-weight: 700; color: #55524A; margin-bottom: 6px;">Paid from</div><div style="background: #FFFFFF; border: 1px solid #D8D1BF; border-radius: 10px; padding: 12px; font-size: 14px; ">My own money (reimburse me) ▾</div></div>
+  </div>
+  <div style="flex: 0 0 auto; padding: 12px 18px 18px 18px; border-top: 1px solid #D8D1BF; background: #FBF9F3;"><button onClick="{{submit}}" style="width: 100%; height: 50px; border-radius: 10px; border: none; background: #9C7A3C; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer;">Submit · ₹1,920</button></div>
+  </sc-if>
+  <sc-if value="{{sent}}" hint-placeholder-val="{{false}}"><div style="flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center;">
+      <div style="width: 64px; height: 64px; border-radius: 50%; background: #E8F0E3; display: flex; align-items: center; justify-content: center;"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#465241" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <div style="font-family: Cambria, Georgia, serif; font-size: 22px; font-weight: 700;">Sent to Mansi</div>
+      <div style="font-size: 14px; color: #55524A;">Under ₹25,000, so Mansi approves it. You'll be paid on Friday.</div>
+      <a href="MyClaims.dc.html" style="margin-top: 8px; padding: 12px 20px; border-radius: 10px; border: 1px solid #D8D1BF; background: #FBF9F3; font-size: 14px; font-weight: 600; color: #24231E;">See my claims</a>
+    </div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {}; return { notSent: !st.s, sent: !!st.s, submit: () => this.setState({ s: 1 }), room: st.r || 'Bathroom', rooms: ['Kitchen', 'Master Bedroom', 'Bathroom', 'Living Room'].map((r) => ({ r, pick: () => this.setState({ r }), style: 'font: inherit; font-size: 13px; padding: 8px 12px; border-radius: 999px; cursor: pointer; border: ' + ((st.r || 'Bathroom') === r ? '2px solid #9C7A3C; background: #F3E6C7; font-weight: 700;' : '1px solid #D8D1BF; background: #FFFFFF;') })) };
+  }
+}
+</script>
+</body>
+</html>
