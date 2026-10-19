@@ -1,0 +1,14 @@
+// Barebase Studio OS: database schema.
+//
+// Empty on purpose until Phase 0. The target schema, table by table, is in
+// docs/PLAN.md ("Target schema"); each Phase 0 and later task adds its tables
+// here through a migration (never `prisma db push` on a shared database).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}

@@ -79,9 +79,22 @@ These rules are never relaxed, even temporarily, even behind a flag.
 
 ## Commands
 
-<!-- Claude: fill these in from package.json during setup and keep them current. -->
-- Install: `TBD` · Dev: `TBD` · Unit tests: `TBD` · E2E: `TBD` · Lint and typecheck: `TBD`
-- Migrations: `TBD` · Seed: `TBD` (seed reproduces the mock-up world: Villa Prakruthi for R. Iyengar, contract
+Node 22. Copy `.env.example` to `.env` for local work (never commit it).
+
+- Install: `npm install` (its postinstall runs `prisma generate`)
+- Dev: `npm run dev` (http://localhost:3000)
+- Unit tests: `npm test` (Vitest; `npm run test:watch` while working)
+- E2E: `npm run test:e2e` (Playwright at 1440 and 375 px; starts its own server on port 3100). Locally it reuses a
+  running `next dev` on that port; in CI it runs `next start` after `npm run build`. Against staging only:
+  `E2E_BASE_URL=<staging url> E2E_TARGET=staging npm run test:e2e`. It refuses production.
+- Lint and typecheck: `npm run lint` (ESLint plus the "tokens only" check in `scripts/check-tokens.mjs`) and
+  `npm run typecheck`
+- Build: `npm run build` (`prisma generate`, then `scripts/migrate-on-deploy.mjs`, then `next build`). The migration step
+  runs only on Vercel: Production migrates production, Preview migrates staging, and a Preview pointed at the production
+  host fails. Local and CI builds never migrate.
+- Migrations: `npm run db:migrate:dev -- --name <change>` against a local or throwaway database; `npm run db:migrate`
+  applies them. Never `prisma db push` on a shared database.
+- Seed: not yet; P0-5 adds `npm run db:seed` (the mock-up world: Villa Prakruthi for R. Iyengar, contract
   ₹8,34,675 excl. GST, BOQ v3; plus Hebbal Business Loft, Ashvin Court, Terrace Residency)
 
 ## People (for seed data and roles)
