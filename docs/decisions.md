@@ -8,17 +8,17 @@ These answer the kickoff questions and override the defaults that were listed th
 
 | # | Question | Answer |
 | --- | --- | --- |
-| 1 | Codebase | **A new, standalone app in this repo**, built from scratch. No other codebase is used; minERP is retired |
-| 2 | Existing data | **Start fresh.** No data import from any other system. The rate card is entered, or imported by CSV, in the app |
+| 1 | Codebase | **Start from the BOQ Studio code**, imported into this repo with its history on 19 Oct 2026. BOQ Studio carries on separately until this app replaces it. minERP is retired |
+| 2 | Existing data | **Copy everything from BOQ Studio.** This app's database starts as a copy of BOQ Studio's production database (projects, BOQ versions, approvals, change orders, rate card, users, audit log), then migrates forward. A final fresh copy is taken just before the team switches over, rehearsed on staging first. Studio OS never writes to BOQ Studio's database |
 | 3 | Staging | Neon branch **"staging"** created from production. Vercel Production → production `DATABASE_URL`; Vercel Preview → staging. Preview builds must never migrate production, and tests must never run against production |
 | 4 | Email | **Resend**, sending from `studio@barebase.in`. Krishna adds the DNS records |
 | 5 | Roles | Krishna Admin · Harish Admin · Ridhi COO · Mansi Design lead · Keertan Designer · Anamika Pre-sales · Ananya Pre-sales. Krishna adds the Finance users himself |
-| 6 | BOQ maths | The formulas in product spec section 19 apply to every BOQ version |
+| 6 | Old BOQ maths | Sent and approved versions keep the maths they were made with. Only new drafts use the spec's maths |
 | 7 | Google sign-in | **After Phase 1** |
 | 8 | File storage | **Vercel Blob** |
 
 Product spec section 23 decisions still use their defaults. Decisions 1, 2, 8, 9, 10 and 16 are needed in
-Phase 1. Decision 16 is answered by decision 2: start fresh, no import.
+Phase 1. Decision 16 is answered by decision 2: everything is copied from BOQ Studio.
 
 Decisions 17 to 19 (added with Home budget) also use their defaults: the design lead sees the project vendor
 ledger without bank details · the client can mark their purchases ordered or delivered from the portal · seven

@@ -1,0 +1,338 @@
+// Barebase BOQ Studio — data model
+//
+// Multi-tenant from day one (per APPROVALS_SPEC.md "Data model implications"):
+// Organization owns rate cards, projects and team members; a ClientContact is
+// scoped to a single project and can never reach anything else in the org.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------- org & people
+
+model Organization {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  // Letterhead — used on PDFs and the client-facing view.
+  legalName   String?
+  addressLine String?
+  pocName     String?
+  pocPhone    String?
+  pocEmail    String?
+  // Default terms & exclusions block seeded into every new project.
+  terms       String  @default("")
+
+  users     User[]
+  rateItems RateItem[]
+  projects  Project[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN // full access, including rate card editing
+  MEMBER // builds BOQs, cannot edit the rate card
+}
+
+model User {
+  id           String @id @default(cuid())
+  orgId        String
+  email        String @unique
+  name         String
+  passwordHash String
+  role         Role   @default(MEMBER)
+
+  /// Deactivated users keep every project, version and audit entry they
+  /// authored — they just can't sign in. Deleting them would tear holes in the
+  /// audit trail, which is the one thing it can't afford.
+  active        Boolean   @default(true)
+  deactivatedAt DateTime?
+
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  projects Project[]    @relation("ProjectCreatedBy")
+  versions Version[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId])
+}
+
+// ------------------------------------------------------------------ rate card
+
+model RateItem {
+  id       String @id @default(cuid())
+  orgId    String
+  category String
+  /// Item description — the first level of the cascade.
+  name     String
+  material String @default("")
+  finish   String @default("")
+  /// Drives which dimension inputs appear: SQFT -> L×B, RFT -> L, CFT -> L×B×H.
+  unit     String @default("")
+  rate     Float  @default(0)
+  /// Internal cost. Never leaves the org.
+  cost     Float  @default(0)
+  /// Boilerplate scope of work, copied onto a BOQ line when this item is added.
+  /// Copied, not referenced: editing it here never rewrites scope text already
+  /// saved on existing BOQ lines, which a client may well have approved.
+  defaultScope String @default("")
+  position Int    @default(0)
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId, category, position])
+}
+
+// -------------------------------------------------------------------- projects
+
+enum BoqStatus {
+  DRAFT
+  SENT_TO_CLIENT
+  APPROVED
+}
+
+model Project {
+  id          String @id @default(cuid())
+  orgId       String
+  /// Property / project name.
+  name        String
+  clientName  String @default("")
+  preparedBy  String @default("")
+  quoteDate   String @default("") // yyyy-mm-dd, kept as text to match the date input
+  terms       String @default("")
+
+  discountType  String  @default("pct") // "pct" | "amt"
+  discountValue Float   @default(0)
+  gstOn         Boolean @default(false)
+  gstRate       Float   @default(18)
+
+  // Which columns the client is allowed to see.
+  colMaterial Boolean @default(true)
+  colFinish   Boolean @default(true)
+  colQty      Boolean @default(true)
+  colRate     Boolean @default(true)
+
+  /// One clear status per BOQ (BOQ_BUILDER_V2_SPEC §4 — no parallel status badges).
+  status      BoqStatus @default(DRAFT)
+  createdById String?
+
+  org          Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdBy    User?         @relation("ProjectCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  sections     Section[]
+  versions     Version[]
+  contacts     ClientContact[]
+  changeOrders ChangeOrder[]
+  auditEvents  AuditEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId, updatedAt])
+}
+
+model Section {
+  id        String @id @default(cuid())
+  projectId String
+  name      String
+  position  Int    @default(0)
+
+  project Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  items   LineItem[]
+
+  @@unique([projectId, name])
+  @@index([projectId, position])
+}
+
+model LineItem {
+  id        String  @id @default(cuid())
+  sectionId String
+  category  String  @default("")
+  isCustom  Boolean @default(false)
+  /// Short item name — what the rate card calls "description".
+  name      String  @default("")
+  material  String  @default("")
+  finish    String  @default("")
+  unit      String  @default("")
+  rate      Float   @default(0)
+  cost      Float   @default(0)
+
+  dimL Float?
+  dimB Float?
+  dimH Float?
+  /// Quantity of ONE unit: manually entered for Nos./Lumpsum items, derived from
+  /// the dims otherwise. The billed quantity is this times `count`.
+  qty  Float  @default(0)
+  /// How many identical units this line covers — two wardrobes of the same size
+  /// are one line with count 2, not two lines. Multiplies `qty`.
+  count Int   @default(1)
+  /// Set when the team typed a quantity over a dimension-driven one — an
+  /// oddly-shaped area where they already know the total. While true, `qty` is
+  /// authoritative and L×B is ignored.
+  qtyOverride Boolean @default(false)
+
+  /// Long-form, client-facing scope of work (BOQ_BUILDER_V2_SPEC §1).
+  scope String @default("")
+  /// Short internal aside ("changed on site") — never shown to the client.
+  note  String @default("")
+  /// Reference photo, stored as a compressed data URL.
+  image String?
+
+  position Int @default(0)
+
+  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sectionId, position])
+}
+
+// ------------------------------------------------------- versions & audit trail
+
+/// A version is created when the BOQ's status changes, not on every edit
+/// (BOQ_BUILDER_V2_SPEC §4 — status-driven, avoids version spam).
+/// `snapshot` holds the entire BOQ as it stood, so old versions stay readable
+/// even after the live sections/items have moved on.
+model Version {
+  id        String    @id @default(cuid())
+  projectId String
+  number    Int
+  status    BoqStatus
+  snapshot  Json
+  note      String?
+
+  createdById   String?
+  createdByName String  @default("")
+
+  /// Set when a client contact approves this exact version.
+  approvedAt        DateTime?
+  approvedByContact String?
+
+  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy   User?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  approvals   ItemApproval[]
+  changeOrders ChangeOrder[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, number])
+  @@index([projectId, createdAt])
+}
+
+model ClientContact {
+  id        String  @id @default(cuid())
+  projectId String
+  name      String
+  email     String
+  /// Bearer token embedded in the share link — no account creation friction.
+  token     String  @unique
+  revoked   Boolean @default(false)
+
+  /// The diff a client sees is always "vs. what THIS client last said yes to".
+  lastApprovedVersionId String?
+  lastViewedAt          DateTime?
+  /// When this contact said they'd finished going through the estimate. Their
+  /// verdicts save as they click, so this is not what records them — it's the
+  /// difference between "hasn't got to it yet" and "done, over to you".
+  reviewSubmittedAt     DateTime?
+
+  project   Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  approvals ItemApproval[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REVISION_REQUESTED
+}
+
+/// Per-line-item approval, recorded against the exact version the client saw.
+///
+/// `lineItemId` is deliberately a loose reference rather than a foreign key:
+/// what a client approved has to stay on the record even after the team deletes
+/// or replaces that line, which a cascading FK would erase.
+model ItemApproval {
+  id           String         @id @default(cuid())
+  versionId    String
+  contactId    String
+  lineItemId   String
+  lineItemName String         @default("")
+  status       ApprovalStatus @default(PENDING)
+  comment      String?
+
+  version Version       @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  contact ClientContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([versionId, contactId, lineItemId])
+  @@index([versionId])
+}
+
+enum ChangeKind {
+  ADDED
+  REMOVED
+  MODIFIED
+}
+
+/// Raised automatically when an already-approved line changes — approved scope
+/// is never silently overwritten (APPROVALS_SPEC §3).
+model ChangeOrder {
+  id           String     @id @default(cuid())
+  projectId    String
+  versionId    String?
+  lineItemId   String
+  lineItemName String
+  sectionName  String
+  kind         ChangeKind
+  /// [{ field, from, to }]
+  changes      Json
+  reason       String?
+  createdByName String    @default("")
+
+  project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version Version? @relation(fields: [versionId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([projectId, createdAt])
+}
+
+enum ActorType {
+  TEAM
+  CLIENT
+  SYSTEM
+}
+
+model AuditEvent {
+  id        String    @id @default(cuid())
+  projectId String
+  actorType ActorType
+  actorName String
+  action    String
+  detail    Json?
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([projectId, createdAt])
+}

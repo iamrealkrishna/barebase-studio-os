@@ -3,10 +3,17 @@
 Barebase's one internal platform: leads, projects, BOQs, vendors and money, site work (milestones, DPR, snags),
 handover and a client portal. Barebase is an architecture, interiors and construction studio in Bengaluru.
 
-**This is a new, standalone application, built from scratch.** The BOQ builder is one feature of it, built from the
-specs like every other module. It has no connection to any other Barebase app or repository: don't read, copy from or
-change any other repo, and don't plan any data import. The specs were first written for an older tool called minERP;
-wherever they say "keep minERP's X" or "minERP today", read it as "build X here".
+**Where the code comes from.** This app starts from the BOQ Studio code, imported on 19 Oct 2026 with its full
+commit history. Sign-in, the team page, the rate card, projects, the BOQ builder, versions and change orders, the
+client review link, PDFs and the audit log already work, and they must keep working end to end at every step.
+Studio OS grows from this code towards the specs. `docs/boq-builder/existing-app-map.md` maps what exists, with file
+paths and gaps; `docs/boq-builder/` also holds that app's own specs and user guide.
+
+BOQ Studio itself (`iamrealkrishna/barebase-boq-app`) carries on as a separate app the team uses every day until this
+one replaces it. Never read from, push to or change that repo or its database.
+
+The specs were first written for an older tool called minERP; wherever they say "keep minERP's X", read it as "build
+X here, or keep it if the imported code already has it".
 
 ## Read before any work
 

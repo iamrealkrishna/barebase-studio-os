@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barebase — BOQ Builder</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+  :root{
+    --paper: #EAE6DA; --paper-soft: #F4F1E8; --card: #FBF9F3; --ink: #24231E; --ink-soft: #55524A;
+    --line: #D8D1BF; --brass: #9C7A3C; --brass-dark: #7C5E28; --green: #465241; --danger: #A8452F; --radius: 5px;
+    --diff-new: #E8F0E3; --diff-new-border: #6E8F5C; --diff-changed: #FBF0DC; --diff-changed-border: #C99A3E;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  .tabular{font-variant-numeric:tabular-nums;}
+  button{font-family:inherit; cursor:pointer; border-radius:var(--radius); transition:background 0.12s,border-color 0.12s,color 0.12s;}
+  select,input,textarea{font-family:inherit;}
+
+  .topbar{
+    background:var(--ink); color:var(--paper-soft); padding:12px 22px;
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+    box-shadow:0 1px 0 rgba(0,0,0,0.15);
+  }
+  .brand{display:flex;align-items:baseline;gap:10px;}
+  .brand .mark{font-family:Georgia,serif;font-size:19px;letter-spacing:0.03em;font-weight:700;}
+  .brand .sub{font-size:11px;color:#C9C2AE;letter-spacing:0.09em;text-transform:uppercase;}
+  .page-toggle{display:flex;background:#2F2D26;border-radius:20px;padding:3px;gap:2px;flex-wrap:wrap;}
+  .page-toggle button{background:transparent;border:none;color:#C9C2AE;padding:7px 14px;font-size:12px;border-radius:16px;}
+  .page-toggle button.active{background:var(--brass);color:#fff;}
+  .topbar-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .cost-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:#C9C2AE;padding:0 8px 0 2px;border-right:1px solid #474437;margin-right:2px;}
+  .btn{background:transparent;border:1px solid #55523F;color:var(--paper-soft);padding:7px 14px;font-size:12.5px;letter-spacing:0.02em;}
+  .btn:hover{border-color:var(--brass);color:#fff;}
+  .btn.primary{background:var(--brass);border-color:var(--brass);color:#fff;}
+  .btn.primary:hover{background:var(--brass-dark);border-color:var(--brass-dark);}
+  .btn.light{background:var(--card);border:1px solid var(--line);color:var(--ink);}
+  .btn.light:hover{border-color:var(--brass);}
+  .btn.danger-outline{background:transparent;border:1px solid #B5A98A;color:var(--danger);}
+  .btn.small{padding:4px 10px;font-size:12px;}
+  .btn:disabled{opacity:0.45;cursor:not-allowed;}
+
+  .page{display:none;}
+  .page.active{display:block;}
+
+  /* ===== Build BOQ layout (no left sidebar anymore — section switch is a dropdown) ===== */
+  .layout{display:grid;grid-template-columns:1fr 296px;gap:0;min-height:calc(100vh - 54px);}
+  @media (max-width: 900px){ .layout{grid-template-columns:1fr;} .summary{border:none !important;} }
+
+  .main{padding:20px 26px 40px;background:var(--paper);}
+  .section-switch-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .section-switch-bar select{
+    padding:9px 12px;border:1px solid var(--line);background:var(--card);border-radius:var(--radius);
+    font-size:14px;font-weight:600;color:var(--ink);min-width:220px;
+  }
+  .custom-section-row{display:none;gap:6px;}
+  .custom-section-row.show{display:flex;}
+  .custom-section-row input{padding:8px 9px;border:1px solid var(--line);background:var(--card);border-radius:var(--radius);font-size:13px;}
+  .sec-subtotal-pill{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:6px 16px;font-size:12.5px;color:var(--ink-soft);margin-left:auto;}
+  .sec-subtotal-pill b{color:var(--ink);}
+
+  /* ===== entry form ===== */
+  .entry-form{
+    background:var(--card);border:1px solid var(--brass);border-radius:6px;padding:14px 16px;margin-bottom:16px;
+    box-shadow:0 1px 3px rgba(36,35,30,0.06);
+  }
+  .entry-form.editing{border-color:var(--danger);}
+  .entry-form-label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.07em;color:var(--brass-dark);margin-bottom:8px;font-weight:600;}
+  .item-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+  .item-row:last-child{margin-bottom:0;}
+  .item-field{display:flex;flex-direction:column;gap:3px;flex:1;min-width:110px;}
+  .item-field label{font-size:9.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-soft);}
+  .item-field select, .item-field input{
+    padding:6px 7px;border:1px solid var(--line);background:#fff;border-radius:4px;font-size:12.5px;color:var(--ink);
+  }
+  .item-field input.num{text-align:right;}
+  .item-field.narrow{flex:0 0 70px;min-width:70px;}
+  .item-field.dim{flex:0 0 62px;min-width:62px;}
+  .item-field.grow2{flex:2;}
+  .unit-badge{
+    align-self:flex-start;margin-top:2px;font-size:10.5px;color:var(--ink-soft);background:#EFEADD;
+    border:1px solid var(--line);border-radius:10px;padding:2px 8px;white-space:nowrap;
+  }
+  .amount-block{display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;min-width:100px;}
+  .amount-block .amt{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .amount-block .margin{font-size:11px;color:var(--green);font-variant-numeric:tabular-nums;}
+  .item-desc-row textarea{
+    width:100%;padding:7px 8px;border:1px solid var(--line);background:#fff;border-radius:4px;font-size:12.5px;
+    color:var(--ink);resize:vertical;min-height:44px;
+  }
+  .item-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px;}
+  .img-cell{display:flex;align-items:center;gap:6px;}
+  .img-thumb{width:30px;height:30px;object-fit:cover;border-radius:3px;border:1px solid var(--line);cursor:pointer;}
+  .img-add{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border:1px dashed var(--line);border-radius:3px;cursor:pointer;font-size:13px;color:var(--ink-soft);}
+  .img-add:hover{border-color:var(--brass);}
+  .entry-form-buttons{display:flex;gap:8px;}
+  .hint-text{font-size:11px;color:var(--ink-soft);margin-top:8px;}
+
+  /* ===== compact item list ===== */
+  .compact-list{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--card);}
+  .compact-row{
+    display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid #EFEBDF;font-size:13px;
+  }
+  .compact-row:last-child{border-bottom:none;}
+  .compact-row:hover{background:#F6F3EA;}
+  .compact-row .cr-desc{flex:2;min-width:0;}
+  .compact-row .cr-desc .main-line{font-weight:600;}
+  .compact-row .cr-desc .sub-line{font-size:11px;color:var(--ink-soft);}
+  .compact-row .cr-qty{flex:0 0 90px;font-size:12px;color:var(--ink-soft);text-align:right;}
+  .compact-row .cr-amt{flex:0 0 100px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums;}
+  .compact-row .cr-actions{flex:0 0 auto;display:flex;gap:4px;}
+  .icon-btn{background:none;border:none;font-size:13px;color:var(--ink-soft);padding:3px 6px;border-radius:3px;}
+  .icon-btn:hover{background:#EFEADD;color:var(--ink);}
+  .icon-btn.danger:hover{color:var(--danger);}
+  .empty-sec{padding:24px 10px;text-align:center;color:var(--ink-soft);font-size:13px;background:var(--card);border:1px dashed var(--line);border-radius:var(--radius);}
+
+  .continue-bar{
+    margin-top:22px;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;
+  }
+
+  /* ===== Summary ===== */
+  .summary{background:var(--ink);color:var(--paper-soft);padding:20px 18px;border-left:1px solid var(--line);}
+  .summary h3{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#C9C2AE;margin:0 0 12px;}
+  .sum-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #3C3A32;font-size:12px;}
+  .sum-row.total{border-bottom:none;border-top:2px solid var(--brass);margin-top:8px;padding-top:12px;font-size:16px;font-weight:700;}
+  .sum-row.subtle{color:#C9C2AE;font-size:11.5px;}
+  .sum-row.margin{color:#9FB08E;}
+  .discount-row{display:flex;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid #3C3A32;font-size:12px;}
+  .discount-row input[type=number]{width:60px;background:#2F2D26;border:1px solid #474437;color:#fff;border-radius:3px;padding:4px 6px;font-size:12px;text-align:right;}
+  .discount-row select{background:#2F2D26;border:1px solid #474437;color:#fff;border-radius:3px;padding:4px 4px;font-size:11.5px;}
+  .gst-toggle{display:flex;align-items:center;gap:6px;margin:12px 0 2px;font-size:11.5px;color:#C9C2AE;flex-wrap:wrap;}
+  .cost-summary-block{margin-top:14px;padding-top:12px;border-top:1px solid #3C3A32;}
+  .cost-summary-block h4{font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:#8F8A76;margin:0 0 7px;}
+  .pdf-buttons{display:flex;flex-direction:column;gap:8px;margin-top:16px;}
+
+  /* ===== Settings / Project pages ===== */
+  .settings-wrap{max-width:1000px;margin:0 auto;padding:24px 26px 60px;}
+  .settings-section{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:20px 22px;margin-bottom:20px;}
+  .settings-section h3{margin:0 0 14px;font-size:15px;}
+  .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .settings-grid label{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);margin-bottom:4px;}
+  .settings-grid input, .settings-grid textarea{
+    width:100%;padding:7px 9px;border:1px solid var(--line);background:#fff;border-radius:4px;font-size:13px;color:var(--ink);
+  }
+  .col-toggles{display:flex;flex-direction:column;gap:8px;font-size:13px;}
+
+  table.ratecard{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.ratecard th{text-align:left;font-size:10px;text-transform:uppercase;color:var(--ink-soft);padding:4px 5px;border-bottom:1px solid var(--line);}
+  table.ratecard td{padding:3px 5px;border-bottom:1px solid #EBE6D8;}
+  table.ratecard input{width:100%;border:1px solid transparent;background:transparent;font-family:inherit;font-size:12.5px;padding:4px 5px;border-radius:2px;}
+  table.ratecard input:hover{border-color:var(--line);}
+  table.ratecard input:focus{outline:none;border-color:var(--brass);background:#fff;}
+  table.ratecard input.r-num{text-align:right;}
+  .rate-cat-block{margin-bottom:20px;}
+  .rate-cat-block h4{font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--brass-dark);margin:0 0 7px;}
+
+  /* ===== Project page — version list ===== */
+  .version-row{
+    display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:5px;
+    margin-bottom:8px;background:#fff;font-size:12.5px;
+  }
+  .version-row .v-time{flex:1;color:var(--ink-soft);}
+  .version-row select.v-status{padding:5px 8px;border:1px solid var(--line);border-radius:4px;font-size:12px;}
+  .status-badge{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;}
+  .status-badge.draft{background:#EFEADD;color:var(--ink-soft);}
+  .status-badge.sent{background:#FBF0DC;color:var(--brass-dark);}
+  .status-badge.approved{background:#E8F0E3;color:var(--green);}
+  .no-versions{color:var(--ink-soft);font-size:13px;padding:20px;text-align:center;background:var(--card);border:1px dashed var(--line);border-radius:5px;}
+
+  /* ===== Client View page ===== */
+  .clientview-wrap{max-width:820px;margin:0 auto;padding:30px 26px 60px;}
+  .cv-header{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:24px 28px;margin-bottom:20px;}
+  .cv-header .co{font-family:Georgia,serif;font-size:22px;font-weight:700;}
+  .cv-header .addr{font-size:11.5px;color:var(--ink-soft);margin-top:4px;}
+  .cv-header .meta{display:flex;gap:30px;margin-top:16px;font-size:13px;flex-wrap:wrap;}
+  .cv-header .meta div span{display:block;font-size:10px;text-transform:uppercase;color:var(--ink-soft);letter-spacing:0.06em;}
+  .cv-banner{
+    background:#2F2D26;color:#F4F1E8;padding:12px 18px;border-radius:5px;margin-bottom:18px;font-size:12.5px;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  }
+  .cv-section{background:var(--card);border:1px solid var(--line);border-radius:6px;margin-bottom:14px;overflow:hidden;}
+  .cv-section-head{background:#EFEADD;padding:10px 16px;font-weight:700;font-size:13px;display:flex;justify-content:space-between;}
+  .cv-row{padding:10px 16px;border-bottom:1px solid #EFEBDF;display:flex;gap:12px;align-items:center;font-size:13px;}
+  .cv-row:last-child{border-bottom:none;}
+  .cv-row.diff-new{background:var(--diff-new);border-left:3px solid var(--diff-new-border);}
+  .cv-row.diff-changed{background:var(--diff-changed);border-left:3px solid var(--diff-changed-border);}
+  .cv-row .cv-desc{flex:2;}
+  .cv-row .cv-desc .d1{font-weight:600;}
+  .cv-row .cv-desc .d2{font-size:11.5px;color:var(--ink-soft);}
+  .cv-row .cv-amt{flex:0 0 100px;text-align:right;font-weight:600;}
+  .cv-tag{font-size:9.5px;text-transform:uppercase;letter-spacing:0.05em;padding:1px 6px;border-radius:8px;margin-left:6px;}
+  .cv-tag.new{background:var(--diff-new-border);color:#fff;}
+  .cv-tag.changed{background:var(--diff-changed-border);color:#fff;}
+  .cv-summary{background:var(--ink);color:#fff;border-radius:6px;padding:20px 22px;}
+  .cv-summary .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #3C3A32;font-size:13px;}
+  .cv-summary .row.total{border-top:2px solid var(--brass);border-bottom:none;margin-top:8px;padding-top:12px;font-size:17px;font-weight:700;}
+  .cv-notes{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px 20px;margin-top:14px;font-size:12px;color:var(--ink-soft);white-space:pre-wrap;}
+  .cv-approve-bar{margin-top:20px;display:flex;justify-content:flex-end;gap:10px;}
+
+  /* ===== Modal ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--paper-soft);max-width:460px;width:100%;border-radius:6px;border:1px solid var(--line);max-height:88vh;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,0.25);}
+  .modal-head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+  .modal-head h3{margin:0;font-size:16px;}
+  .modal-body{padding:16px 20px;overflow:auto;}
+
+  #toast{
+    position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 20px;
+    border-radius:5px;font-size:12.5px;opacity:0;pointer-events:none;transition:opacity 0.25s;z-index:100;box-shadow:0 6px 20px rgba(0,0,0,0.25);
+  }
+  #toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="mark">BAREBASE</span>
+    <span class="sub">BOQ Builder</span>
+  </div>
+  <div class="page-toggle">
+    <button id="pgProject" class="active">Project</button>
+    <button id="pgBuild">Build BOQ</button>
+    <button id="pgSettings">Rate Card &amp; Settings</button>
+    <button id="pgClientView">Client View</button>
+  </div>
+  <div class="topbar-actions">
+    <label class="cost-toggle"><input type="checkbox" id="costViewToggle"> Show cost &amp; margin</label>
+    <button class="btn" id="btnLoad">Load project</button>
+    <button class="btn light" id="btnInternalPdf">Internal PDF</button>
+    <button class="btn primary" id="btnClientPdf">Client PDF</button>
+  </div>
+</div>
+
+<!-- ================= PROJECT PAGE ================= -->
+<div class="page active" id="page-project">
+  <div class="settings-wrap">
+    <div class="settings-section">
+      <h3>Project details</h3>
+      <div class="settings-grid">
+        <div><label>Client name</label><input type="text" id="metaClient" placeholder="e.g. Priyanka &amp; Pareekshat"></div>
+        <div><label>Property / project</label><input type="text" id="metaProperty" placeholder="e.g. Heritage Firefly, 3BHK"></div>
+        <div><label>Prepared by</label><input type="text" id="metaPreparedBy" placeholder="e.g. Ridhi Bhinde"></div>
+        <div><label>Date</label><input type="date" id="metaDate"></div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Version history <span style="font-weight:400;font-size:12px;color:var(--ink-soft);">— internal only, never shown to the client</span></h3>
+      <div style="margin-bottom:14px;">
+        <button class="btn primary small" id="btnSaveVersion">Save current state as new version</button>
+      </div>
+      <div id="versionList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= BUILD BOQ PAGE ================= -->
+<div class="page" id="page-build">
+  <div class="layout">
+    <div class="main">
+      <div class="section-switch-bar">
+        <select id="sectionSwitcher"></select>
+        <div class="custom-section-row" id="customSectionRow">
+          <input type="text" id="customSectionName" placeholder="Section name">
+          <button class="btn light small" id="btnConfirmCustomSection">Add</button>
+        </div>
+        <div class="sec-subtotal-pill">Section subtotal &nbsp;<b class="tabular" id="secSubtotalPill">₹0</b></div>
+      </div>
+
+      <div class="entry-form" id="entryForm"></div>
+
+      <div id="compactList"></div>
+
+      <div class="continue-bar">
+        <button class="btn primary" id="btnSaveContinue">Save &amp; continue to Client View →</button>
+      </div>
+    </div>
+
+    <div class="summary">
+      <h3>Summary sheet</h3>
+      <div id="summaryList"></div>
+      <div class="sum-row" style="border-bottom:none;padding-bottom:0;"><span>Subtotal</span><span class="amt tabular" id="sumSubtotal">₹0</span></div>
+
+      <div class="discount-row">
+        <span>Discount</span>
+        <input type="number" min="0" step="0.01" id="discountValue" value="0">
+        <select id="discountType"><option value="pct">%</option><option value="amt">₹</option></select>
+      </div>
+      <div class="sum-row subtle" id="discountRow" style="display:none;"><span>Discount applied</span><span class="amt tabular" id="sumDiscount">−₹0</span></div>
+
+      <div class="gst-toggle">
+        <input type="checkbox" id="gstToggle"> <label for="gstToggle">Add GST</label>
+        <select id="gstRateSelect" style="margin-left:6px;background:#2F2D26;border:1px solid #474437;color:#fff;border-radius:3px;padding:4px 6px;font-size:12px;">
+          <option value="5">5%</option><option value="12">12%</option><option value="18" selected>18%</option><option value="28">28%</option><option value="custom">Custom</option>
+        </select>
+        <input type="number" id="gstRateCustom" min="0" step="0.1" value="18" style="display:none;width:52px;margin-left:6px;background:#2F2D26;border:1px solid #474437;color:#fff;border-radius:3px;padding:4px 6px;font-size:12px;text-align:right;">
+      </div>
+      <div class="sum-row subtle" id="cgstRow" style="display:none;"><span>CGST @ <span id="cgstPct">9</span>%</span><span class="amt tabular" id="sumCgst">₹0</span></div>
+      <div class="sum-row subtle" id="sgstRow" style="display:none;"><span>SGST @ <span id="sgstPct">9</span>%</span><span class="amt tabular" id="sumSgst">₹0</span></div>
+
+      <div class="sum-row total"><span>Grand total</span><span class="amt tabular" id="sumGrand">₹0</span></div>
+
+      <div class="cost-summary-block" id="costSummaryBlock" style="display:none;">
+        <h4>Cost &amp; margin (internal)</h4>
+        <div class="sum-row subtle"><span>Internal cost</span><span class="amt tabular" id="sumCost">₹0</span></div>
+        <div class="sum-row margin"><span>Margin</span><span class="amt tabular" id="sumMargin">₹0</span></div>
+        <div class="sum-row margin subtle"><span>Margin %</span><span class="amt tabular" id="sumMarginPct">0%</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= RATE CARD & SETTINGS PAGE ================= -->
+<div class="page" id="page-settings">
+  <div class="settings-wrap">
+    <div class="settings-section">
+      <h3>Terms &amp; exclusions <span style="font-weight:400;font-size:12px;color:var(--ink-soft);">— used in Client PDF / Client View</span></h3>
+      <textarea id="metaTerms" rows="5" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:4px;font-size:13px;"></textarea>
+    </div>
+
+    <div class="settings-section">
+      <h3>Client-facing columns</h3>
+      <div class="col-toggles">
+        <label><input type="checkbox" id="colMaterial" checked> Material</label>
+        <label><input type="checkbox" id="colFinish" checked> Finish</label>
+        <label><input type="checkbox" id="colUnit" checked> Unit</label>
+        <label><input type="checkbox" id="colRate" checked> Rate (per unit)</label>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Rate card</h3>
+      <div style="margin-bottom:14px;display:flex;gap:8px;">
+        <button class="btn danger-outline small" id="btnResetRates">Reset to default rates</button>
+        <button class="btn primary small" id="btnSaveRates">Save rate card (shared with team)</button>
+      </div>
+      <div id="rateCardBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= CLIENT VIEW PAGE ================= -->
+<div class="page" id="page-clientview">
+  <div class="clientview-wrap">
+    <div class="cv-banner">
+      <span>👁 This is the read-only view your client would see — no version history, no cost/margin data.</span>
+    </div>
+    <div class="cv-header">
+      <div class="co">BAREBASE</div>
+      <div class="addr">202, 2nd Floor, Ahuja Chambers, Kumar Krupa Road, Bangalore 560 001 · POC: Ridhi Bhinde, +91 7411664532</div>
+      <div class="meta">
+        <div><span>Client</span><span id="cvClient">—</span></div>
+        <div><span>Property</span><span id="cvProperty">—</span></div>
+        <div><span>Prepared by</span><span id="cvPreparedBy">—</span></div>
+        <div><span>Date</span><span id="cvDate">—</span></div>
+      </div>
+    </div>
+    <div id="cvSections"></div>
+    <div class="cv-summary" id="cvSummary"></div>
+    <div class="cv-notes" id="cvNotes"></div>
+    <div class="cv-approve-bar">
+      <button class="btn light" id="btnBackToBuild">← Back to Build BOQ</button>
+      <button class="btn primary" id="btnApproveVersion">Mark latest version Approved (mock)</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOAD PROJECT MODAL -->
+<div class="modal-overlay" id="loadModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Load saved project</h3>
+      <button class="btn light small" id="closeLoadModal">Close</button>
+    </div>
+    <div class="modal-body" id="loadModalBody">Loading…</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   RATE CARD (unchanged source data)
+   ============================================================ */
+const CATEGORIES = [
+  "False Ceiling","Electrical Works","Plumbing Works","Civil & Infra Works","Demolition Work",
+  "Kitchen Furniture","Living Room Furniture","Dining Furniture","Bathroom Furniture","Beds",
+  "Wardrobes","Foyer Furniture","Puja Furniture","Utility Furniture","Other Furniture",
+  "Wall Paneling","Décor & Styling"
+];
+
+const DEFAULT_RATES = {
+  "False Ceiling":[
+    {desc:"Gypsum Ceiling",material:"Gypsum Board",finish:"Paint-ready",rate:120,cost:0,unit:"SQFT"},
+    {desc:"Designer Ceiling",material:"Gypsum + Laminate",finish:"Matte Polish",rate:300,cost:0,unit:"SQFT"},
+    {desc:"Designer Ceiling",material:"Gypsum + Solid Wood",finish:"Matte Polish",rate:425,cost:0,unit:"SQFT"},
+    {desc:"Cove Lighting Setup",material:"Gypsum with Lighting",finish:"Concealed LED",rate:80,cost:0,unit:"RFT"},
+    {desc:"Gypsum Grid Ceiling",material:"2x2 Tile ceiling",finish:"Finished",rate:135,cost:0,unit:"SQFT"},
+    {desc:"PVC Laminated Ceiling",material:"PVC",finish:"Finished",rate:150,cost:0,unit:"SQFT"},
+    {desc:"POP Cornices",material:"POP Molded",finish:"Smooth Finish",rate:50,cost:0,unit:"RFT"}
+  ],
+  "Electrical Works":[
+    {desc:"Concealed Wiring",material:"Fireproof Copper Wire (Anchor/Polycab)",finish:"Standard",rate:100,cost:0,unit:"RFT"},
+    {desc:"Switches & Sockets",material:"Anchor Roma/Legrand",finish:"White/Graphite Finish",rate:180,cost:0,unit:"Nos."},
+    {desc:"Lighting Fixtures",material:"LED Downlights/Strips",finish:"Warm/Cool White",rate:250,cost:0,unit:"Nos."},
+    {desc:"MCB & DB Panel",material:"Legrand/Siemens",finish:"Standard",rate:5000,cost:0,unit:"Nos."}
+  ],
+  "Plumbing Works":[
+    {desc:"Piping",material:"CPVC/Astral",finish:"Concealed",rate:180,cost:0,unit:"RFT"},
+    {desc:"Sanitary Fixtures",material:"Kohler/Jaguar/Hindware",finish:"Chrome/White",rate:5000,cost:0,unit:"Nos."},
+    {desc:"Drain Line",material:"PVC 6kg Pressure Pipe",finish:"Standard",rate:150,cost:0,unit:"RFT"}
+  ],
+  "Civil & Infra Works":[
+    {desc:"Floor Protection",material:"2mm Sheets",finish:"Corrugated sheet",rate:8,cost:0,unit:"SQFT"},
+    {desc:"Deep Cleaning",material:"Cleaning supplies",finish:"Dust free, stain free",rate:10,cost:0,unit:"SQFT"},
+    {desc:"Floor Screeding",material:"Cement-Sand Mix",finish:"Smooth Finish",rate:55,cost:0,unit:"SQFT"},
+    {desc:"Wall Cladding",material:"Tiles/Stone",finish:"Matte/Gloss Finish",rate:300,cost:0,unit:"SQFT"},
+    {desc:"Waterproofing",material:"Dr. Fixit/BASF",finish:"2-Coat System",rate:70,cost:0,unit:"SQFT"},
+    {desc:"Construction 4\" Wall",material:"Brick/Block Masonry",finish:"Plaster",rate:130,cost:0,unit:"SQFT"},
+    {desc:"Construction 6\" Wall",material:"Brick/Block Masonry",finish:"Plaster",rate:160,cost:0,unit:"SQFT"},
+    {desc:"Plastering",material:"Cement-Sand Mix",finish:"Smooth Finish",rate:75,cost:0,unit:"SQFT"},
+    {desc:"Plastering",material:"Gyproc",finish:"Smooth Finish",rate:165,cost:0,unit:"SQFT"},
+    {desc:"Windows",material:"UPVC",finish:"White",rate:600,cost:0,unit:"SQFT"},
+    {desc:"Windows",material:"UPVC",finish:"Wooden",rate:1100,cost:0,unit:"SQFT"},
+    {desc:"Windows",material:"Aluminium",finish:"Black/Grey",rate:2500,cost:0,unit:"SQFT"},
+    {desc:"Windows",material:"Wooden",finish:"Polished",rate:9500,cost:0,unit:"SQFT"},
+    {desc:"Tiling",material:"Cement-Sand Mix",finish:"Flooring+Spacer+Grout",rate:100,cost:0,unit:"SQFT"},
+    {desc:"Tiling",material:"Adhesive",finish:"Wall+Spacer+Grout",rate:110,cost:0,unit:"SQFT"},
+    {desc:"Countertop",material:"Quartz",finish:"Slab Installation",rate:15000,cost:0,unit:"SQFT"},
+    {desc:"Countertop",material:"Granite",finish:"Slab Installation",rate:3500,cost:0,unit:"SQFT"},
+    {desc:"Painting",material:"Tractor Emulsion",finish:"Smooth Finish",rate:20,cost:0,unit:"SQFT"},
+    {desc:"Painting",material:"Acrylic Emulsion",finish:"Smooth Finish",rate:35,cost:0,unit:"SQFT"},
+    {desc:"Painting",material:"Royale",finish:"Smooth Finish",rate:50,cost:0,unit:"SQFT"},
+    {desc:"Painting",material:"Texture",finish:"Smooth Finish",rate:135,cost:0,unit:"SQFT"},
+    {desc:"Core Cutting",material:"Chimney/AC",finish:"Smooth Finish",rate:1200,cost:0,unit:"Nos."}
+  ],
+  "Demolition Work":[
+    {desc:"Wall Removal",material:"Brick/Block Masonry",finish:"Manual",rate:70,cost:0,unit:"SQFT"},
+    {desc:"Tile Removal",material:"Floor/Wall Tiles",finish:"Manual",rate:60,cost:0,unit:"SQFT"},
+    {desc:"Debris Disposal",material:"As per Site",finish:"Standard",rate:25,cost:0,unit:"SQFT"},
+    {desc:"Loading & Unloading",material:"—",finish:"Per person",rate:450,cost:0,unit:"Person"},
+    {desc:"Housekeeping",material:"—",finish:"Per day",rate:600,cost:0,unit:"Day"}
+  ],
+  "Kitchen Furniture":[
+    {desc:"Kitchen Bottom unit",material:"BWP Plywood",finish:"Laminate",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Kitchen Bottom unit",material:"BWP Plywood",finish:"Veneer",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Kitchen Bottom unit",material:"BWP Plywood",finish:"Acrylic",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Kitchen Bottom unit",material:"BWP Plywood",finish:"Duco",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Kitchen Bottom unit",material:"BWP Plywood",finish:"PU",rate:2550.0,cost:0,unit:"SQFT"},
+    {desc:"Kitchen Bottom unit",material:"BWP Plywood",finish:"Membrane",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Kitchen Overhead unit",material:"BWP Plywood",finish:"Laminate",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Kitchen Overhead unit",material:"BWP Plywood",finish:"Veneer",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Kitchen Overhead unit",material:"BWP Plywood",finish:"Acrylic",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Kitchen Overhead unit",material:"BWP Plywood",finish:"Duco",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Kitchen Overhead unit",material:"BWP Plywood",finish:"PU",rate:2550.0,cost:0,unit:"SQFT"},
+    {desc:"Kitchen Overhead unit",material:"BWP Plywood",finish:"Membrane",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Kitchen Overhead unit",material:"BWP Plywood",finish:"Profile Glass",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Loft",material:"BWP Plywood",finish:"Laminate",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Loft",material:"BWP Plywood",finish:"Veneer",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Loft",material:"BWP Plywood",finish:"Acrylic",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Loft",material:"BWP Plywood",finish:"Duco",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Loft",material:"BWP Plywood",finish:"PU",rate:2550.0,cost:0,unit:"SQFT"},
+    {desc:"Loft",material:"BWP Plywood",finish:"Membrane",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Loft",material:"BWP Plywood",finish:"Profile Glass",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Loft",material:"BWP Plywood",finish:"Laminate",rate:1650.0,cost:0,unit:"SQFT"},
+    {desc:"Loft",material:"BWP Plywood",finish:"Veneer",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Loft",material:"BWP Plywood",finish:"Acrylic",rate:1850.0,cost:0,unit:"SQFT"},
+    {desc:"Loft",material:"BWP Plywood",finish:"Duco",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Loft",material:"BWP Plywood",finish:"PU",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Loft",material:"BWP Plywood",finish:"Membrane",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Loft",material:"BWP Plywood",finish:"Profile Glass",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Tall unit",material:"BWP Plywood",finish:"Laminate",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Tall unit",material:"BWP Plywood",finish:"Veneer",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Tall unit",material:"BWP Plywood",finish:"Acrylic",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Tall unit",material:"BWP Plywood",finish:"Duco",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Tall unit",material:"BWP Plywood",finish:"PU",rate:2550.0,cost:0,unit:"SQFT"},
+    {desc:"Tall unit",material:"BWP Plywood",finish:"Membrane",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Tall unit",material:"BWP Plywood",finish:"Profile Glass",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Island Unit",material:"BWP Plywood",finish:"Laminate",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Island Unit",material:"BWP Plywood",finish:"Veneer",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Island Unit",material:"BWP Plywood",finish:"Acrylic",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Island Unit",material:"BWP Plywood",finish:"Duco",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Island Unit",material:"BWP Plywood",finish:"PU",rate:2550.0,cost:0,unit:"SQFT"},
+    {desc:"Island Unit",material:"BWP Plywood",finish:"Membrane",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Island Unit",material:"BWP Plywood",finish:"Profile Glass",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Accessories",material:"",finish:"Brand - EBCO/HETTICH",rate:4500.0,cost:0,unit:"Nos."},
+    {desc:"Accessories",material:"",finish:"Brand - EBCO/HETTICH",rate:6500.0,cost:0,unit:"Nos."},
+    {desc:"Accessories",material:"",finish:"Brand - EBCO/HETTICH",rate:6500.0,cost:0,unit:"Nos."},
+    {desc:"Accessories",material:"",finish:"Brand - EBCO/HETTICH",rate:3000.0,cost:0,unit:"Nos."},
+    {desc:"Accessories",material:"",finish:"Brand - EBCO/HETTICH",rate:28500.0,cost:0,unit:"Nos."},
+    {desc:"Counter Top",material:"",finish:"Per slab - supply and installation",rate:75000.0,cost:0,unit:"SQFT"},
+    {desc:"Counter Top",material:"",finish:"Per square ft - supply and installation",rate:750.0,cost:0,unit:"SQFT"}
+  ],
+  "Living Room Furniture":[
+    {desc:"TV unit",material:"Plywood",finish:"Laminate",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"Plywood",finish:"Veneer",rate:2050.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"Plywood",finish:"Acrylic",rate:2050.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"Plywood",finish:"Duco",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"Plywood",finish:"PU",rate:2350.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"Plywood",finish:"Membrane",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"Plywood",finish:"Profile Glass",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"Plywood",finish:"Laminate",rate:1850.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"Plywood",finish:"Veneer",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"Plywood",finish:"Acrylic",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"Plywood",finish:"Duco",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"Plywood",finish:"PU",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"Plywood",finish:"Membrane",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"Plywood",finish:"Profile Glass",rate:2050.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"",finish:"Laminated back panel",rate:550.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"",finish:"PU back panel",rate:750.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"",finish:"Marble back panel",rate:850.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"",finish:"Charcoal back panel",rate:750.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"",finish:"Louvered back panel",rate:850.0,cost:0,unit:"SQFT"},
+    {desc:"TV unit",material:"",finish:"Plywood with texture paint",rate:450.0,cost:0,unit:"SQFT"},
+    {desc:"Sofa",material:"",finish:"Fabric Finish",rate:25000.0,cost:0,unit:"Nos."},
+    {desc:"Sofa",material:"",finish:"Faux Leather finish",rate:28000.0,cost:0,unit:"Nos."},
+    {desc:"Sofa",material:"",finish:"Genuine Leather Finish",rate:60000.0,cost:0,unit:"Nos."},
+    {desc:"Swing",material:"",finish:"2 seater as per design",rate:50000.0,cost:0,unit:"Nos."},
+    {desc:"Ottoman/Pouffe",material:"",finish:"as per design",rate:18000.0,cost:0,unit:"Nos."},
+    {desc:"Wing chairs",material:"",finish:"as per design",rate:30000.0,cost:0,unit:"Nos."},
+    {desc:"Partition",material:"",finish:"Fixed Jhali Partition",rate:1150.0,cost:0,unit:"SQFT"},
+    {desc:"Partition",material:"",finish:"Fixed Laminate Partition",rate:1250.0,cost:0,unit:"SQFT"},
+    {desc:"Partition",material:"",finish:"Fixed Glass and Aluminium Partition",rate:1500.0,cost:0,unit:"SQFT"},
+    {desc:"Partition",material:"",finish:"Fixed Metal Partition",rate:1250.0,cost:0,unit:"SQFT"}
+  ],
+  "Dining Furniture":[
+    {desc:"Dining table",material:"",finish:"as per design",rate:2200.0,cost:0,unit:"SQFT"},
+    {desc:"Dining chair",material:"",finish:"as per design",rate:11500.0,cost:0,unit:"Nos."},
+    {desc:"Crockery unit",material:"Ply",finish:"Laminate",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Crockery unit",material:"Ply",finish:"Veneer",rate:2050.0,cost:0,unit:"SQFT"},
+    {desc:"Crockery unit",material:"Ply",finish:"Acrylic",rate:2050.0,cost:0,unit:"SQFT"},
+    {desc:"Crockery unit",material:"Ply",finish:"Duco",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Crockery unit",material:"Ply",finish:"PU",rate:2350.0,cost:0,unit:"SQFT"},
+    {desc:"Crockery unit",material:"Ply",finish:"Membrane",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Crockery unit",material:"Ply",finish:"Profile Glass",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Crockery unit",material:"Ply",finish:"Laminate",rate:1850.0,cost:0,unit:"SQFT"},
+    {desc:"Crockery unit",material:"Ply",finish:"Veneer",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Crockery unit",material:"Ply",finish:"Acrylic",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Crockery unit",material:"Ply",finish:"Duco",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Crockery unit",material:"Ply",finish:"PU",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Crockery unit",material:"Ply",finish:"Membrane",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Crockery unit",material:"Ply",finish:"Profile Glass",rate:2050.0,cost:0,unit:"SQFT"}
+  ],
+  "Bathroom Furniture":[
+    {desc:"Vanity Unit",material:"BWP Ply",finish:"Laminate",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Vanity Unit",material:"Ply",finish:"Veneer",rate:2050.0,cost:0,unit:"SQFT"},
+    {desc:"Vanity Unit",material:"Ply",finish:"Acrylic",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Vanity Unit",material:"Ply",finish:"Membrane",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Vanity Unit",material:"Ply",finish:"Louvers",rate:2350.0,cost:0,unit:"SQFT"},
+    {desc:"Vanity Unit",material:"BWP Ply",finish:"Laminate",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Vanity Unit",material:"Ply",finish:"Veneer",rate:2050.0,cost:0,unit:"SQFT"},
+    {desc:"Vanity Unit",material:"Ply",finish:"Acrylic",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Vanity Unit",material:"Ply",finish:"Membrane",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Vanity Unit",material:"Ply",finish:"Louvers",rate:2350.0,cost:0,unit:"SQFT"},
+    {desc:"Bathroom Mirror",material:"",finish:"Organic Mirror without LED Strip",rate:650.0,cost:0,unit:"SQFT"},
+    {desc:"Bathroom Mirror",material:"",finish:"Organic Mirror with LED Strip",rate:1150.0,cost:0,unit:"SQFT"}
+  ],
+  "Beds":[
+    {desc:"Single Bed",material:"",finish:"Single bed with wooden headboard without storage",rate:30000.0,cost:0,unit:"Nos."},
+    {desc:"Single Bed",material:"",finish:"Single bed with wooden headboard with hydraulic storage",rate:40000.0,cost:0,unit:"Nos."},
+    {desc:"Single Bed",material:"",finish:"Single bed with wooden headboard with drawers storage",rate:35000.0,cost:0,unit:"Nos."},
+    {desc:"Single Bed",material:"",finish:"Single bed with fabric headboard without storage",rate:32500.0,cost:0,unit:"Nos."},
+    {desc:"Single Bed",material:"",finish:"Single bed with fabric headboard with hydraulic storage",rate:42500.0,cost:0,unit:"Nos."},
+    {desc:"Single Bed",material:"",finish:"Single bed with fabric headboard with drawers storage",rate:37500.0,cost:0,unit:"Nos."},
+    {desc:"Queen - Sized Bed",material:"",finish:"Queen sized bed with wooden headboard without storage",rate:50000.0,cost:0,unit:"Nos."},
+    {desc:"Queen - Sized Bed",material:"",finish:"Queen sized bed with wooden headboard with hydraulic storage",rate:60000.0,cost:0,unit:"Nos."},
+    {desc:"Queen - Sized Bed",material:"",finish:"Queen sized bed with wooden headboard with drawers storage",rate:60000.0,cost:0,unit:"Nos."},
+    {desc:"Queen - Sized Bed",material:"",finish:"Queen sized bed with fabric headboard without storage",rate:55000.0,cost:0,unit:"Nos."},
+    {desc:"Queen - Sized Bed",material:"",finish:"Queen sized bed with fabric headboard with hydraulic storage",rate:65000.0,cost:0,unit:"Nos."},
+    {desc:"Queen - Sized Bed",material:"",finish:"Queen sized bed with fabric headboard with drawers storage",rate:65000.0,cost:0,unit:"Nos."},
+    {desc:"King - Sized Bed",material:"",finish:"King sized bed with wooden headboard without storage",rate:60000.0,cost:0,unit:"Nos."},
+    {desc:"King - Sized Bed",material:"",finish:"King sized bed with wooden headboard with hydraulic storage",rate:70000.0,cost:0,unit:"Nos."},
+    {desc:"King - Sized Bed",material:"",finish:"King sized bed with wooden headboard with drawers storage",rate:70000.0,cost:0,unit:"Nos."},
+    {desc:"King - Sized Bed",material:"",finish:"King sized bed with fabric headboard without storage",rate:65000.0,cost:0,unit:"Nos."},
+    {desc:"King - Sized Bed",material:"",finish:"King sized bed with fabric headboard with hydraulic storage",rate:75000.0,cost:0,unit:"Nos."},
+    {desc:"King - Sized Bed",material:"",finish:"King sized bed with fabric headboard with drawers storage",rate:75000.0,cost:0,unit:"Nos."}
+  ],
+  "Wardrobes":[
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Laminate",rate:1850.0,cost:0,unit:"SQFT"},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Veneer",rate:2100.0,cost:0,unit:"SQFT"},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Acrylic",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Duco",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"PU",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Membrane",rate:2350.0,cost:0,unit:"SQFT"},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Glass",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Laminate",rate:1750.0,cost:0,unit:"SQFT"},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Veneer",rate:2000.0,cost:0,unit:"SQFT"},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Acrylic",rate:1850.0,cost:0,unit:"SQFT"}
+  ],
+  "Foyer Furniture":[
+    {desc:"SHOERACK",material:"Ply",finish:"Laminate",rate:1650.0,cost:0,unit:"SQFT"},
+    {desc:"SHOERACK",material:"Ply",finish:"Veneer",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"SHOERACK",material:"Ply",finish:"Acrylic",rate:1850.0,cost:0,unit:"SQFT"},
+    {desc:"SHOERACK",material:"Ply",finish:"Louvre",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"SHOERACK",material:"Ply",finish:"Duco",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"SHOERACK",material:"Ply",finish:"PU",rate:2350.0,cost:0,unit:"SQFT"},
+    {desc:"SHOERACK",material:"Ply",finish:"Profile Glass",rate:2050.0,cost:0,unit:"SQFT"},
+    {desc:"CONSOLE TABLE without drawers",material:"Ply",finish:"Laminate",rate:1650.0,cost:0,unit:"SQFT"},
+    {desc:"CONSOLE TABLE without drawers",material:"Ply",finish:"Veneer",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"CONSOLE TABLE without drawers",material:"Ply",finish:"Acrylic",rate:1850.0,cost:0,unit:"SQFT"},
+    {desc:"CONSOLE TABLE without drawers",material:"Ply",finish:"Louvre",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"CONSOLE TABLE without drawers",material:"Ply",finish:"Duco",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"CONSOLE TABLE without drawers",material:"Ply",finish:"PU",rate:2350.0,cost:0,unit:"SQFT"},
+    {desc:"CONSOLE TABLE without drawers",material:"Ply",finish:"Profile Glass",rate:2050.0,cost:0,unit:"SQFT"},
+    {desc:"CONSOLE TABLE with drawers",material:"Ply",finish:"Laminate",rate:1850.0,cost:0,unit:"SQFT"},
+    {desc:"CONSOLE TABLE with drawers",material:"Ply",finish:"Veneer",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"CONSOLE TABLE with drawers",material:"Ply",finish:"Acrylic",rate:2050.0,cost:0,unit:"SQFT"},
+    {desc:"CONSOLE TABLE with drawers",material:"Ply",finish:"Louvre",rate:2350.0,cost:0,unit:"SQFT"},
+    {desc:"CONSOLE TABLE with drawers",material:"Ply",finish:"Duco",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"CONSOLE TABLE with drawers",material:"Ply",finish:"PU",rate:2550.0,cost:0,unit:"SQFT"},
+    {desc:"CONSOLE TABLE with drawers",material:"Ply",finish:"Profile Glass",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Mirror",material:"",finish:"Plain mirror",rate:650.0,cost:0,unit:"SQFT"},
+    {desc:"Mirror",material:"",finish:"LED mirror",rate:1150.0,cost:0,unit:"SQFT"}
+  ],
+  "Puja Furniture":[
+    {desc:"Wall Mounted Open Puja Unit",material:"Ply",finish:"Laminate",rate:1650.0,cost:0,unit:"SQFT"},
+    {desc:"Wall Mounted Open Puja Unit With Shutters",material:"Ply",finish:"Laminate",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Wall Mounted Open Puja Unit With Shutters",material:"Ply",finish:"Laminate And Glass",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Bottom Puja unit",material:"Ply",finish:"Laminate",rate:1850.0,cost:0,unit:"SQFT"},
+    {desc:"Fixed Ledges Puja Unit",material:"",finish:"Laminate",rate:2000.0,cost:0,unit:"Nos."},
+    {desc:"Puja Unit - Back panelling",material:"",finish:"Laminated back panel",rate:550.0,cost:0,unit:"SQFT"},
+    {desc:"Puja Unit - Back panelling",material:"",finish:"PU back panel",rate:750.0,cost:0,unit:"SQFT"},
+    {desc:"Puja Unit - Back panelling",material:"",finish:"Marble back panel",rate:850.0,cost:0,unit:"SQFT"},
+    {desc:"Puja Unit - Back panelling",material:"",finish:"Charcoal back panel",rate:750.0,cost:0,unit:"SQFT"},
+    {desc:"Puja Unit - Back panelling",material:"",finish:"Louvered back panel",rate:850.0,cost:0,unit:"SQFT"},
+    {desc:"Puja Unit - Back panelling",material:"",finish:"Plywood with texture paint",rate:450.0,cost:0,unit:"SQFT"},
+    {desc:"Mandir Shutters",material:"Ply",finish:"Laminate",rate:1200.0,cost:0,unit:"SQFT"},
+    {desc:"Mandir Shutters",material:"Ply",finish:"Laminate And Glass",rate:1500.0,cost:0,unit:"SQFT"}
+  ],
+  "Utility Furniture":[
+    {desc:"Utlity Top unit",material:"BWP Plywood",finish:"Laminate",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Top unit",material:"BWP Plywood",finish:"Veneer",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Top unit",material:"BWP Plywood",finish:"Acrylic",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Top unit",material:"BWP Plywood",finish:"Duco",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Top unit",material:"BWP Plywood",finish:"PU",rate:2550.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Top unit",material:"BWP Plywood",finish:"Membrane",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Bottom Unit",material:"BWP Plywood",finish:"Laminate",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Bottom Unit",material:"BWP Plywood",finish:"Veneer",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Bottom Unit",material:"BWP Plywood",finish:"Acrylic",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Bottom Unit",material:"BWP Plywood",finish:"Duco",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Bottom Unit",material:"BWP Plywood",finish:"PU",rate:2550.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Bottom Unit",material:"BWP Plywood",finish:"Membrane",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Janitors Unit",material:"BWP Plywood",finish:"Laminate",rate:1950.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Janitors Unit",material:"BWP Plywood",finish:"Veneer",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Janitors Unit",material:"BWP Plywood",finish:"Acrylic",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Janitors Unit",material:"BWP Plywood",finish:"Duco",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Janitors Unit",material:"BWP Plywood",finish:"PU",rate:2550.0,cost:0,unit:"SQFT"},
+    {desc:"Utlity Janitors Unit",material:"BWP Plywood",finish:"Membrane",rate:2450.0,cost:0,unit:"SQFT"},
+    {desc:"UPVC Window",material:"",finish:"Supply and installation of white UPVC window with 5mm clear glass, SS hardware, and all accessories. Includes transportation, fixing, sealing, and making goods. Cost does not include staging and scaffolding charges.",rate:550.0,cost:0,unit:"SQFT"}
+  ],
+  "Other Furniture":[
+    {desc:"Side Table",material:"Plywood",finish:"Laminate",rate:9500.0,cost:0,unit:"Nos."},
+    {desc:"Side Table",material:"Plywood",finish:"Veneer",rate:11000.0,cost:0,unit:"Nos."},
+    {desc:"Side Table",material:"Plywood",finish:"Acrylic",rate:11000.0,cost:0,unit:"Nos."},
+    {desc:"Side Table",material:"Plywood",finish:"Duco",rate:14500.0,cost:0,unit:"Nos."},
+    {desc:"Side Table",material:"Plywood",finish:"PU",rate:18000.0,cost:0,unit:"Nos."},
+    {desc:"Side Table",material:"Plywood",finish:"Membrane",rate:14500.0,cost:0,unit:"Nos."},
+    {desc:"Study Table",material:"Plywood",finish:"Laminate",rate:1850.0,cost:0,unit:"SQFT"},
+    {desc:"Study Table",material:"Plywood",finish:"Veneer",rate:2000.0,cost:0,unit:"SQFT"},
+    {desc:"Study Table",material:"Plywood",finish:"Acrylic",rate:1850.0,cost:0,unit:"SQFT"},
+    {desc:"Study Table",material:"Plywood",finish:"Duco",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Study Table",material:"Plywood",finish:"PU",rate:2050.0,cost:0,unit:"SQFT"},
+    {desc:"Study Table",material:"Plywood",finish:"Membrane",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Dressing Table",material:"Plywood",finish:"Laminate",rate:1850.0,cost:0,unit:"SQFT"},
+    {desc:"Dressing Table",material:"Plywood",finish:"Veneer",rate:2000.0,cost:0,unit:"SQFT"},
+    {desc:"Dressing Table",material:"Plywood",finish:"Acrylic",rate:1850.0,cost:0,unit:"SQFT"},
+    {desc:"Dressing Table",material:"Plywood",finish:"Duco",rate:2150.0,cost:0,unit:"SQFT"},
+    {desc:"Dressing Table",material:"Plywood",finish:"PU",rate:2050.0,cost:0,unit:"SQFT"},
+    {desc:"Dressing Table",material:"Plywood",finish:"Membrane",rate:2250.0,cost:0,unit:"SQFT"},
+    {desc:"Dressing Mirror",material:"",finish:"Organic Dressing Mirror",rate:650.0,cost:0,unit:"Lumpsum"},
+    {desc:"Dressing Mirror",material:"",finish:"Dressing Mirror with LED Strip Profile Lights",rate:1150.0,cost:0,unit:"Lumpsum"}
+  ],
+  "Wall Paneling":[
+    {desc:"Wooden Panels",material:"MDF + Acrylic",finish:"Glossy Finish",rate:1800,cost:0,unit:"SQFT"},
+    {desc:"Wooden Panels",material:"MDF + Duco Finish",finish:"Matte/Gloss",rate:1500,cost:0,unit:"SQFT"},
+    {desc:"Wooden Panels",material:"MDF with Veneer",finish:"Natural/Polished",rate:1000,cost:0,unit:"SQFT"},
+    {desc:"Upholstered Panels",material:"Fabric/Faux Leather",finish:"Quilted/Flat",rate:1200,cost:0,unit:"SQFT"}
+  ],
+  "Décor & Styling":[
+    {desc:"Curtains & Blinds",material:"Fabric/Sheer/Blackout",finish:"Custom",rate:250,cost:0,unit:"RFT"},
+    {desc:"Lighting Fixtures",material:"Designer/Decorative",finish:"Metal/Glass Finish",rate:3000,cost:0,unit:"Nos."},
+    {desc:"Artwork & Mirrors",material:"Assorted",finish:"Framed/Unframed",rate:1500,cost:0,unit:"Nos."},
+    {desc:"Rugs & Accessories",material:"Assorted",finish:"Textile/Decor",rate:2000,cost:0,unit:"Nos."}
+  ]
+};
+
+const DEFAULT_TERMS =
+"Estimate consists of only the scope of work mentioned above. 3D renders and reference images may include decor elements used purely to illustrate design intent — only the items listed in this BOQ are part of the deliverable scope.\n\n" +
+"Not included: loose furniture, soft furnishings, kitchen appliances, organisers & accessories, decorative lighting not specified above, and any item not explicitly listed.\n\n" +
+"GST as applicable, extra.";
+
+const FIXED_SECTIONS = ["Electrical Work","Wall Works","Other"];
+const PRESET_ROOMS = [
+  "Living Room","Dining","Kitchen","Master Bedroom","Bedroom 2","Bedroom 3","Kids Room",
+  "Puja Room","Foyer","Utility","Bathroom","Balcony","Study","Terrace"
+];
+
+function dimsForUnit(unit){
+  const u = (unit||'').trim().toUpperCase();
+  if(u === 'SQFT') return ['L','B'];
+  if(u === 'RFT') return ['L'];
+  if(u === 'CFT') return ['L','B','H'];
+  return [];
+}
+function computeQty(item){
+  const dims = dimsForUnit(item.unit);
+  if(dims.length === 0) return item.qty || 0;
+  const l = parseFloat(item.dims.l)||0, b = parseFloat(item.dims.b)||0, h = parseFloat(item.dims.h)||0;
+  if(dims.length === 1) return l;
+  if(dims.length === 2) return l*b;
+  return l*b*h;
+}
+function slugify(name){ return name.trim().replace(/\s+/g,'_').toLowerCase(); }
+function currentProjectSlug(){
+  const name = (document.getElementById('metaProperty').value || document.getElementById('metaClient').value || '').trim();
+  return name ? slugify(name) : null;
+}
+
+let rateCard = JSON.parse(JSON.stringify(DEFAULT_RATES));
+let sections = [...FIXED_SECTIONS];
+let lineItems = {};
+sections.forEach(s => lineItems[s] = []);
+let activeSection = sections[0];
+let rowSeq = 1;
+let showCostView = false;
+let versions = [];
+let entryDraft = null;
+let editingId = null;
+
+const fmt = n => "₹" + (Math.round((n||0)*100)/100).toLocaleString('en-IN');
+const fmtSigned = n => (n<0?'−':'') + fmt(Math.abs(n));
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+/* ---------- storage: rate card ---------- */
+async function loadRateCardFromStorage(){
+  let stored = null;
+  try{
+    const res = await window.storage.get('rate-card', true);
+    if(res && res.value){ stored = JSON.parse(res.value); }
+  }catch(e){}
+  if(stored){
+    let changed = false;
+    CATEGORIES.forEach(cat=>{
+      if(!stored[cat] || !Array.isArray(stored[cat]) || stored[cat].length===0){
+        stored[cat] = JSON.parse(JSON.stringify(DEFAULT_RATES[cat] || []));
+        changed = true;
+      }
+    });
+    rateCard = stored;
+    if(changed){ try{ await window.storage.set('rate-card', JSON.stringify(rateCard), true); }catch(e){} }
+    return;
+  }
+  try{ await window.storage.set('rate-card', JSON.stringify(rateCard), true); }catch(e){}
+}
+async function saveRateCardToStorage(){
+  try{
+    const res = await window.storage.set('rate-card', JSON.stringify(rateCard), true);
+    if(!res) throw new Error('no result');
+    toast('Rate card saved for the whole team');
+  }catch(e){ toast('Could not save rate card — try again'); }
+}
+
+/* ---------- rate-card lookup helpers ---------- */
+function uniq(arr){ return [...new Set(arr)]; }
+function descOptions(cat){ return uniq((rateCard[cat]||[]).map(r=>r.desc)); }
+function materialOptions(cat, desc){ return uniq((rateCard[cat]||[]).filter(r=>r.desc===desc).map(r=>r.material)); }
+function finishOptions(cat, desc, material){ return uniq((rateCard[cat]||[]).filter(r=>r.desc===desc && r.material===material).map(r=>r.finish)); }
+function findRateRow(cat, desc, material, finish){
+  const list = rateCard[cat]||[];
+  return list.find(r=> r.desc===desc && r.material===material && r.finish===finish)
+      || list.find(r=> r.desc===desc && r.material===material)
+      || list.find(r=> r.desc===desc);
+}
+
+function readAndCompressImage(file, cb){
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const maxW = 480;
+      const scale = Math.min(1, maxW/img.width);
+      const w = Math.round(img.width*scale), h = Math.round(img.height*scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      cb(canvas.toDataURL('image/jpeg', 0.6));
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ---------- section switcher (single dropdown, doubles as add-section) ---------- */
+function populateSectionSwitcher(){
+  const sel = document.getElementById('sectionSwitcher');
+  const fixed = sections.filter(s=>FIXED_SECTIONS.includes(s));
+  const rooms = sections.filter(s=>!FIXED_SECTIONS.includes(s));
+  const availablePresets = PRESET_ROOMS.filter(r=>!sections.includes(r));
+  let html = '';
+  html += `<optgroup label="Fixed sections">${fixed.map(s=>`<option value="${s}" ${s===activeSection?'selected':''}>${s} (${lineItems[s].length})</option>`).join('')}</optgroup>`;
+  if(rooms.length) html += `<optgroup label="Rooms">${rooms.map(s=>`<option value="${s}" ${s===activeSection?'selected':''}>${s} (${lineItems[s].length})</option>`).join('')}</optgroup>`;
+  if(availablePresets.length) html += `<optgroup label="＋ Add a room">${availablePresets.map(r=>`<option value="addpreset:${r}">＋ ${r}</option>`).join('')}</optgroup>`;
+  html += `<option value="__custom__">＋ Custom section…</option>`;
+  sel.innerHTML = html;
+}
+
+/* ---------- item entry form (single reusable form; Add/Enter collapses into compact list) ---------- */
+function freshDraftItem(){
+  const firstCat = CATEGORIES[0];
+  const first = rateCard[firstCat] && rateCard[firstCat][0];
+  return {
+    id: null, category: firstCat, custom: !first,
+    desc: first ? first.desc : '', material: first ? first.material : '', finish: first ? first.finish : '',
+    rate: first ? first.rate : 0, cost: first ? (first.cost||0) : 0, unit: first ? (first.unit||'') : '',
+    dims:{l:'',b:'',h:''}, qty:0, description:'', image:null
+  };
+}
+function resetEntryForm(){
+  entryDraft = freshDraftItem();
+  editingId = null;
+  renderEntryForm();
+}
+function renderEntryForm(){
+  const wrap = document.getElementById('entryForm');
+  wrap.classList.toggle('editing', !!editingId);
+  const row = entryDraft;
+  const isCustomCat = row.category === '__custom__';
+  const catOptions = `<option value="__custom__" ${isCustomCat?'selected':''}>Other (custom item)</option>` +
+    CATEGORIES.map(c=>`<option value="${c}" ${row.category===c?'selected':''}>${c}</option>`).join('');
+
+  let descCell, materialCell, finishCell, unitCell;
+  if(isCustomCat){
+    descCell = `<input type="text" class="fld-desc" value="${row.desc||''}" placeholder="Item description">`;
+    materialCell = `<input type="text" class="fld-material" value="${row.material||''}" placeholder="Material">`;
+    finishCell = `<input type="text" class="fld-finish" value="${row.finish||''}" placeholder="Finish">`;
+    unitCell = `<input type="text" class="fld-unit" value="${row.unit||''}" placeholder="Unit">`;
+  }else{
+    const descOpts = descOptions(row.category);
+    descCell = `<select class="sel-desc">
+        <option value="custom" ${row.custom?'selected':''}>Custom item…</option>
+        ${descOpts.map(d=>`<option value="${d}" ${!row.custom && row.desc===d?'selected':''}>${d}</option>`).join('')}
+      </select>`;
+    if(row.custom){
+      materialCell = `<input type="text" class="fld-material" value="${row.material||''}">`;
+      finishCell = `<input type="text" class="fld-finish" value="${row.finish||''}">`;
+      unitCell = `<input type="text" class="fld-unit" value="${row.unit||''}" placeholder="Unit">`;
+    }else{
+      const matOpts = materialOptions(row.category, row.desc);
+      materialCell = matOpts.length>1 || (matOpts.length===1 && matOpts[0])
+        ? `<select class="sel-material">${matOpts.map(m=>`<option value="${m}" ${row.material===m?'selected':''}>${m||'—'}</option>`).join('')}</select>`
+        : `<span style="color:var(--ink-soft);padding:6px 0;display:block;">—</span>`;
+      const finOpts = finishOptions(row.category, row.desc, row.material);
+      finishCell = finOpts.length
+        ? `<select class="sel-finish">${finOpts.map(f=>`<option value="${f}" ${row.finish===f?'selected':''}>${f||'—'}</option>`).join('')}</select>`
+        : `<input type="text" class="fld-finish" value="${row.finish||''}">`;
+      unitCell = `<span class="unit-badge">${row.unit||''}</span>`;
+    }
+  }
+
+  const dims = dimsForUnit(row.unit);
+  row.qty = computeQty(row);
+  let dimHtml = '';
+  if(dims.includes('L')) dimHtml += `<div class="item-field dim"><label>Length</label><input type="number" min="0" step="0.01" class="fld-dim-l num" value="${row.dims.l||''}" placeholder="ft"></div>`;
+  if(dims.includes('B')) dimHtml += `<div class="item-field dim"><label>Breadth</label><input type="number" min="0" step="0.01" class="fld-dim-b num" value="${row.dims.b||''}" placeholder="ft"></div>`;
+  if(dims.includes('H')) dimHtml += `<div class="item-field dim"><label>Height</label><input type="number" min="0" step="0.01" class="fld-dim-h num" value="${row.dims.h||''}" placeholder="ft"></div>`;
+  const qtyField = dims.length>0
+    ? `<div class="item-field dim"><label>Qty (${row.unit||'—'})</label><input type="text" class="fld-qty-computed num" value="${row.qty||0}" readonly style="background:#F1EEE6;"></div>`
+    : `<div class="item-field dim"><label>Qty${row.unit?(' ('+row.unit+')'):''}</label><input type="number" min="0" step="0.01" class="fld-qty-manual num" value="${row.qty||''}" placeholder="0"></div>`;
+
+  const amount = (row.qty||0)*(row.rate||0);
+  const margin = amount - (row.qty||0)*(row.cost||0);
+
+  const imgCell = row.image
+    ? `<div class="img-cell"><img class="img-thumb" src="${row.image}" title="Click to view full size"><button class="rm-btn img-rm" title="Remove image">✕</button></div>`
+    : `<label class="img-add" title="Attach image">📷<input type="file" accept="image/*" class="fld-image-input" style="display:none;"></label>`;
+
+  wrap.innerHTML = `
+    <div class="entry-form-label">${editingId ? '✎ Editing item' : '+ Add item to ' + activeSection}</div>
+    <div class="item-row">
+      <div class="item-field grow2"><label>Category</label><select class="sel-category">${catOptions}</select></div>
+      <div class="item-field grow2"><label>Description</label>${descCell}</div>
+    </div>
+    <div class="item-row">
+      <div class="item-field"><label>Material</label>${materialCell}</div>
+      <div class="item-field"><label>Finish</label>${finishCell}</div>
+      <div class="item-field narrow"><label>Unit</label>${unitCell}</div>
+    </div>
+    <div class="item-row">
+      ${dimHtml}
+      ${qtyField}
+      <div class="item-field dim"><label>Rate ₹</label><input type="number" min="0" step="0.01" class="fld-rate num" value="${row.rate||0}"></div>
+      ${showCostView ? `<div class="item-field dim"><label>Cost ₹</label><input type="number" min="0" step="0.01" class="fld-cost num" value="${row.cost||0}"></div>` : ''}
+      <div class="amount-block">
+        <span class="amt tabular">${fmt(amount)}</span>
+        ${showCostView ? `<span class="margin tabular">margin ${fmt(margin)}</span>` : ''}
+      </div>
+    </div>
+    <div class="item-row item-desc-row">
+      <textarea class="fld-description" placeholder="Scope of work — what the client sees for this item…" rows="2">${row.description||''}</textarea>
+    </div>
+    <div class="item-foot">
+      <div class="img-cell">${imgCell}</div>
+      <div class="entry-form-buttons">
+        ${editingId ? '<button class="btn light small" id="btnCancelEdit">Cancel</button>' : ''}
+        <button class="btn primary small" id="btnConfirmEntry">${editingId ? 'Update item' : 'Add item'}</button>
+      </div>
+    </div>
+    <div class="hint-text">Press Enter in any field to ${editingId?'update':'add'} this item quickly.</div>
+  `;
+
+  const catSel = wrap.querySelector('.sel-category');
+  catSel.addEventListener('change', e=>{
+    const val = e.target.value;
+    entryDraft.category = val; entryDraft.custom = false; entryDraft.desc=''; entryDraft.material=''; entryDraft.finish=''; entryDraft.rate=0; entryDraft.cost=0; entryDraft.unit='';
+    if(val !== '__custom__'){
+      const descs = descOptions(val);
+      if(descs.length){
+        entryDraft.desc = descs[0];
+        const mats = materialOptions(val, entryDraft.desc);
+        entryDraft.material = mats[0] || '';
+        const fins = finishOptions(val, entryDraft.desc, entryDraft.material);
+        entryDraft.finish = fins[0] || '';
+        const rc = findRateRow(val, entryDraft.desc, entryDraft.material, entryDraft.finish);
+        if(rc){ entryDraft.rate = rc.rate; entryDraft.cost = rc.cost||0; entryDraft.unit = rc.unit||''; }
+      }else{ entryDraft.custom = true; }
+    }
+    renderEntryForm();
+  });
+  const descSel = wrap.querySelector('select.sel-desc');
+  if(descSel) descSel.addEventListener('change', e=>{
+    const val = e.target.value;
+    if(val === 'custom'){
+      entryDraft.custom = true; entryDraft.desc=''; entryDraft.material=''; entryDraft.finish=''; entryDraft.rate=0; entryDraft.cost=0; entryDraft.unit='';
+    }else{
+      entryDraft.custom = false; entryDraft.desc = val;
+      const mats = materialOptions(entryDraft.category, val);
+      entryDraft.material = mats[0] || '';
+      const fins = finishOptions(entryDraft.category, val, entryDraft.material);
+      entryDraft.finish = fins[0] || '';
+      const rc = findRateRow(entryDraft.category, entryDraft.desc, entryDraft.material, entryDraft.finish);
+      if(rc){ entryDraft.rate = rc.rate; entryDraft.cost = rc.cost||0; entryDraft.unit = rc.unit||''; }
+    }
+    renderEntryForm();
+  });
+  const descFld = wrap.querySelector('input.fld-desc');
+  if(descFld) descFld.addEventListener('input', e=>{ entryDraft.desc = e.target.value; });
+
+  const matSel = wrap.querySelector('select.sel-material');
+  if(matSel) matSel.addEventListener('change', e=>{
+    entryDraft.material = e.target.value;
+    const fins = finishOptions(entryDraft.category, entryDraft.desc, entryDraft.material);
+    entryDraft.finish = fins[0] || '';
+    const rc = findRateRow(entryDraft.category, entryDraft.desc, entryDraft.material, entryDraft.finish);
+    if(rc){ entryDraft.rate = rc.rate; entryDraft.cost = rc.cost||0; entryDraft.unit = rc.unit||''; }
+    renderEntryForm();
+  });
+  const matFld = wrap.querySelector('input.fld-material');
+  if(matFld) matFld.addEventListener('input', e=>{ entryDraft.material = e.target.value; });
+
+  const finSel = wrap.querySelector('select.sel-finish');
+  if(finSel) finSel.addEventListener('change', e=>{
+    entryDraft.finish = e.target.value;
+    const rc = findRateRow(entryDraft.category, entryDraft.desc, entryDraft.material, entryDraft.finish);
+    if(rc){ entryDraft.rate = rc.rate; entryDraft.cost = rc.cost||0; entryDraft.unit = rc.unit||''; }
+    renderEntryForm();
+  });
+  const finFld = wrap.querySelector('input.fld-finish');
+  if(finFld) finFld.addEventListener('input', e=>{ entryDraft.finish = e.target.value; });
+
+  const unitFld = wrap.querySelector('input.fld-unit');
+  if(unitFld) unitFld.addEventListener('input', e=>{ entryDraft.unit = e.target.value; renderEntryForm(); });
+
+  ['l','b','h'].forEach(d=>{
+    const fld = wrap.querySelector(`.fld-dim-${d}`);
+    if(fld) fld.addEventListener('input', e=>{ entryDraft.dims[d] = e.target.value; refreshEntryAmount(); });
+  });
+  const qtyManual = wrap.querySelector('.fld-qty-manual');
+  if(qtyManual) qtyManual.addEventListener('input', e=>{ entryDraft.qty = parseFloat(e.target.value)||0; refreshEntryAmount(); });
+
+  wrap.querySelector('.fld-rate').addEventListener('input', e=>{ entryDraft.rate = parseFloat(e.target.value)||0; refreshEntryAmount(); });
+  const costFld = wrap.querySelector('.fld-cost');
+  if(costFld) costFld.addEventListener('input', e=>{ entryDraft.cost = parseFloat(e.target.value)||0; refreshEntryAmount(); });
+
+  wrap.querySelector('.fld-description').addEventListener('input', e=>{ entryDraft.description = e.target.value; });
+
+  const imgInput = wrap.querySelector('.fld-image-input');
+  if(imgInput) imgInput.addEventListener('change', e=>{
+    const file = e.target.files[0]; if(!file) return;
+    readAndCompressImage(file, dataUrl=>{ entryDraft.image = dataUrl; renderEntryForm(); });
+  });
+  const imgThumb = wrap.querySelector('.img-thumb');
+  if(imgThumb) imgThumb.addEventListener('click', ()=>{
+    const w = window.open(''); if(w) w.document.write(`<img src="${entryDraft.image}" style="max-width:100%;">`);
+  });
+  const imgRm = wrap.querySelector('.img-rm');
+  if(imgRm) imgRm.addEventListener('click', ()=>{ entryDraft.image = null; renderEntryForm(); });
+
+  wrap.querySelector('#btnConfirmEntry').addEventListener('click', confirmEntry);
+  const cancelBtn = wrap.querySelector('#btnCancelEdit');
+  if(cancelBtn) cancelBtn.addEventListener('click', resetEntryForm);
+
+  // Enter-to-submit on any field except the scope textarea
+  wrap.querySelectorAll('input, select').forEach(el=>{
+    el.addEventListener('keydown', e=>{
+      if(e.key === 'Enter'){ e.preventDefault(); confirmEntry(); }
+    });
+  });
+}
+function refreshEntryAmount(){
+  entryDraft.qty = computeQty(entryDraft);
+  const wrap = document.getElementById('entryForm');
+  const qtyComputedFld = wrap.querySelector('.fld-qty-computed');
+  if(qtyComputedFld) qtyComputedFld.value = entryDraft.qty || 0;
+  const amount = (entryDraft.qty||0)*(entryDraft.rate||0);
+  const margin = amount - (entryDraft.qty||0)*(entryDraft.cost||0);
+  wrap.querySelector('.amount-block .amt').textContent = fmt(amount);
+  const marginEl = wrap.querySelector('.amount-block .margin');
+  if(marginEl) marginEl.textContent = 'margin ' + fmt(margin);
+}
+
+function confirmEntry(){
+  const desc = entryDraft.category === '__custom__' ? entryDraft.desc : entryDraft.desc;
+  if(!desc || !desc.trim()){ toast('Add a description before saving this item'); return; }
+  entryDraft.qty = computeQty(entryDraft);
+  if(editingId){
+    const idx = lineItems[activeSection].findIndex(r=>r.id===editingId);
+    if(idx>-1) lineItems[activeSection][idx] = {...entryDraft, id:editingId};
+    toast('Item updated');
+  }else{
+    lineItems[activeSection].push({...entryDraft, id: rowSeq++});
+    toast('Item added');
+  }
+  resetEntryForm();
+  renderCompactList();
+  renderSummary();
+  populateSectionSwitcher();
+  document.getElementById('secSubtotalPill').textContent = fmt(sectionTotal(activeSection));
+}
+
+function editItem(id){
+  const item = lineItems[activeSection].find(r=>r.id===id);
+  if(!item) return;
+  entryDraft = JSON.parse(JSON.stringify(item));
+  editingId = id;
+  renderEntryForm();
+  document.getElementById('entryForm').scrollIntoView({behavior:'smooth', block:'start'});
+}
+function removeItem(id){
+  lineItems[activeSection] = lineItems[activeSection].filter(r=>r.id!==id);
+  if(editingId === id) resetEntryForm();
+  renderCompactList();
+  renderSummary();
+  populateSectionSwitcher();
+  document.getElementById('secSubtotalPill').textContent = fmt(sectionTotal(activeSection));
+}
+
+/* ---------- compact list ---------- */
+function renderCompactList(){
+  const wrap = document.getElementById('compactList');
+  const rows = lineItems[activeSection] || [];
+  if(rows.length === 0){
+    wrap.innerHTML = '<div class="empty-sec">No items in this section yet — use the form above to add the first one.</div>';
+    return;
+  }
+  let html = '<div class="compact-list">';
+  rows.forEach(r=>{
+    const qty = computeQty(r);
+    const amt = qty*(r.rate||0);
+    html += `<div class="compact-row" data-id="${r.id}">
+      <div class="cr-desc">
+        <div class="main-line">${r.desc||'(untitled item)'}</div>
+        <div class="sub-line">${[r.material,r.finish].filter(Boolean).join(' · ')}</div>
+      </div>
+      <div class="cr-qty">${qty||0} ${r.unit||''} @ ${fmt(r.rate||0)}</div>
+      <div class="cr-amt tabular">${fmt(amt)}</div>
+      <div class="cr-actions">
+        <button class="icon-btn cr-edit" title="Edit">✎</button>
+        <button class="icon-btn danger cr-del" title="Remove">✕</button>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('.cr-edit').forEach(btn=>{
+    btn.addEventListener('click', ()=> editItem(parseInt(btn.closest('.compact-row').dataset.id)));
+  });
+  wrap.querySelectorAll('.cr-del').forEach(btn=>{
+    btn.addEventListener('click', ()=> removeItem(parseInt(btn.closest('.compact-row').dataset.id)));
+  });
+}
+
+/* ---------- totals ---------- */
+function sectionTotal(sec){
+  return (lineItems[sec]||[]).reduce((s,r)=> s + (computeQty(r)||0)*(r.rate||0), 0);
+}
+function sectionCost(sec){
+  return (lineItems[sec]||[]).reduce((s,r)=> s + (computeQty(r)||0)*(r.cost||0), 0);
+}
+function getGstRate(){
+  const sel = document.getElementById('gstRateSelect').value;
+  if(sel === 'custom') return parseFloat(document.getElementById('gstRateCustom').value)||0;
+  return parseFloat(sel)||0;
+}
+function computeTotals(){
+  let subtotal = 0, totalCost = 0;
+  sections.forEach(sec=>{ subtotal += sectionTotal(sec); totalCost += sectionCost(sec); });
+  const discType = document.getElementById('discountType').value;
+  const discVal = parseFloat(document.getElementById('discountValue').value)||0;
+  const discountAmount = discType === 'pct' ? subtotal*discVal/100 : discVal;
+  const afterDiscount = Math.max(0, subtotal - discountAmount);
+  const gstOn = document.getElementById('gstToggle').checked;
+  const gstRate = getGstRate();
+  const cgst = gstOn ? afterDiscount*(gstRate/2)/100 : 0;
+  const sgst = cgst;
+  const gst = cgst + sgst;
+  const grand = afterDiscount + gst;
+  const margin = afterDiscount - totalCost;
+  const marginPct = afterDiscount>0 ? (margin/afterDiscount*100) : 0;
+  return {subtotal, totalCost, discountAmount, afterDiscount, gstOn, gstRate, cgst, sgst, gst, grand, margin, marginPct};
+}
+function renderSummary(){
+  const list = document.getElementById('summaryList');
+  let html = '';
+  sections.forEach(sec=>{
+    if(!lineItems[sec] || lineItems[sec].length===0) return;
+    html += `<div class="sum-row"><span>${sec}</span><span class="amt tabular">${fmt(sectionTotal(sec))}</span></div>`;
+  });
+  list.innerHTML = html;
+  const t = computeTotals();
+  document.getElementById('sumSubtotal').textContent = fmt(t.subtotal);
+  document.getElementById('discountRow').style.display = t.discountAmount>0 ? 'flex':'none';
+  document.getElementById('sumDiscount').textContent = fmtSigned(-t.discountAmount);
+  document.getElementById('cgstRow').style.display = t.gstOn ? 'flex':'none';
+  document.getElementById('sgstRow').style.display = t.gstOn ? 'flex':'none';
+  document.getElementById('cgstPct').textContent = (t.gstRate/2);
+  document.getElementById('sgstPct').textContent = (t.gstRate/2);
+  document.getElementById('sumCgst').textContent = fmt(t.cgst);
+  document.getElementById('sumSgst').textContent = fmt(t.sgst);
+  document.getElementById('sumGrand').textContent = fmt(t.grand);
+  document.getElementById('costSummaryBlock').style.display = showCostView ? 'block':'none';
+  document.getElementById('sumCost').textContent = fmt(t.totalCost);
+  document.getElementById('sumMargin').textContent = fmt(t.margin);
+  document.getElementById('sumMarginPct').textContent = (Math.round(t.marginPct*10)/10) + '%';
+}
+
+function renderAll(){
+  populateSectionSwitcher();
+  renderCompactList();
+  renderSummary();
+  document.getElementById('secSubtotalPill').textContent = fmt(sectionTotal(activeSection));
+}
+
+/* ---------- rate card settings ---------- */
+function renderRateCardSettings(){
+  const body = document.getElementById('rateCardBody');
+  let html = '';
+  CATEGORIES.forEach(cat=>{
+    html += `<div class="rate-cat-block" data-cat="${cat}">
+      <h4>${cat}</h4>
+      <table class="ratecard"><thead><tr>
+        <th style="width:24%;">Description</th><th style="width:22%;">Material</th>
+        <th style="width:15%;">Finish</th><th style="width:9%;">Unit</th><th style="width:9%;">Rate ₹</th><th style="width:9%;">Cost ₹</th><th></th>
+      </tr></thead><tbody>`;
+    (rateCard[cat]||[]).forEach((r,i)=>{
+      html += `<tr data-i="${i}">
+        <td><input type="text" class="r-desc" value="${r.desc}"></td>
+        <td><input type="text" class="r-material" value="${r.material||''}"></td>
+        <td><input type="text" class="r-finish" value="${r.finish||''}"></td>
+        <td><input type="text" class="r-unit" value="${r.unit||''}"></td>
+        <td><input type="number" class="r-rate r-num" value="${r.rate}"></td>
+        <td><input type="number" class="r-cost r-num" value="${r.cost||0}"></td>
+        <td><button class="rm-btn r-del" title="Delete">✕</button></td>
+      </tr>`;
+    });
+    html += `</tbody></table>
+      <div style="margin-top:7px;"><button class="btn light small r-add" data-cat="${cat}">+ Add rate item</button></div>
+    </div>`;
+  });
+  body.innerHTML = html;
+  body.querySelectorAll('.r-add').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const cat = e.target.dataset.cat;
+      rateCard[cat].push({desc:'New item', material:'', finish:'', rate:0, cost:0, unit:'SQFT'});
+      renderRateCardSettings();
+    });
+  });
+  body.querySelectorAll('.rate-cat-block').forEach(block=>{
+    const cat = block.dataset.cat;
+    block.querySelectorAll('tr[data-i]').forEach(tr=>{
+      const i = parseInt(tr.dataset.i);
+      tr.querySelector('.r-desc').addEventListener('input', e=> rateCard[cat][i].desc = e.target.value);
+      tr.querySelector('.r-material').addEventListener('input', e=> rateCard[cat][i].material = e.target.value);
+      tr.querySelector('.r-finish').addEventListener('input', e=> rateCard[cat][i].finish = e.target.value);
+      tr.querySelector('.r-unit').addEventListener('input', e=> rateCard[cat][i].unit = e.target.value);
+      tr.querySelector('.r-rate').addEventListener('input', e=> rateCard[cat][i].rate = parseFloat(e.target.value)||0);
+      tr.querySelector('.r-cost').addEventListener('input', e=> rateCard[cat][i].cost = parseFloat(e.target.value)||0);
+      tr.querySelector('.r-del').addEventListener('click', ()=>{ rateCard[cat].splice(i,1); renderRateCardSettings(); });
+    });
+  });
+}
+
+/* ---------- versions (Project page) ---------- */
+function buildSnapshot(){
+  return {
+    client: document.getElementById('metaClient').value,
+    property: document.getElementById('metaProperty').value,
+    preparedBy: document.getElementById('metaPreparedBy').value,
+    date: document.getElementById('metaDate').value,
+    terms: document.getElementById('metaTerms').value,
+    discountType: document.getElementById('discountType').value,
+    discountValue: document.getElementById('discountValue').value,
+    gstOn: document.getElementById('gstToggle').checked,
+    gstRateSelect: document.getElementById('gstRateSelect').value,
+    gstRateCustom: document.getElementById('gstRateCustom').value,
+    colMaterial: document.getElementById('colMaterial').checked,
+    colFinish: document.getElementById('colFinish').checked,
+    colUnit: document.getElementById('colUnit').checked,
+    colRate: document.getElementById('colRate').checked,
+    sections: JSON.parse(JSON.stringify(sections)),
+    lineItems: JSON.parse(JSON.stringify(lineItems))
+  };
+}
+function applySnapshot(snap){
+  document.getElementById('metaClient').value = snap.client||'';
+  document.getElementById('metaProperty').value = snap.property||'';
+  document.getElementById('metaPreparedBy').value = snap.preparedBy||'';
+  document.getElementById('metaDate').value = snap.date||'';
+  document.getElementById('metaTerms').value = snap.terms || DEFAULT_TERMS;
+  document.getElementById('discountType').value = snap.discountType || 'pct';
+  document.getElementById('discountValue').value = snap.discountValue || 0;
+  document.getElementById('gstToggle').checked = !!snap.gstOn;
+  document.getElementById('gstRateSelect').value = snap.gstRateSelect || '18';
+  document.getElementById('gstRateCustom').value = snap.gstRateCustom || 18;
+  document.getElementById('gstRateCustom').style.display = (snap.gstRateSelect==='custom') ? 'inline-block':'none';
+  document.getElementById('colMaterial').checked = snap.colMaterial !== false;
+  document.getElementById('colFinish').checked = snap.colFinish !== false;
+  document.getElementById('colUnit').checked = snap.colUnit !== false;
+  document.getElementById('colRate').checked = snap.colRate !== false;
+  sections = snap.sections && snap.sections.length ? snap.sections : [...FIXED_SECTIONS];
+  lineItems = snap.lineItems || {};
+  sections.forEach(s=>{ if(!lineItems[s]) lineItems[s]=[]; });
+  activeSection = sections[0];
+  let maxId = 0;
+  Object.values(lineItems).forEach(arr=> arr.forEach(it=>{ if(it.id>maxId) maxId = it.id; }));
+  rowSeq = maxId + 1;
+  resetEntryForm();
+  renderAll();
+}
+async function saveVersion(statusOverride){
+  const slug = currentProjectSlug();
+  if(!slug){ toast('Add a client or property name first (Project page)'); return false; }
+  const v = { id: Date.now(), savedAt: new Date().toISOString(), status: statusOverride || 'Draft', snapshot: buildSnapshot() };
+  versions.unshift(v);
+  try{
+    await window.storage.set('versions:'+slug, JSON.stringify(versions), true);
+  }catch(e){ toast('Could not save version — try again'); return false; }
+  renderVersionList();
+  return true;
+}
+async function loadVersionsForCurrentProject(){
+  const slug = currentProjectSlug();
+  const listEl = document.getElementById('versionList');
+  if(!slug){ versions = []; renderVersionList(); return; }
+  try{
+    const res = await window.storage.get('versions:'+slug, true);
+    versions = (res && res.value) ? JSON.parse(res.value) : [];
+  }catch(e){ versions = []; }
+  renderVersionList();
+}
+function statusClass(s){ return s==='Approved' ? 'approved' : (s==='Sent to Client' ? 'sent' : 'draft'); }
+function renderVersionList(){
+  const el = document.getElementById('versionList');
+  if(versions.length === 0){ el.innerHTML = '<div class="no-versions">No versions saved yet for this project. Add a client/property name above, then click "Save current state as new version".</div>'; return; }
+  el.innerHTML = versions.map((v,i)=>`
+    <div class="version-row" data-idx="${i}">
+      <span class="status-badge ${statusClass(v.status)}">${v.status}</span>
+      <span class="v-time">${new Date(v.savedAt).toLocaleString('en-IN')}</span>
+      <select class="v-status">
+        <option value="Draft" ${v.status==='Draft'?'selected':''}>Draft</option>
+        <option value="Sent to Client" ${v.status==='Sent to Client'?'selected':''}>Sent to Client</option>
+        <option value="Approved" ${v.status==='Approved'?'selected':''}>Approved</option>
+      </select>
+      <button class="btn light small v-open">Open</button>
+    </div>
+  `).join('');
+  el.querySelectorAll('.version-row').forEach(row=>{
+    const idx = parseInt(row.dataset.idx);
+    row.querySelector('.v-status').addEventListener('change', async e=>{
+      versions[idx].status = e.target.value;
+      const slug = currentProjectSlug();
+      if(slug){ try{ await window.storage.set('versions:'+slug, JSON.stringify(versions), true); }catch(err){} }
+      renderVersionList();
+    });
+    row.querySelector('.v-open').addEventListener('click', ()=>{
+      applySnapshot(versions[idx].snapshot);
+      switchPage('build');
+      toast('Version loaded into Build BOQ');
+    });
+  });
+}
+
+/* ---------- load a different project ---------- */
+async function openLoadModal(){
+  const modal = document.getElementById('loadModal');
+  modal.classList.add('open');
+  const body = document.getElementById('loadModalBody');
+  body.innerHTML = 'Loading…';
+  try{
+    const res = await window.storage.list('versions:', true);
+    const keys = (res && res.keys) || [];
+    if(keys.length === 0){ body.innerHTML = '<div style="color:var(--ink-soft);">No saved projects yet.</div>'; return; }
+    body.innerHTML = keys.map(k=>`<div class="btn light" style="width:100%;text-align:left;margin-bottom:6px;" data-key="${k}">${k.replace('versions:','').replace(/_/g,' ')}</div>`).join('');
+    body.querySelectorAll('[data-key]').forEach(el=>{
+      el.addEventListener('click', async ()=>{
+        try{
+          const r = await window.storage.get(el.dataset.key, true);
+          versions = JSON.parse(r.value);
+          if(versions.length){ applySnapshot(versions[0].snapshot); }
+          renderVersionList();
+          modal.classList.remove('open');
+          switchPage('project');
+          toast('Project loaded — showing latest version');
+        }catch(e){ toast('Could not load that project'); }
+      });
+    });
+  }catch(e){ body.innerHTML = '<div style="color:var(--danger);">Could not reach storage — try again.</div>'; }
+}
+
+/* ---------- Client View (with client-relevant diff highlighting) ---------- */
+function findLastApprovedVersion(){
+  return versions.find(v=>v.status==='Approved') || null;
+}
+function diffItem(current, approvedSnapshot){
+  if(!approvedSnapshot) return null;
+  for(const sec of Object.keys(approvedSnapshot.lineItems||{})){
+    const match = (approvedSnapshot.lineItems[sec]||[]).find(r=>r.id===current.id);
+    if(match){
+      const changed = match.rate!==current.rate || match.material!==current.material ||
+        match.finish!==current.finish || match.desc!==current.desc || match.unit!==current.unit ||
+        JSON.stringify(match.dims)!==JSON.stringify(current.dims);
+      return changed ? 'changed' : null;
+    }
+  }
+  return 'new'; // not found in any section of the last approved snapshot
+}
+function renderClientView(){
+  document.getElementById('cvClient').textContent = document.getElementById('metaClient').value || '—';
+  document.getElementById('cvProperty').textContent = document.getElementById('metaProperty').value || '—';
+  document.getElementById('cvPreparedBy').textContent = document.getElementById('metaPreparedBy').value || '—';
+  document.getElementById('cvDate').textContent = document.getElementById('metaDate').value || '—';
+
+  const cols = {
+    material: document.getElementById('colMaterial').checked,
+    finish: document.getElementById('colFinish').checked,
+    unit: document.getElementById('colUnit').checked,
+    rate: document.getElementById('colRate').checked
+  };
+  const approved = findLastApprovedVersion();
+  const approvedSnap = approved ? approved.snapshot : null;
+
+  let html = '';
+  let removedCount = 0;
+  if(approvedSnap){
+    const currentIds = new Set();
+    sections.forEach(sec=> (lineItems[sec]||[]).forEach(r=> currentIds.add(r.id)));
+    Object.values(approvedSnap.lineItems||{}).forEach(arr=> arr.forEach(r=>{ if(!currentIds.has(r.id)) removedCount++; }));
+  }
+
+  sections.forEach(sec=>{
+    const rows = lineItems[sec]||[];
+    if(rows.length === 0) return;
+    html += `<div class="cv-section"><div class="cv-section-head"><span>${sec}</span><span>${fmt(sectionTotal(sec))}</span></div>`;
+    rows.forEach(r=>{
+      const qty = computeQty(r);
+      const amt = qty*(r.rate||0);
+      const diff = approvedSnap ? diffItem(r, approvedSnap) : null;
+      const specParts = [];
+      if(cols.material && r.material) specParts.push(r.material);
+      if(cols.finish && r.finish) specParts.push(r.finish);
+      const qtyStr = cols.unit ? `${qty} ${r.unit||''}` : `${qty}`;
+      const rateStr = cols.rate ? ` · Rate ${fmt(r.rate||0)}` : '';
+      html += `<div class="cv-row ${diff==='new'?'diff-new':(diff==='changed'?'diff-changed':'')}">
+        <div class="cv-desc">
+          <div class="d1">${r.desc||''} ${diff==='new'?'<span class="cv-tag new">New</span>':''}${diff==='changed'?'<span class="cv-tag changed">Changed</span>':''}</div>
+          <div class="d2">${specParts.join(' · ')}${specParts.length?' · ':''}${qtyStr}${rateStr}</div>
+        </div>
+        <div class="cv-amt tabular">${fmt(amt)}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  if(html === ''){ html = '<div class="empty-sec">No items yet — add some in Build BOQ first.</div>'; }
+  if(removedCount > 0){
+    html += `<div class="hint-text" style="margin-bottom:14px;">${removedCount} item(s) present in the last approved version have since been removed.</div>`;
+  }
+  document.getElementById('cvSections').innerHTML = html;
+
+  const t = computeTotals();
+  let sHtml = '';
+  sHtml += `<div class="row"><span>Subtotal</span><span class="tabular">${fmt(t.subtotal)}</span></div>`;
+  if(t.discountAmount>0) sHtml += `<div class="row"><span>Discount</span><span class="tabular">−${fmt(t.discountAmount)}</span></div>`;
+  if(t.gstOn){
+    sHtml += `<div class="row"><span>CGST @ ${t.gstRate/2}%</span><span class="tabular">${fmt(t.cgst)}</span></div>`;
+    sHtml += `<div class="row"><span>SGST @ ${t.gstRate/2}%</span><span class="tabular">${fmt(t.sgst)}</span></div>`;
+  }
+  sHtml += `<div class="row total"><span>Grand total</span><span class="tabular">${fmt(t.grand)}</span></div>`;
+  document.getElementById('cvSummary').innerHTML = sHtml;
+  document.getElementById('cvNotes').textContent = document.getElementById('metaTerms').value || DEFAULT_TERMS;
+}
+
+/* ---------- PDF export (unchanged logic, iterating sections) ---------- */
+function pdfHeader(doc, title){
+  const pageW = doc.internal.pageSize.getWidth();
+  doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(36,35,30);
+  doc.text('BAREBASE', 40, 46);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(90,85,70);
+  doc.text('202, 2nd Floor, Ahuja Chambers, Kumar Krupa Road, Bangalore 560 001', 40, 60);
+  doc.text('POC: Ridhi Bhinde  ·  +91 7411664532  ·  ridhi@barebase.in', 40, 72);
+  doc.setDrawColor(156,122,60); doc.setLineWidth(1.2); doc.line(40,82,pageW-40,82);
+  doc.setFont('helvetica','bold'); doc.setFontSize(12.5); doc.setTextColor(36,35,30);
+  doc.text(title, 40, 102);
+  const client = document.getElementById('metaClient').value || '—';
+  const property = document.getElementById('metaProperty').value || '—';
+  const preparedBy = document.getElementById('metaPreparedBy').value || '—';
+  const date = document.getElementById('metaDate').value || '—';
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(50,48,42);
+  doc.text(`Client: ${client}`, 40, 118);
+  doc.text(`Property: ${property}`, 40, 130);
+  doc.text(`Prepared by: ${preparedBy}`, pageW-40, 118, {align:'right'});
+  doc.text(`Date: ${date}`, pageW-40, 130, {align:'right'});
+  return 148;
+}
+function ensureSpace(doc, y, needed){
+  const pageH = doc.internal.pageSize.getHeight();
+  if(y + needed > pageH - 50){ doc.addPage(); return 50; }
+  return y;
+}
+function buildPdf(mode){
+  if(!window.jspdf){ toast('PDF library still loading — try again in a second'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p','pt','a4');
+  const pageW = doc.internal.pageSize.getWidth();
+  let y = pdfHeader(doc, mode==='client' ? 'TENTATIVE ESTIMATE' : 'INTERNAL COST SHEET');
+  let slNo = 1;
+  const cols = {
+    material: document.getElementById('colMaterial').checked,
+    finish: document.getElementById('colFinish').checked,
+    unit: document.getElementById('colUnit').checked,
+    rate: document.getElementById('colRate').checked
+  };
+  const scopeNotes = [];
+  sections.forEach((sec, ci)=>{
+    const rows = lineItems[sec];
+    if(!rows || rows.length === 0) return;
+    y = ensureSpace(doc, y, 40);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(124,94,40);
+    doc.text(`${ci+1}. ${sec.toUpperCase()}`, 40, y); y += 6;
+    const head = [['Sl','Description',
+      ...(cols.material?['Material']:[]), ...(cols.finish?['Finish']:[]), ...(cols.unit?['Unit']:[]),
+      'Qty', ...(cols.rate?['Rate ₹']:[]), ...(mode==='internal'?['Cost ₹']:[]),
+      'Amount ₹', ...(mode==='internal'?['Margin ₹']:[])
+    ]];
+    const body = rows.map(r=>{
+      const qty = computeQty(r);
+      const amt = qty*(r.rate||0);
+      const margin = amt - qty*(r.cost||0);
+      if(r.description && r.description.trim()) scopeNotes.push({section:sec, desc:r.desc||'(custom item)', text:r.description.trim()});
+      return [String(slNo++), r.desc||'',
+        ...(cols.material?[r.material||'']:[]), ...(cols.finish?[r.finish||'']:[]), ...(cols.unit?[r.unit||'']:[]),
+        String(qty||0), ...(cols.rate?[fmt(r.rate||0).replace('₹','')]:[]),
+        ...(mode==='internal'?[fmt(r.cost||0).replace('₹','')]:[]),
+        fmt(amt).replace('₹',''), ...(mode==='internal'?[fmt(margin).replace('₹','')]:[])
+      ];
+    });
+    let idx = 2; const numericIdx = [];
+    if(cols.material) idx++; if(cols.finish) idx++; if(cols.unit) idx++;
+    numericIdx.push(idx++);
+    if(cols.rate) numericIdx.push(idx++);
+    if(mode==='internal') numericIdx.push(idx++);
+    numericIdx.push(idx++);
+    if(mode==='internal') numericIdx.push(idx++);
+    const columnStyles = {0:{cellWidth:20}};
+    numericIdx.forEach(i=>{ columnStyles[i] = {halign:'right'}; });
+    doc.autoTable({ startY:y, head, body, theme:'grid',
+      styles:{fontSize:8, cellPadding:4, textColor:[36,35,30], lineColor:[216,209,191]},
+      headStyles:{fillColor:[239,234,221], textColor:[85,82,74], fontStyle:'bold'},
+      columnStyles, margin:{left:40,right:40}, didDrawPage: ()=>{} });
+    y = doc.lastAutoTable.finalY + 8;
+    doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(90,85,70);
+    doc.text(`${sec} subtotal: ${fmt(sectionTotal(sec))}`, pageW-40, y, {align:'right'});
+    y += 18;
+  });
+  const t = computeTotals();
+  y = ensureSpace(doc, y, 130);
+  doc.setDrawColor(36,35,30); doc.setLineWidth(1);
+  doc.line(pageW-260, y, pageW-40, y); y += 16;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(50,48,42);
+  doc.text('Subtotal', pageW-260, y); doc.text(fmt(t.subtotal), pageW-40, y, {align:'right'}); y += 15;
+  if(t.discountAmount>0){ doc.text('Discount', pageW-260, y); doc.text('−'+fmt(t.discountAmount), pageW-40, y, {align:'right'}); y += 15; }
+  if(t.gstOn){
+    doc.text(`CGST @ ${t.gstRate/2}%`, pageW-260, y); doc.text(fmt(t.cgst), pageW-40, y, {align:'right'}); y += 15;
+    doc.text(`SGST @ ${t.gstRate/2}%`, pageW-260, y); doc.text(fmt(t.sgst), pageW-40, y, {align:'right'}); y += 15;
+  }
+  doc.setFont('helvetica','bold'); doc.setFontSize(11.5);
+  doc.text('Grand total', pageW-260, y+4); doc.text(fmt(t.grand), pageW-40, y+4, {align:'right'});
+  y += 26;
+  if(mode === 'internal'){
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(70,82,65);
+    doc.text('Internal cost', pageW-260, y); doc.text(fmt(t.totalCost), pageW-40, y, {align:'right'}); y += 15;
+    doc.setFont('helvetica','bold');
+    doc.text('Margin', pageW-260, y); doc.text(fmt(t.margin) + '  ('+(Math.round(t.marginPct*10)/10)+'%)', pageW-40, y, {align:'right'});
+    y += 26;
+  }
+  if(mode === 'client'){
+    const terms = document.getElementById('metaTerms').value || DEFAULT_TERMS;
+    y = ensureSpace(doc, y, 90);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(36,35,30);
+    doc.text('NOTES', 40, y); y += 14;
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(80,76,66);
+    const lines = doc.splitTextToSize(terms, pageW-80);
+    lines.forEach(line=>{ y = ensureSpace(doc, y, 14); doc.text(line, 40, y); y += 12; });
+    y += 24;
+    y = ensureSpace(doc, y, 50);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    doc.text('For Kanchan Integrated Property Development Co (Barebase)', pageW-40, y, {align:'right'});
+    doc.text('Authorised Signatory', pageW-40, y+34, {align:'right'});
+  }
+  if(scopeNotes.length > 0){
+    doc.addPage(); let ny = 50;
+    doc.setFont('helvetica','bold'); doc.setFontSize(12.5); doc.setTextColor(36,35,30);
+    doc.text('SCOPE NOTES', 40, ny); ny += 22;
+    let lastSection = null;
+    scopeNotes.forEach(note=>{
+      ny = ensureSpace(doc, ny, 40);
+      if(note.section !== lastSection){
+        doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(124,94,40);
+        doc.text(note.section.toUpperCase(), 40, ny); ny += 14;
+        lastSection = note.section;
+      }
+      doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(36,35,30);
+      doc.text(note.desc, 40, ny); ny += 11;
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(80,76,66);
+      const lines = doc.splitTextToSize(note.text, pageW-80);
+      lines.forEach(line=>{ ny = ensureSpace(doc, ny, 12); doc.text(line, 40, ny); ny += 11; });
+      ny += 8;
+    });
+  }
+  const imgItems = [];
+  sections.forEach(sec=>{ (lineItems[sec]||[]).forEach(r=>{ if(r.image) imgItems.push({sec, r}); }); });
+  if(imgItems.length > 0){
+    doc.addPage(); let iy = 50;
+    doc.setFont('helvetica','bold'); doc.setFontSize(12.5); doc.setTextColor(36,35,30);
+    doc.text('REFERENCE IMAGES', 40, iy); iy += 20;
+    const imgW = 140, imgH = 105, gap = 16, perRow = 3; let col = 0;
+    imgItems.forEach(({sec, r})=>{
+      const x = 40 + col*(imgW+gap);
+      if(iy + imgH + 30 > doc.internal.pageSize.getHeight() - 40){ doc.addPage(); iy = 50; col = 0; }
+      try{ doc.addImage(r.image, 'JPEG', x, iy, imgW, imgH); }catch(e){}
+      doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(70,68,60);
+      const caption = [r.desc, r.material, r.finish].filter(Boolean).join(' · ');
+      const capLines = doc.splitTextToSize(caption, imgW);
+      doc.text(capLines.slice(0,2), x, iy+imgH+11);
+      col++; if(col >= perRow){ col = 0; iy += imgH + 40; }
+    });
+  }
+  const filenameBase = (document.getElementById('metaProperty').value || document.getElementById('metaClient').value || 'BOQ').replace(/\s+/g,'_');
+  doc.save(`${filenameBase}_${mode === 'client' ? 'Client_Estimate' : 'Internal_Cost_Sheet'}.pdf`);
+  toast(mode === 'client' ? 'Client PDF downloaded' : 'Internal PDF downloaded');
+}
+
+/* ---------- page navigation ---------- */
+const PAGE_IDS = {
+  project: {btn:'pgProject', page:'page-project'},
+  build: {btn:'pgBuild', page:'page-build'},
+  settings: {btn:'pgSettings', page:'page-settings'},
+  clientview: {btn:'pgClientView', page:'page-clientview'}
+};
+function switchPage(page){
+  Object.values(PAGE_IDS).forEach(ids=>{
+    document.getElementById(ids.btn).classList.remove('active');
+    document.getElementById(ids.page).classList.remove('active');
+  });
+  document.getElementById(PAGE_IDS[page].btn).classList.add('active');
+  document.getElementById(PAGE_IDS[page].page).classList.add('active');
+  if(page === 'project') loadVersionsForCurrentProject();
+  if(page === 'clientview') renderClientView();
+}
+document.getElementById('pgProject').addEventListener('click', ()=>switchPage('project'));
+document.getElementById('pgBuild').addEventListener('click', ()=>switchPage('build'));
+document.getElementById('pgSettings').addEventListener('click', ()=>switchPage('settings'));
+document.getElementById('pgClientView').addEventListener('click', ()=>switchPage('clientview'));
+
+/* ---------- wire up remaining controls ---------- */
+document.getElementById('sectionSwitcher').addEventListener('change', e=>{
+  const val = e.target.value;
+  if(val === '__custom__'){
+    document.getElementById('customSectionRow').classList.add('show');
+    populateSectionSwitcher();
+    return;
+  }
+  document.getElementById('customSectionRow').classList.remove('show');
+  if(val.startsWith('addpreset:')){
+    const name = val.slice('addpreset:'.length);
+    if(!sections.includes(name)){ sections.push(name); lineItems[name] = []; }
+    activeSection = name;
+  }else{
+    activeSection = val;
+  }
+  resetEntryForm();
+  renderAll();
+});
+document.getElementById('btnConfirmCustomSection').addEventListener('click', ()=>{
+  const input = document.getElementById('customSectionName');
+  const name = input.value.trim();
+  if(!name) return;
+  if(!sections.includes(name)){ sections.push(name); lineItems[name] = []; }
+  activeSection = name;
+  input.value = '';
+  document.getElementById('customSectionRow').classList.remove('show');
+  resetEntryForm();
+  renderAll();
+});
+document.getElementById('customSectionName').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ e.preventDefault(); document.getElementById('btnConfirmCustomSection').click(); }
+});
+
+document.getElementById('costViewToggle').addEventListener('change', e=>{ showCostView = e.target.checked; renderEntryForm(); renderCompactList(); renderSummary(); });
+document.getElementById('gstToggle').addEventListener('change', renderSummary);
+document.getElementById('discountValue').addEventListener('input', renderSummary);
+document.getElementById('discountType').addEventListener('change', renderSummary);
+document.getElementById('gstRateSelect').addEventListener('change', e=>{
+  document.getElementById('gstRateCustom').style.display = (e.target.value==='custom') ? 'inline-block':'none';
+  renderSummary();
+});
+document.getElementById('gstRateCustom').addEventListener('input', renderSummary);
+
+document.getElementById('btnResetRates').addEventListener('click', ()=>{
+  if(confirm('Reset the rate card to Barebase defaults? This discards any custom rates.')){
+    rateCard = JSON.parse(JSON.stringify(DEFAULT_RATES));
+    renderRateCardSettings();
+  }
+});
+document.getElementById('btnSaveRates').addEventListener('click', saveRateCardToStorage);
+
+document.getElementById('btnLoad').addEventListener('click', openLoadModal);
+document.getElementById('closeLoadModal').addEventListener('click', ()=> document.getElementById('loadModal').classList.remove('open'));
+
+document.getElementById('btnSaveVersion').addEventListener('click', async ()=>{ await saveVersion('Draft'); });
+
+document.getElementById('btnSaveContinue').addEventListener('click', async ()=>{
+  const ok = await saveVersion('Sent to Client');
+  if(ok){ switchPage('clientview'); toast('Saved as new version — sent to client view'); }
+});
+document.getElementById('btnBackToBuild').addEventListener('click', ()=> switchPage('build'));
+document.getElementById('btnApproveVersion').addEventListener('click', async ()=>{
+  if(versions.length === 0){ toast('No version to approve yet — save one first'); return; }
+  versions[0].status = 'Approved';
+  const slug = currentProjectSlug();
+  if(slug){ try{ await window.storage.set('versions:'+slug, JSON.stringify(versions), true); }catch(e){} }
+  toast('Latest version marked Approved');
+  renderClientView();
+});
+
+document.getElementById('btnClientPdf').addEventListener('click', ()=> buildPdf('client'));
+document.getElementById('btnInternalPdf').addEventListener('click', ()=> buildPdf('internal'));
+
+/* ---------- init ---------- */
+(async function init(){
+  document.getElementById('metaDate').valueAsDate = new Date();
+  document.getElementById('metaTerms').value = DEFAULT_TERMS;
+  await loadRateCardFromStorage();
+  renderRateCardSettings();
+  resetEntryForm();
+  renderAll();
+})();
+</script>
+</body>
+</html>

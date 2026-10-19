@@ -1045,7 +1045,7 @@ These choices change what gets built. The spec uses the default shown until Kris
 | 13 | Do contractors get upload-only access? | No | Phase 3 |
 | 14 | Warranty period after handover | 12 months | Phase 3 |
 | 15 | Run RDash in parallel until projects in flight finish? | Yes; new projects start here after Phase 2 | Phase 2 |
-| 16 | Import data from another system, or start fresh? | Start fresh (decided) | — |
+| 16 | Import data from another system, or start fresh? | Copy BOQ Studio's database (decided, see docs/decisions.md) | — |
 
 **Added 15 Oct with Home budget**
 
