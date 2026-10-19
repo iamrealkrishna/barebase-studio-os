@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barebase — BOQ Builder</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+  :root{
+    --paper: #EAE6DA;
+    --paper-soft: #F4F1E8;
+    --card: #FBF9F3;
+    --ink: #24231E;
+    --ink-soft: #55524A;
+    --line: #D8D1BF;
+    --brass: #9C7A3C;
+    --brass-dark: #7C5E28;
+    --green: #465241;
+    --danger: #A8452F;
+    --radius: 4px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:14px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .serif{font-family:Georgia,"Iowan Old Style","Palatino Linotype","Times New Roman",serif;}
+  .tabular{font-variant-numeric:tabular-nums;}
+
+  /* ===== Top bar ===== */
+  .topbar{
+    background:var(--ink);
+    color:var(--paper-soft);
+    padding:13px 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+    box-shadow:0 1px 0 rgba(0,0,0,0.15);
+  }
+  .brand{display:flex;align-items:baseline;gap:11px;}
+  .brand .mark{
+    font-family:Georgia,serif;
+    font-size:20px;
+    letter-spacing:0.03em;
+    font-weight:700;
+  }
+  .brand .sub{
+    font-size:11px;
+    color:#C9C2AE;
+    letter-spacing:0.09em;
+    text-transform:uppercase;
+  }
+  .topbar-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .cost-toggle{
+    display:flex;align-items:center;gap:6px;
+    font-size:12px;color:#C9C2AE;
+    padding:0 8px 0 2px;border-right:1px solid #474437;margin-right:2px;
+  }
+  button{
+    font-family:inherit;
+    cursor:pointer;
+    border-radius:var(--radius);
+    transition:background 0.12s, border-color 0.12s, color 0.12s;
+  }
+  .btn{
+    background:transparent;
+    border:1px solid #55523F;
+    color:var(--paper-soft);
+    padding:7px 14px;
+    font-size:12.5px;
+    letter-spacing:0.02em;
+  }
+  .btn:hover{border-color:var(--brass); color:#fff;}
+  .btn.primary{
+    background:var(--brass);
+    border-color:var(--brass);
+    color:#fff;
+  }
+  .btn.primary:hover{background:var(--brass-dark);border-color:var(--brass-dark);}
+  .btn.light{
+    background:var(--card);
+    border:1px solid var(--line);
+    color:var(--ink);
+  }
+  .btn.light:hover{border-color:var(--brass);}
+  .btn.danger-outline{
+    background:transparent;border:1px solid #B5A98A;color:var(--danger);
+  }
+  .btn.small{padding:4px 10px;font-size:12px;}
+  .btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+  /* ===== Layout ===== */
+  .layout{
+    display:grid;
+    grid-template-columns:240px 1fr 296px;
+    gap:0;
+    min-height:calc(100vh - 58px);
+  }
+  @media (max-width: 1000px){
+    .layout{grid-template-columns:1fr; }
+    .sidebar, .summary{border:none !important;}
+  }
+
+  /* ===== Sidebar ===== */
+  .sidebar{
+    background:var(--paper-soft);
+    border-right:1px solid var(--line);
+    padding:20px 16px;
+  }
+  .project-meta label{
+    display:block;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.07em;
+    color:var(--ink-soft);
+    margin:11px 0 4px;
+  }
+  .project-meta input, .project-meta textarea{
+    width:100%;
+    padding:7px 8px;
+    border:1px solid var(--line);
+    background:var(--card);
+    border-radius:var(--radius);
+    font-size:13px;
+    font-family:inherit;
+    color:var(--ink);
+  }
+  .project-meta textarea{resize:vertical;min-height:70px;font-size:11.5px;line-height:1.45;}
+  .project-meta input:focus, .project-meta textarea:focus{outline:none;border-color:var(--brass);}
+  details.terms-details{margin-top:11px;}
+  details.terms-details summary{
+    font-size:10.5px;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-soft);
+    cursor:pointer;padding:3px 0;
+  }
+  .nav-title{
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-soft);
+    margin:24px 0 9px;
+    border-top:1px solid var(--line);
+    padding-top:18px;
+  }
+  .cat-nav{list-style:none;margin:0;padding:0;}
+  .cat-nav li{
+    display:flex;
+    align-items:baseline;
+    gap:9px;
+    padding:9px 9px;
+    border-radius:var(--radius);
+    cursor:pointer;
+    font-size:13px;
+    color:var(--ink);
+  }
+  .cat-nav li:hover{background:#E4DECB;}
+  .cat-nav li.active{background:var(--ink); color:#F4F1E8;}
+  .cat-nav li .num{
+    font-family:Georgia,serif;
+    font-size:12px;
+    color:var(--brass);
+    min-width:16px;
+  }
+  .cat-nav li.active .num{color:#D9B77A;}
+  .cat-nav li .count{
+    margin-left:auto;
+    font-size:11px;
+    color:var(--ink-soft);
+  }
+  .cat-nav li.active .count{color:#C9C2AE;}
+  .cat-nav li .csub{
+    font-size:10.5px;color:var(--ink-soft);display:block;width:100%;margin-top:1px;
+  }
+
+  /* ===== Main ===== */
+  .main{padding:22px 26px 40px;background:var(--paper);}
+  .cat-header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:14px;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .cat-header h2{
+    font-size:20px;
+    margin:0;
+    font-weight:700;
+  }
+  .cat-header .eyebrow{
+    font-size:11px;
+    color:var(--brass-dark);
+    text-transform:uppercase;
+    letter-spacing:0.09em;
+    display:block;
+    margin-bottom:3px;
+  }
+  .cat-subtotal-pill{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:6px 16px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .cat-subtotal-pill b{color:var(--ink);font-variant-numeric:tabular-nums;}
+
+  table.items{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    box-shadow:0 1px 2px rgba(36,35,30,0.04);
+  }
+  table.items th{
+    text-align:left;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--ink-soft);
+    padding:9px 8px;
+    border-bottom:1px solid var(--line);
+    background:#EFEADD;
+  }
+  table.items td{
+    padding:6px 6px;
+    border-bottom:1px solid #EFEBDF;
+    vertical-align:middle;
+  }
+  table.items tr:last-child td{border-bottom:none;}
+  table.items tr:hover td{background:#F6F3EA;}
+  table.items select, table.items input{
+    width:100%;
+    border:1px solid transparent;
+    background:transparent;
+    padding:6px 5px;
+    font-family:inherit;
+    font-size:13px;
+    color:var(--ink);
+    border-radius:var(--radius);
+  }
+  table.items select:hover, table.items input:hover{border-color:var(--line);}
+  table.items select:focus, table.items input:focus{
+    outline:none;
+    border-color:var(--brass);
+    background:#fff;
+  }
+  table.items input.num{text-align:right;font-variant-numeric:tabular-nums;}
+  td.amount{
+    text-align:right;
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+    padding-right:10px;
+  }
+  td.margin-cell{
+    text-align:right;font-variant-numeric:tabular-nums;color:var(--green);
+    white-space:nowrap;padding-right:10px;font-size:12.5px;
+  }
+  td.rm{width:26px;text-align:center;}
+  .rm-btn{
+    background:none;border:none;color:var(--ink-soft);font-size:15px;padding:0;line-height:1;
+  }
+  .rm-btn:hover{color:var(--danger);}
+  .add-row{
+    margin-top:12px;
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .empty-cat{
+    padding:34px 10px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13px;
+    background:var(--card);
+    border:1px dashed var(--line);
+    border-radius:var(--radius);
+  }
+
+  /* ===== Summary ===== */
+  .summary{
+    background:var(--ink);
+    color:var(--paper-soft);
+    padding:22px 20px;
+    border-left:1px solid var(--line);
+  }
+  .summary h3{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:#C9C2AE;
+    margin:0 0 13px;
+  }
+  .sum-row{
+    display:flex;
+    justify-content:space-between;
+    padding:7px 0;
+    border-bottom:1px solid #3C3A32;
+    font-size:12.5px;
+  }
+  .sum-row .amt{font-variant-numeric:tabular-nums;}
+  .sum-row.total{
+    border-bottom:none;
+    border-top:2px solid var(--brass);
+    margin-top:9px;
+    padding-top:13px;
+    font-size:16px;
+    font-weight:700;
+  }
+  .sum-row.subtle{color:#C9C2AE;font-size:12px;}
+  .sum-row.discount .amt{color:#E0A85B;}
+  .sum-row.margin{color:#9FB08E;}
+  .discount-row{
+    display:flex;gap:6px;align-items:center;
+    padding:7px 0;border-bottom:1px solid #3C3A32;font-size:12.5px;
+  }
+  .discount-row span{flex-shrink:0;}
+  .discount-row input[type=number]{
+    width:64px;background:#2F2D26;border:1px solid #474437;color:#fff;
+    border-radius:3px;padding:4px 6px;font-size:12.5px;text-align:right;
+  }
+  .discount-row select{
+    background:#2F2D26;border:1px solid #474437;color:#fff;border-radius:3px;
+    padding:4px 4px;font-size:12px;
+  }
+  .gst-toggle{
+    display:flex;align-items:center;gap:7px;
+    margin:14px 0 2px;
+    font-size:12px;
+    color:#C9C2AE;
+  }
+  .cost-summary-block{
+    margin-top:16px;padding-top:14px;border-top:1px solid #3C3A32;
+  }
+  .cost-summary-block h4{
+    font-size:10.5px;text-transform:uppercase;letter-spacing:0.07em;color:#8F8A76;margin:0 0 8px;
+  }
+  .pdf-buttons{display:flex;flex-direction:column;gap:8px;margin-top:18px;}
+
+  /* ===== Modal ===== */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.45);
+    display:none;align-items:flex-start;justify-content:center;
+    padding:40px 16px;z-index:50;overflow:auto;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:var(--paper-soft);
+    max-width:860px;width:100%;
+    border-radius:6px;
+    border:1px solid var(--line);
+    max-height:88vh;
+    display:flex;flex-direction:column;
+    box-shadow:0 12px 40px rgba(0,0,0,0.25);
+  }
+  .modal-head{
+    padding:16px 20px;
+    border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .modal-head h3{margin:0;font-size:16px;}
+  .modal-body{padding:16px 20px;overflow:auto;}
+  .modal-foot{
+    padding:12px 20px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;gap:8px;
+  }
+  .rate-cat-block{margin-bottom:20px;}
+  .rate-cat-block h4{
+    font-size:12px;text-transform:uppercase;letter-spacing:0.06em;
+    color:var(--brass-dark);margin:0 0 7px;
+  }
+  table.ratecard{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.ratecard th{
+    text-align:left;font-size:10px;text-transform:uppercase;color:var(--ink-soft);
+    padding:4px 5px;border-bottom:1px solid var(--line);
+  }
+  table.ratecard td{padding:3px 5px;border-bottom:1px solid #EBE6D8;}
+  table.ratecard input{
+    width:100%;border:1px solid transparent;background:transparent;
+    font-family:inherit;font-size:12.5px;padding:4px 5px;border-radius:2px;
+  }
+  table.ratecard input:hover{border-color:var(--line);}
+  table.ratecard input:focus{outline:none;border-color:var(--brass);background:#fff;}
+  table.ratecard input.r-num{text-align:right;}
+
+  /* ===== Toast ===== */
+  #toast{
+    position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:#fff;padding:10px 20px;border-radius:var(--radius);
+    font-size:12.5px;opacity:0;pointer-events:none;transition:opacity 0.25s;z-index:100;
+    box-shadow:0 6px 20px rgba(0,0,0,0.25);
+  }
+  #toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="mark">BAREBASE</span>
+    <span class="sub">BOQ Builder</span>
+  </div>
+  <div class="topbar-actions">
+    <label class="cost-toggle"><input type="checkbox" id="costViewToggle"> Show cost & margin</label>
+    <button class="btn" id="btnManageRates">Rate card</button>
+    <button class="btn" id="btnLoad">Load</button>
+    <button class="btn" id="btnSave">Save</button>
+    <button class="btn light" id="btnInternalPdf">Internal PDF</button>
+    <button class="btn primary" id="btnClientPdf">Client PDF</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="project-meta">
+      <label>Client name</label>
+      <input type="text" id="metaClient" placeholder="e.g. Priyanka & Pareekshat">
+      <label>Property / project</label>
+      <input type="text" id="metaProperty" placeholder="e.g. Heritage Firefly, 3BHK">
+      <label>Prepared by</label>
+      <input type="text" id="metaPreparedBy" placeholder="e.g. Ridhi Bhinde">
+      <label>Date</label>
+      <input type="date" id="metaDate">
+      <details class="terms-details">
+        <summary>Terms & exclusions (used in Client PDF)</summary>
+        <textarea id="metaTerms" rows="6"></textarea>
+      </details>
+    </div>
+    <div class="nav-title">Categories</div>
+    <ul class="cat-nav" id="catNav"></ul>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="cat-header">
+      <div>
+        <span class="eyebrow" id="catEyebrow">Category</span>
+        <h2 id="catTitle">—</h2>
+      </div>
+      <div class="cat-subtotal-pill">Category subtotal &nbsp;<b class="tabular" id="catSubtotalPill">₹0</b></div>
+    </div>
+    <div id="catBody"></div>
+    <div class="add-row">
+      <button class="btn light" id="btnAddItem">+ Add line item</button>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary">
+    <h3>Summary sheet</h3>
+    <div id="summaryList"></div>
+    <div class="sum-row" style="border-bottom:none;padding-bottom:0;"><span>Subtotal</span><span class="amt tabular" id="sumSubtotal">₹0</span></div>
+
+    <div class="discount-row">
+      <span>Discount</span>
+      <input type="number" min="0" step="0.01" id="discountValue" value="0">
+      <select id="discountType">
+        <option value="pct">%</option>
+        <option value="amt">₹</option>
+      </select>
+    </div>
+    <div class="sum-row discount subtle" id="discountRow" style="display:none;"><span>Discount applied</span><span class="amt tabular" id="sumDiscount">−₹0</span></div>
+
+    <div class="gst-toggle">
+      <input type="checkbox" id="gstToggle"> <label for="gstToggle">Add GST</label>
+      <select id="gstRateSelect" style="margin-left:6px;background:#2F2D26;border:1px solid #474437;color:#fff;border-radius:3px;padding:4px 6px;font-size:12px;">
+        <option value="5">5%</option>
+        <option value="12">12%</option>
+        <option value="18" selected>18%</option>
+        <option value="28">28%</option>
+        <option value="custom">Custom</option>
+      </select>
+      <input type="number" id="gstRateCustom" min="0" step="0.1" value="18" style="display:none;width:52px;margin-left:6px;background:#2F2D26;border:1px solid #474437;color:#fff;border-radius:3px;padding:4px 6px;font-size:12px;text-align:right;">
+    </div>
+    <div class="sum-row subtle" id="cgstRow" style="display:none;"><span>CGST @ <span id="cgstPct">9</span>%</span><span class="amt tabular" id="sumCgst">₹0</span></div>
+    <div class="sum-row subtle" id="sgstRow" style="display:none;"><span>SGST @ <span id="sgstPct">9</span>%</span><span class="amt tabular" id="sumSgst">₹0</span></div>
+
+    <div class="sum-row total"><span>Grand total</span><span class="amt tabular" id="sumGrand">₹0</span></div>
+
+    <div class="cost-summary-block" id="costSummaryBlock" style="display:none;">
+      <h4>Cost & margin (internal)</h4>
+      <div class="sum-row subtle"><span>Internal cost</span><span class="amt tabular" id="sumCost">₹0</span></div>
+      <div class="sum-row margin"><span>Margin</span><span class="amt tabular" id="sumMargin">₹0</span></div>
+      <div class="sum-row margin subtle"><span>Margin %</span><span class="amt tabular" id="sumMarginPct">0%</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- RATE CARD MODAL -->
+<div class="modal-overlay" id="rateModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Rate card</h3>
+      <button class="btn light small" id="closeRateModal">Close</button>
+    </div>
+    <div class="modal-body" id="rateModalBody"></div>
+    <div class="modal-foot">
+      <button class="btn danger-outline small" id="btnResetRates">Reset to default rates</button>
+      <button class="btn primary small" id="btnSaveRates">Save rate card</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOAD PROJECT MODAL -->
+<div class="modal-overlay" id="loadModal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-head">
+      <h3>Load saved project</h3>
+      <button class="btn light small" id="closeLoadModal">Close</button>
+    </div>
+    <div class="modal-body" id="loadModalBody">Loading…</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   RATE CARD — single source of truth for pricing + internal cost.
+   Stored in shared persistent storage so the whole team sees the
+   same numbers. Edit via "Rate card" in the app — editing this
+   block only changes the fallback/default for first-time setup.
+   ============================================================ */
+const CATEGORIES = [
+  "False Ceiling","Electrical Works","Plumbing Works","Civil & Infra Works","Demolition Work",
+  "Kitchen Furniture","Living Room Furniture","Dining Furniture","Bathroom Furniture","Beds",
+  "Wardrobes","Foyer Furniture","Puja Furniture","Utility Furniture","Other Furniture",
+  "Wall Paneling","Décor & Styling"
+];
+
+const DEFAULT_RATES = {
+  "False Ceiling":[
+    {desc:"Gypsum Ceiling",material:"Gypsum Board",finish:"Paint-ready",rate:120,cost:0},
+    {desc:"Designer Ceiling",material:"Gypsum + Laminate",finish:"Matte Polish",rate:300,cost:0},
+    {desc:"Designer Ceiling",material:"Gypsum + Solid Wood",finish:"Matte Polish",rate:425,cost:0},
+    {desc:"Cove Lighting Setup",material:"Gypsum with Lighting",finish:"Concealed LED",rate:80,cost:0},
+    {desc:"Gypsum Grid Ceiling",material:"2x2 Tile ceiling",finish:"Finished",rate:135,cost:0},
+    {desc:"PVC Laminated Ceiling",material:"PVC",finish:"Finished",rate:150,cost:0},
+    {desc:"POP Cornices",material:"POP Molded",finish:"Smooth Finish",rate:50,cost:0}
+  ],
+  "Electrical Works":[
+    {desc:"Concealed Wiring",material:"Fireproof Copper Wire (Anchor/Polycab)",finish:"Standard",rate:100,cost:0},
+    {desc:"Switches & Sockets",material:"Anchor Roma/Legrand",finish:"White/Graphite Finish",rate:180,cost:0},
+    {desc:"Lighting Fixtures",material:"LED Downlights/Strips",finish:"Warm/Cool White",rate:250,cost:0},
+    {desc:"MCB & DB Panel",material:"Legrand/Siemens",finish:"Standard",rate:5000,cost:0}
+  ],
+  "Plumbing Works":[
+    {desc:"Piping",material:"CPVC/Astral",finish:"Concealed",rate:180,cost:0},
+    {desc:"Sanitary Fixtures",material:"Kohler/Jaguar/Hindware",finish:"Chrome/White",rate:5000,cost:0},
+    {desc:"Drain Line",material:"PVC 6kg Pressure Pipe",finish:"Standard",rate:150,cost:0}
+  ],
+  "Civil & Infra Works":[
+    {desc:"Floor Protection",material:"2mm Sheets",finish:"Corrugated sheet",rate:8,cost:0},
+    {desc:"Deep Cleaning",material:"Cleaning supplies",finish:"Dust free, stain free",rate:10,cost:0},
+    {desc:"Floor Screeding",material:"Cement-Sand Mix",finish:"Smooth Finish",rate:55,cost:0},
+    {desc:"Wall Cladding",material:"Tiles/Stone",finish:"Matte/Gloss Finish",rate:300,cost:0},
+    {desc:"Waterproofing",material:"Dr. Fixit/BASF",finish:"2-Coat System",rate:70,cost:0},
+    {desc:"Construction 4\" Wall",material:"Brick/Block Masonry",finish:"Plaster",rate:130,cost:0},
+    {desc:"Construction 6\" Wall",material:"Brick/Block Masonry",finish:"Plaster",rate:160,cost:0},
+    {desc:"Plastering",material:"Cement-Sand Mix",finish:"Smooth Finish",rate:75,cost:0},
+    {desc:"Plastering",material:"Gyproc",finish:"Smooth Finish",rate:165,cost:0},
+    {desc:"Windows",material:"UPVC",finish:"White",rate:600,cost:0},
+    {desc:"Windows",material:"UPVC",finish:"Wooden",rate:1100,cost:0},
+    {desc:"Windows",material:"Aluminium",finish:"Black/Grey",rate:2500,cost:0},
+    {desc:"Windows",material:"Wooden",finish:"Polished",rate:9500,cost:0},
+    {desc:"Tiling",material:"Cement-Sand Mix",finish:"Flooring+Spacer+Grout",rate:100,cost:0},
+    {desc:"Tiling",material:"Adhesive",finish:"Wall+Spacer+Grout",rate:110,cost:0},
+    {desc:"Countertop",material:"Quartz",finish:"Slab Installation",rate:15000,cost:0},
+    {desc:"Countertop",material:"Granite",finish:"Slab Installation",rate:3500,cost:0},
+    {desc:"Painting",material:"Tractor Emulsion",finish:"Smooth Finish",rate:20,cost:0},
+    {desc:"Painting",material:"Acrylic Emulsion",finish:"Smooth Finish",rate:35,cost:0},
+    {desc:"Painting",material:"Royale",finish:"Smooth Finish",rate:50,cost:0},
+    {desc:"Painting",material:"Texture",finish:"Smooth Finish",rate:135,cost:0},
+    {desc:"Core Cutting",material:"Chimney/AC",finish:"Smooth Finish",rate:1200,cost:0}
+  ],
+  "Demolition Work":[
+    {desc:"Wall Removal",material:"Brick/Block Masonry",finish:"Manual",rate:70,cost:0},
+    {desc:"Tile Removal",material:"Floor/Wall Tiles",finish:"Manual",rate:60,cost:0},
+    {desc:"Debris Disposal",material:"As per Site",finish:"Standard",rate:25,cost:0},
+    {desc:"Loading & Unloading",material:"—",finish:"Per person",rate:450,cost:0},
+    {desc:"Housekeeping",material:"—",finish:"Per day",rate:600,cost:0}
+  ],
+  "Kitchen Furniture":[
+    {desc:"Kitchen Bottom unit",material:"BWP Plywood",finish:"Laminate",rate:1950.0,cost:0},
+    {desc:"Kitchen Bottom unit",material:"BWP Plywood",finish:"Veneer",rate:2250.0,cost:0},
+    {desc:"Kitchen Bottom unit",material:"BWP Plywood",finish:"Acrylic",rate:2150.0,cost:0},
+    {desc:"Kitchen Bottom unit",material:"BWP Plywood",finish:"Duco",rate:2450.0,cost:0},
+    {desc:"Kitchen Bottom unit",material:"BWP Plywood",finish:"PU",rate:2550.0,cost:0},
+    {desc:"Kitchen Bottom unit",material:"BWP Plywood",finish:"Membrane",rate:2450.0,cost:0},
+    {desc:"Kitchen Overhead unit",material:"BWP Plywood",finish:"Laminate",rate:1950.0,cost:0},
+    {desc:"Kitchen Overhead unit",material:"BWP Plywood",finish:"Veneer",rate:2250.0,cost:0},
+    {desc:"Kitchen Overhead unit",material:"BWP Plywood",finish:"Acrylic",rate:2150.0,cost:0},
+    {desc:"Kitchen Overhead unit",material:"BWP Plywood",finish:"Duco",rate:2450.0,cost:0},
+    {desc:"Kitchen Overhead unit",material:"BWP Plywood",finish:"PU",rate:2550.0,cost:0},
+    {desc:"Kitchen Overhead unit",material:"BWP Plywood",finish:"Membrane",rate:2450.0,cost:0},
+    {desc:"Kitchen Overhead unit",material:"BWP Plywood",finish:"Profile Glass",rate:2250.0,cost:0},
+    {desc:"Loft",material:"BWP Plywood",finish:"Laminate",rate:1950.0,cost:0},
+    {desc:"Loft",material:"BWP Plywood",finish:"Veneer",rate:2250.0,cost:0},
+    {desc:"Loft",material:"BWP Plywood",finish:"Acrylic",rate:2150.0,cost:0},
+    {desc:"Loft",material:"BWP Plywood",finish:"Duco",rate:2450.0,cost:0},
+    {desc:"Loft",material:"BWP Plywood",finish:"PU",rate:2550.0,cost:0},
+    {desc:"Loft",material:"BWP Plywood",finish:"Membrane",rate:2450.0,cost:0},
+    {desc:"Loft",material:"BWP Plywood",finish:"Profile Glass",rate:2250.0,cost:0},
+    {desc:"Loft",material:"BWP Plywood",finish:"Laminate",rate:1650.0,cost:0},
+    {desc:"Loft",material:"BWP Plywood",finish:"Veneer",rate:1950.0,cost:0},
+    {desc:"Loft",material:"BWP Plywood",finish:"Acrylic",rate:1850.0,cost:0},
+    {desc:"Loft",material:"BWP Plywood",finish:"Duco",rate:2150.0,cost:0},
+    {desc:"Loft",material:"BWP Plywood",finish:"PU",rate:2250.0,cost:0},
+    {desc:"Loft",material:"BWP Plywood",finish:"Membrane",rate:2150.0,cost:0},
+    {desc:"Loft",material:"BWP Plywood",finish:"Profile Glass",rate:1950.0,cost:0},
+    {desc:"Tall unit",material:"BWP Plywood",finish:"Laminate",rate:1950.0,cost:0},
+    {desc:"Tall unit",material:"BWP Plywood",finish:"Veneer",rate:2250.0,cost:0},
+    {desc:"Tall unit",material:"BWP Plywood",finish:"Acrylic",rate:2150.0,cost:0},
+    {desc:"Tall unit",material:"BWP Plywood",finish:"Duco",rate:2450.0,cost:0},
+    {desc:"Tall unit",material:"BWP Plywood",finish:"PU",rate:2550.0,cost:0},
+    {desc:"Tall unit",material:"BWP Plywood",finish:"Membrane",rate:2450.0,cost:0},
+    {desc:"Tall unit",material:"BWP Plywood",finish:"Profile Glass",rate:2250.0,cost:0},
+    {desc:"Island Unit",material:"BWP Plywood",finish:"Laminate",rate:1950.0,cost:0},
+    {desc:"Island Unit",material:"BWP Plywood",finish:"Veneer",rate:2250.0,cost:0},
+    {desc:"Island Unit",material:"BWP Plywood",finish:"Acrylic",rate:2150.0,cost:0},
+    {desc:"Island Unit",material:"BWP Plywood",finish:"Duco",rate:2450.0,cost:0},
+    {desc:"Island Unit",material:"BWP Plywood",finish:"PU",rate:2550.0,cost:0},
+    {desc:"Island Unit",material:"BWP Plywood",finish:"Membrane",rate:2450.0,cost:0},
+    {desc:"Island Unit",material:"BWP Plywood",finish:"Profile Glass",rate:2250.0,cost:0},
+    {desc:"Accessories",material:"",finish:"Brand - EBCO/HETTICH",rate:4500.0,cost:0},
+    {desc:"Accessories",material:"",finish:"Brand - EBCO/HETTICH",rate:6500.0,cost:0},
+    {desc:"Accessories",material:"",finish:"Brand - EBCO/HETTICH",rate:6500.0,cost:0},
+    {desc:"Accessories",material:"",finish:"Brand - EBCO/HETTICH",rate:3000.0,cost:0},
+    {desc:"Accessories",material:"",finish:"Brand - EBCO/HETTICH",rate:28500.0,cost:0},
+    {desc:"Counter Top",material:"",finish:"Per slab - supply and installation",rate:75000.0,cost:0},
+    {desc:"Counter Top",material:"",finish:"Per square ft - supply and installation",rate:750.0,cost:0}
+  ],
+  "Living Room Furniture":[
+    {desc:"TV unit",material:"Plywood",finish:"Laminate",rate:1950.0,cost:0},
+    {desc:"TV unit",material:"Plywood",finish:"Veneer",rate:2050.0,cost:0},
+    {desc:"TV unit",material:"Plywood",finish:"Acrylic",rate:2050.0,cost:0},
+    {desc:"TV unit",material:"Plywood",finish:"Duco",rate:2250.0,cost:0},
+    {desc:"TV unit",material:"Plywood",finish:"PU",rate:2350.0,cost:0},
+    {desc:"TV unit",material:"Plywood",finish:"Membrane",rate:2250.0,cost:0},
+    {desc:"TV unit",material:"Plywood",finish:"Profile Glass",rate:2150.0,cost:0},
+    {desc:"TV unit",material:"Plywood",finish:"Laminate",rate:1850.0,cost:0},
+    {desc:"TV unit",material:"Plywood",finish:"Veneer",rate:1950.0,cost:0},
+    {desc:"TV unit",material:"Plywood",finish:"Acrylic",rate:1950.0,cost:0},
+    {desc:"TV unit",material:"Plywood",finish:"Duco",rate:2150.0,cost:0},
+    {desc:"TV unit",material:"Plywood",finish:"PU",rate:2250.0,cost:0},
+    {desc:"TV unit",material:"Plywood",finish:"Membrane",rate:2150.0,cost:0},
+    {desc:"TV unit",material:"Plywood",finish:"Profile Glass",rate:2050.0,cost:0},
+    {desc:"TV unit",material:"",finish:"Laminated back panel",rate:550.0,cost:0},
+    {desc:"TV unit",material:"",finish:"PU back panel",rate:750.0,cost:0},
+    {desc:"TV unit",material:"",finish:"Marble back panel",rate:850.0,cost:0},
+    {desc:"TV unit",material:"",finish:"Charcoal back panel",rate:750.0,cost:0},
+    {desc:"TV unit",material:"",finish:"Louvered back panel",rate:850.0,cost:0},
+    {desc:"TV unit",material:"",finish:"Plywood with texture paint",rate:450.0,cost:0},
+    {desc:"Sofa",material:"",finish:"Fabric Finish",rate:25000.0,cost:0},
+    {desc:"Sofa",material:"",finish:"Faux Leather finish",rate:28000.0,cost:0},
+    {desc:"Sofa",material:"",finish:"Genuine Leather Finish",rate:60000.0,cost:0},
+    {desc:"Swing",material:"",finish:"2 seater as per design",rate:50000.0,cost:0},
+    {desc:"Ottoman/Pouffe",material:"",finish:"as per design",rate:18000.0,cost:0},
+    {desc:"Wing chairs",material:"",finish:"as per design",rate:30000.0,cost:0},
+    {desc:"Partition",material:"",finish:"Fixed Jhali Partition",rate:1150.0,cost:0},
+    {desc:"Partition",material:"",finish:"Fixed Laminate Partition",rate:1250.0,cost:0},
+    {desc:"Partition",material:"",finish:"Fixed Glass and Aluminium Partition",rate:1500.0,cost:0},
+    {desc:"Partition",material:"",finish:"Fixed Metal Partition",rate:1250.0,cost:0}
+  ],
+  "Dining Furniture":[
+    {desc:"Dining table",material:"",finish:"as per design",rate:2200.0,cost:0},
+    {desc:"Dining chair",material:"",finish:"as per design",rate:11500.0,cost:0},
+    {desc:"Crockery unit",material:"Ply",finish:"Laminate",rate:1950.0,cost:0},
+    {desc:"Crockery unit",material:"Ply",finish:"Veneer",rate:2050.0,cost:0},
+    {desc:"Crockery unit",material:"Ply",finish:"Acrylic",rate:2050.0,cost:0},
+    {desc:"Crockery unit",material:"Ply",finish:"Duco",rate:2250.0,cost:0},
+    {desc:"Crockery unit",material:"Ply",finish:"PU",rate:2350.0,cost:0},
+    {desc:"Crockery unit",material:"Ply",finish:"Membrane",rate:2250.0,cost:0},
+    {desc:"Crockery unit",material:"Ply",finish:"Profile Glass",rate:2150.0,cost:0},
+    {desc:"Crockery unit",material:"Ply",finish:"Laminate",rate:1850.0,cost:0},
+    {desc:"Crockery unit",material:"Ply",finish:"Veneer",rate:1950.0,cost:0},
+    {desc:"Crockery unit",material:"Ply",finish:"Acrylic",rate:1950.0,cost:0},
+    {desc:"Crockery unit",material:"Ply",finish:"Duco",rate:2150.0,cost:0},
+    {desc:"Crockery unit",material:"Ply",finish:"PU",rate:2250.0,cost:0},
+    {desc:"Crockery unit",material:"Ply",finish:"Membrane",rate:2150.0,cost:0},
+    {desc:"Crockery unit",material:"Ply",finish:"Profile Glass",rate:2050.0,cost:0}
+  ],
+  "Bathroom Furniture":[
+    {desc:"Vanity Unit",material:"BWP Ply",finish:"Laminate",rate:1950.0,cost:0},
+    {desc:"Vanity Unit",material:"Ply",finish:"Veneer",rate:2050.0,cost:0},
+    {desc:"Vanity Unit",material:"Ply",finish:"Acrylic",rate:2150.0,cost:0},
+    {desc:"Vanity Unit",material:"Ply",finish:"Membrane",rate:2450.0,cost:0},
+    {desc:"Vanity Unit",material:"Ply",finish:"Louvers",rate:2350.0,cost:0},
+    {desc:"Vanity Unit",material:"BWP Ply",finish:"Laminate",rate:1950.0,cost:0},
+    {desc:"Vanity Unit",material:"Ply",finish:"Veneer",rate:2050.0,cost:0},
+    {desc:"Vanity Unit",material:"Ply",finish:"Acrylic",rate:2150.0,cost:0},
+    {desc:"Vanity Unit",material:"Ply",finish:"Membrane",rate:2450.0,cost:0},
+    {desc:"Vanity Unit",material:"Ply",finish:"Louvers",rate:2350.0,cost:0},
+    {desc:"Bathroom Mirror",material:"",finish:"Organic Mirror without LED Strip",rate:650.0,cost:0},
+    {desc:"Bathroom Mirror",material:"",finish:"Organic Mirror with LED Strip",rate:1150.0,cost:0}
+  ],
+  "Beds":[
+    {desc:"Single Bed",material:"",finish:"Single bed with wooden headboard without storage",rate:30000.0,cost:0},
+    {desc:"Single Bed",material:"",finish:"Single bed with wooden headboard with hydraulic storage",rate:40000.0,cost:0},
+    {desc:"Single Bed",material:"",finish:"Single bed with wooden headboard with drawers storage",rate:35000.0,cost:0},
+    {desc:"Single Bed",material:"",finish:"Single bed with fabric headboard without storage",rate:32500.0,cost:0},
+    {desc:"Single Bed",material:"",finish:"Single bed with fabric headboard with hydraulic storage",rate:42500.0,cost:0},
+    {desc:"Single Bed",material:"",finish:"Single bed with fabric headboard with drawers storage",rate:37500.0,cost:0},
+    {desc:"Queen - Sized Bed",material:"",finish:"Queen sized bed with wooden headboard without storage",rate:50000.0,cost:0},
+    {desc:"Queen - Sized Bed",material:"",finish:"Queen sized bed with wooden headboard with hydraulic storage",rate:60000.0,cost:0},
+    {desc:"Queen - Sized Bed",material:"",finish:"Queen sized bed with wooden headboard with drawers storage",rate:60000.0,cost:0},
+    {desc:"Queen - Sized Bed",material:"",finish:"Queen sized bed with fabric headboard without storage",rate:55000.0,cost:0},
+    {desc:"Queen - Sized Bed",material:"",finish:"Queen sized bed with fabric headboard with hydraulic storage",rate:65000.0,cost:0},
+    {desc:"Queen - Sized Bed",material:"",finish:"Queen sized bed with fabric headboard with drawers storage",rate:65000.0,cost:0},
+    {desc:"King - Sized Bed",material:"",finish:"King sized bed with wooden headboard without storage",rate:60000.0,cost:0},
+    {desc:"King - Sized Bed",material:"",finish:"King sized bed with wooden headboard with hydraulic storage",rate:70000.0,cost:0},
+    {desc:"King - Sized Bed",material:"",finish:"King sized bed with wooden headboard with drawers storage",rate:70000.0,cost:0},
+    {desc:"King - Sized Bed",material:"",finish:"King sized bed with fabric headboard without storage",rate:65000.0,cost:0},
+    {desc:"King - Sized Bed",material:"",finish:"King sized bed with fabric headboard with hydraulic storage",rate:75000.0,cost:0},
+    {desc:"King - Sized Bed",material:"",finish:"King sized bed with fabric headboard with drawers storage",rate:75000.0,cost:0}
+  ],
+  "Wardrobes":[
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Laminate",rate:1850.0,cost:0},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Veneer",rate:2100.0,cost:0},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Acrylic",rate:1950.0,cost:0},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Duco",rate:2250.0,cost:0},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"PU",rate:2150.0,cost:0},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Membrane",rate:2350.0,cost:0},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Glass",rate:2150.0,cost:0},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Laminate",rate:1750.0,cost:0},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Veneer",rate:2000.0,cost:0},
+    {desc:"Sliding Wardrobe",material:"Plywood",finish:"Acrylic",rate:1850.0,cost:0}
+  ],
+  "Foyer Furniture":[
+    {desc:"SHOERACK",material:"Ply",finish:"Laminate",rate:1650.0,cost:0},
+    {desc:"SHOERACK",material:"Ply",finish:"Veneer",rate:1950.0,cost:0},
+    {desc:"SHOERACK",material:"Ply",finish:"Acrylic",rate:1850.0,cost:0},
+    {desc:"SHOERACK",material:"Ply",finish:"Louvre",rate:2150.0,cost:0},
+    {desc:"SHOERACK",material:"Ply",finish:"Duco",rate:2250.0,cost:0},
+    {desc:"SHOERACK",material:"Ply",finish:"PU",rate:2350.0,cost:0},
+    {desc:"SHOERACK",material:"Ply",finish:"Profile Glass",rate:2050.0,cost:0},
+    {desc:"CONSOLE TABLE without drawers",material:"Ply",finish:"Laminate",rate:1650.0,cost:0},
+    {desc:"CONSOLE TABLE without drawers",material:"Ply",finish:"Veneer",rate:1950.0,cost:0},
+    {desc:"CONSOLE TABLE without drawers",material:"Ply",finish:"Acrylic",rate:1850.0,cost:0},
+    {desc:"CONSOLE TABLE without drawers",material:"Ply",finish:"Louvre",rate:2150.0,cost:0},
+    {desc:"CONSOLE TABLE without drawers",material:"Ply",finish:"Duco",rate:2250.0,cost:0},
+    {desc:"CONSOLE TABLE without drawers",material:"Ply",finish:"PU",rate:2350.0,cost:0},
+    {desc:"CONSOLE TABLE without drawers",material:"Ply",finish:"Profile Glass",rate:2050.0,cost:0},
+    {desc:"CONSOLE TABLE with drawers",material:"Ply",finish:"Laminate",rate:1850.0,cost:0},
+    {desc:"CONSOLE TABLE with drawers",material:"Ply",finish:"Veneer",rate:2150.0,cost:0},
+    {desc:"CONSOLE TABLE with drawers",material:"Ply",finish:"Acrylic",rate:2050.0,cost:0},
+    {desc:"CONSOLE TABLE with drawers",material:"Ply",finish:"Louvre",rate:2350.0,cost:0},
+    {desc:"CONSOLE TABLE with drawers",material:"Ply",finish:"Duco",rate:2450.0,cost:0},
+    {desc:"CONSOLE TABLE with drawers",material:"Ply",finish:"PU",rate:2550.0,cost:0},
+    {desc:"CONSOLE TABLE with drawers",material:"Ply",finish:"Profile Glass",rate:2250.0,cost:0},
+    {desc:"Mirror",material:"",finish:"Plain mirror",rate:650.0,cost:0},
+    {desc:"Mirror",material:"",finish:"LED mirror",rate:1150.0,cost:0}
+  ],
+  "Puja Furniture":[
+    {desc:"Wall Mounted Open Puja Unit",material:"Ply",finish:"Laminate",rate:1650.0,cost:0},
+    {desc:"Wall Mounted Open Puja Unit With Shutters",material:"Ply",finish:"Laminate",rate:1950.0,cost:0},
+    {desc:"Wall Mounted Open Puja Unit With Shutters",material:"Ply",finish:"Laminate And Glass",rate:2250.0,cost:0},
+    {desc:"Bottom Puja unit",material:"Ply",finish:"Laminate",rate:1850.0,cost:0},
+    {desc:"Fixed Ledges Puja Unit",material:"",finish:"Laminate",rate:2000.0,cost:0},
+    {desc:"Puja Unit - Back panelling",material:"",finish:"Laminated back panel",rate:550.0,cost:0},
+    {desc:"Puja Unit - Back panelling",material:"",finish:"PU back panel",rate:750.0,cost:0},
+    {desc:"Puja Unit - Back panelling",material:"",finish:"Marble back panel",rate:850.0,cost:0},
+    {desc:"Puja Unit - Back panelling",material:"",finish:"Charcoal back panel",rate:750.0,cost:0},
+    {desc:"Puja Unit - Back panelling",material:"",finish:"Louvered back panel",rate:850.0,cost:0},
+    {desc:"Puja Unit - Back panelling",material:"",finish:"Plywood with texture paint",rate:450.0,cost:0},
+    {desc:"Mandir Shutters",material:"Ply",finish:"Laminate",rate:1200.0,cost:0},
+    {desc:"Mandir Shutters",material:"Ply",finish:"Laminate And Glass",rate:1500.0,cost:0}
+  ],
+  "Utility Furniture":[
+    {desc:"Utlity Top unit",material:"BWP Plywood",finish:"Laminate",rate:1950.0,cost:0},
+    {desc:"Utlity Top unit",material:"BWP Plywood",finish:"Veneer",rate:2250.0,cost:0},
+    {desc:"Utlity Top unit",material:"BWP Plywood",finish:"Acrylic",rate:2150.0,cost:0},
+    {desc:"Utlity Top unit",material:"BWP Plywood",finish:"Duco",rate:2450.0,cost:0},
+    {desc:"Utlity Top unit",material:"BWP Plywood",finish:"PU",rate:2550.0,cost:0},
+    {desc:"Utlity Top unit",material:"BWP Plywood",finish:"Membrane",rate:2450.0,cost:0},
+    {desc:"Utlity Bottom Unit",material:"BWP Plywood",finish:"Laminate",rate:1950.0,cost:0},
+    {desc:"Utlity Bottom Unit",material:"BWP Plywood",finish:"Veneer",rate:2250.0,cost:0},
+    {desc:"Utlity Bottom Unit",material:"BWP Plywood",finish:"Acrylic",rate:2150.0,cost:0},
+    {desc:"Utlity Bottom Unit",material:"BWP Plywood",finish:"Duco",rate:2450.0,cost:0},
+    {desc:"Utlity Bottom Unit",material:"BWP Plywood",finish:"PU",rate:2550.0,cost:0},
+    {desc:"Utlity Bottom Unit",material:"BWP Plywood",finish:"Membrane",rate:2450.0,cost:0},
+    {desc:"Utlity Janitors Unit",material:"BWP Plywood",finish:"Laminate",rate:1950.0,cost:0},
+    {desc:"Utlity Janitors Unit",material:"BWP Plywood",finish:"Veneer",rate:2250.0,cost:0},
+    {desc:"Utlity Janitors Unit",material:"BWP Plywood",finish:"Acrylic",rate:2150.0,cost:0},
+    {desc:"Utlity Janitors Unit",material:"BWP Plywood",finish:"Duco",rate:2450.0,cost:0},
+    {desc:"Utlity Janitors Unit",material:"BWP Plywood",finish:"PU",rate:2550.0,cost:0},
+    {desc:"Utlity Janitors Unit",material:"BWP Plywood",finish:"Membrane",rate:2450.0,cost:0},
+    {desc:"UPVC Window",material:"",finish:"Supply and installation of white UPVC window with 5mm clear glass, SS hardware, and all accessories. Includes transportation, fixing, sealing, and making goods. Cost does not include staging and scaffolding charges.",rate:550.0,cost:0}
+  ],
+  "Other Furniture":[
+    {desc:"Side Table",material:"Plywood",finish:"Laminate",rate:9500.0,cost:0},
+    {desc:"Side Table",material:"Plywood",finish:"Veneer",rate:11000.0,cost:0},
+    {desc:"Side Table",material:"Plywood",finish:"Acrylic",rate:11000.0,cost:0},
+    {desc:"Side Table",material:"Plywood",finish:"Duco",rate:14500.0,cost:0},
+    {desc:"Side Table",material:"Plywood",finish:"PU",rate:18000.0,cost:0},
+    {desc:"Side Table",material:"Plywood",finish:"Membrane",rate:14500.0,cost:0},
+    {desc:"Study Table",material:"Plywood",finish:"Laminate",rate:1850.0,cost:0},
+    {desc:"Study Table",material:"Plywood",finish:"Veneer",rate:2000.0,cost:0},
+    {desc:"Study Table",material:"Plywood",finish:"Acrylic",rate:1850.0,cost:0},
+    {desc:"Study Table",material:"Plywood",finish:"Duco",rate:2150.0,cost:0},
+    {desc:"Study Table",material:"Plywood",finish:"PU",rate:2050.0,cost:0},
+    {desc:"Study Table",material:"Plywood",finish:"Membrane",rate:2250.0,cost:0},
+    {desc:"Dressing Table",material:"Plywood",finish:"Laminate",rate:1850.0,cost:0},
+    {desc:"Dressing Table",material:"Plywood",finish:"Veneer",rate:2000.0,cost:0},
+    {desc:"Dressing Table",material:"Plywood",finish:"Acrylic",rate:1850.0,cost:0},
+    {desc:"Dressing Table",material:"Plywood",finish:"Duco",rate:2150.0,cost:0},
+    {desc:"Dressing Table",material:"Plywood",finish:"PU",rate:2050.0,cost:0},
+    {desc:"Dressing Table",material:"Plywood",finish:"Membrane",rate:2250.0,cost:0},
+    {desc:"Dressing Mirror",material:"",finish:"Organic Dressing Mirror",rate:650.0,cost:0},
+    {desc:"Dressing Mirror",material:"",finish:"Dressing Mirror with LED Strip Profile Lights",rate:1150.0,cost:0}
+  ],
+  "Wall Paneling":[
+    {desc:"Wooden Panels",material:"MDF + Acrylic",finish:"Glossy Finish",rate:1800,cost:0},
+    {desc:"Wooden Panels",material:"MDF + Duco Finish",finish:"Matte/Gloss",rate:1500,cost:0},
+    {desc:"Wooden Panels",material:"MDF with Veneer",finish:"Natural/Polished",rate:1000,cost:0},
+    {desc:"Upholstered Panels",material:"Fabric/Faux Leather",finish:"Quilted/Flat",rate:1200,cost:0}
+  ],
+  "Décor & Styling":[
+    {desc:"Curtains & Blinds",material:"Fabric/Sheer/Blackout",finish:"Custom",rate:250,cost:0},
+    {desc:"Lighting Fixtures",material:"Designer/Decorative",finish:"Metal/Glass Finish",rate:3000,cost:0},
+    {desc:"Artwork & Mirrors",material:"Assorted",finish:"Framed/Unframed",rate:1500,cost:0},
+    {desc:"Rugs & Accessories",material:"Assorted",finish:"Textile/Decor",rate:2000,cost:0}
+  ]
+};
+
+const DEFAULT_TERMS =
+"Estimate consists of only the scope of work mentioned above. 3D renders and reference images may include decor elements used purely to illustrate design intent — only the items listed in this BOQ are part of the deliverable scope.\n\n" +
+"Not included: loose furniture, soft furnishings, kitchen appliances, organisers & accessories, decorative lighting not specified above, and any item not explicitly listed.\n\n" +
+"GST as applicable, extra.";
+
+let rateCard = JSON.parse(JSON.stringify(DEFAULT_RATES));
+let activeCat = CATEGORIES[0];
+let lineItems = {};
+CATEGORIES.forEach(c => lineItems[c] = []);
+let rowSeq = 1;
+let showCostView = false;
+
+const fmt = n => "₹" + (Math.round((n||0)*100)/100).toLocaleString('en-IN');
+const fmtSigned = n => (n<0?'−':'') + fmt(Math.abs(n));
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+/* ---------- storage ---------- */
+async function loadRateCardFromStorage(){
+  let stored = null;
+  try{
+    const res = await window.storage.get('rate-card', true);
+    if(res && res.value){ stored = JSON.parse(res.value); }
+  }catch(e){ /* not found yet */ }
+
+  if(stored){
+    // Merge: keep any category the user has customized, but backfill any
+    // category that's missing (e.g. renamed/added since their last save)
+    // from the current defaults so the app never renders a blank/broken category.
+    let changed = false;
+    CATEGORIES.forEach(cat=>{
+      if(!stored[cat] || !Array.isArray(stored[cat]) || stored[cat].length===0){
+        stored[cat] = JSON.parse(JSON.stringify(DEFAULT_RATES[cat] || []));
+        changed = true;
+      }
+    });
+    rateCard = stored;
+    if(changed){
+      try{ await window.storage.set('rate-card', JSON.stringify(rateCard), true); }catch(e){}
+    }
+    return;
+  }
+  try{ await window.storage.set('rate-card', JSON.stringify(rateCard), true); }catch(e){}
+}
+async function saveRateCardToStorage(){
+  try{
+    const res = await window.storage.set('rate-card', JSON.stringify(rateCard), true);
+    if(!res) throw new Error('no result');
+    toast('Rate card saved for the whole team');
+  }catch(e){ toast('Could not save rate card — try again'); }
+}
+
+/* ---------- category nav ---------- */
+function renderNav(){
+  const nav = document.getElementById('catNav');
+  nav.innerHTML = '';
+  CATEGORIES.forEach((cat,i)=>{
+    const li = document.createElement('li');
+    li.className = cat === activeCat ? 'active' : '';
+    li.innerHTML = `<span class="num">${String(i+1).padStart(2,'0')}</span><span>${cat}</span><span class="count">${lineItems[cat].length||''}</span>`;
+    li.onclick = ()=>{ activeCat = cat; renderAll(); };
+    nav.appendChild(li);
+  });
+}
+
+/* ---------- rate-card lookup helpers (cascading Description -> Material -> Finish) ---------- */
+function uniq(arr){ return [...new Set(arr)]; }
+function descOptions(cat){ return uniq((rateCard[cat]||[]).map(r=>r.desc)); }
+function materialOptions(cat, desc){ return uniq((rateCard[cat]||[]).filter(r=>r.desc===desc).map(r=>r.material)); }
+function finishOptions(cat, desc, material){ return uniq((rateCard[cat]||[]).filter(r=>r.desc===desc && r.material===material).map(r=>r.finish)); }
+function findRateRow(cat, desc, material, finish){
+  const list = rateCard[cat]||[];
+  return list.find(r=> r.desc===desc && r.material===material && r.finish===finish)
+      || list.find(r=> r.desc===desc && r.material===material)
+      || list.find(r=> r.desc===desc);
+}
+
+/* ---------- item table ---------- */
+function renderCatBody(){
+  document.getElementById('catEyebrow').textContent =
+    `Sheet ${String(CATEGORIES.indexOf(activeCat)+1).padStart(2,'0')} of ${CATEGORIES.length}`;
+  document.getElementById('catTitle').textContent = activeCat;
+  document.getElementById('catSubtotalPill').textContent = fmt(categoryTotal(activeCat));
+  const body = document.getElementById('catBody');
+  const rows = lineItems[activeCat];
+  if(rows.length === 0){
+    body.innerHTML = '<div class="empty-cat">No line items yet. Use "+ Add line item" below to pull from the rate card.</div>';
+    return;
+  }
+  let html = `<table class="items"><thead><tr>
+    <th style="width:20%;">Description</th>
+    <th style="width:17%;">Material</th>
+    <th style="width:13%;">Finish</th>
+    <th style="width:8%;">Qty/Area</th>
+    <th style="width:9%;">Rate ₹</th>
+    ${showCostView ? '<th style="width:9%;">Cost ₹</th>' : ''}
+    <th style="width:10%;">Amount</th>
+    ${showCostView ? '<th style="width:9%;">Margin</th>' : ''}
+    <th style="width:10%;">Remarks</th>
+    <th></th>
+  </tr></thead><tbody>`;
+  const descOpts = descOptions(activeCat);
+  rows.forEach(row=>{
+    const amount = (row.qty||0)*(row.rate||0);
+    const margin = amount - (row.qty||0)*(row.cost||0);
+
+    const descSelect = `<select class="sel-desc">
+        <option value="custom" ${row.custom?'selected':''}>Custom item…</option>
+        ${descOpts.map(d=>`<option value="${d}" ${!row.custom && row.desc===d?'selected':''}>${d}</option>`).join('')}
+      </select>`;
+
+    let materialCell, finishCell;
+    if(row.custom){
+      materialCell = `<input type="text" class="fld-material" value="${row.material||''}">`;
+      finishCell = `<input type="text" class="fld-finish" value="${row.finish||''}">`;
+    }else{
+      const matOpts = materialOptions(activeCat, row.desc);
+      materialCell = matOpts.length>1 || (matOpts.length===1 && matOpts[0])
+        ? `<select class="sel-material">${matOpts.map(m=>`<option value="${m}" ${row.material===m?'selected':''}>${m||'—'}</option>`).join('')}</select>`
+        : `<span style="color:var(--ink-soft);padding:0 5px;">—</span>`;
+      const finOpts = finishOptions(activeCat, row.desc, row.material);
+      finishCell = finOpts.length
+        ? `<select class="sel-finish">${finOpts.map(f=>`<option value="${f}" ${row.finish===f?'selected':''}>${f||'—'}</option>`).join('')}</select>`
+        : `<input type="text" class="fld-finish" value="${row.finish||''}">`;
+    }
+
+    html += `<tr data-id="${row.id}">
+      <td>${descSelect}</td>
+      <td>${materialCell}</td>
+      <td>${finishCell}</td>
+      <td><input type="number" min="0" step="0.01" class="fld-qty num" value="${row.qty||''}" placeholder="0"></td>
+      <td><input type="number" min="0" step="0.01" class="fld-rate num" value="${row.rate||0}"></td>
+      ${showCostView ? `<td><input type="number" min="0" step="0.01" class="fld-cost num" value="${row.cost||0}"></td>` : ''}
+      <td class="amount tabular">${fmt(amount)}</td>
+      ${showCostView ? `<td class="margin-cell tabular">${fmt(margin)}</td>` : ''}
+      <td><input type="text" class="fld-remarks" value="${row.remarks||''}" placeholder="—"></td>
+      <td class="rm"><button class="rm-btn" title="Remove">✕</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  body.innerHTML = html;
+
+  body.querySelectorAll('tr').forEach(tr=>{
+    const id = tr.dataset.id;
+    const row = rows.find(r=>r.id==id);
+
+    tr.querySelector('.sel-desc').addEventListener('change', e=>{
+      const val = e.target.value;
+      if(val === 'custom'){
+        row.custom = true; row.desc=''; row.material=''; row.finish=''; row.rate=0; row.cost=0;
+      }else{
+        row.custom = false; row.desc = val;
+        const mats = materialOptions(activeCat, val);
+        row.material = mats[0] || '';
+        const fins = finishOptions(activeCat, val, row.material);
+        row.finish = fins[0] || '';
+        const rc = findRateRow(activeCat, row.desc, row.material, row.finish);
+        if(rc){ row.rate = rc.rate; row.cost = rc.cost||0; }
+      }
+      renderAll();
+    });
+    const matSel = tr.querySelector('.sel-material');
+    if(matSel) matSel.addEventListener('change', e=>{
+      row.material = e.target.value;
+      const fins = finishOptions(activeCat, row.desc, row.material);
+      row.finish = fins[0] || '';
+      const rc = findRateRow(activeCat, row.desc, row.material, row.finish);
+      if(rc){ row.rate = rc.rate; row.cost = rc.cost||0; }
+      renderAll();
+    });
+    const finSel = tr.querySelector('.sel-finish');
+    if(finSel) finSel.addEventListener('change', e=>{
+      row.finish = e.target.value;
+      const rc = findRateRow(activeCat, row.desc, row.material, row.finish);
+      if(rc){ row.rate = rc.rate; row.cost = rc.cost||0; }
+      renderAll();
+    });
+    const matFld = tr.querySelector('input.fld-material');
+    if(matFld) matFld.addEventListener('input', e=>{ row.material = e.target.value; });
+    const finFld = tr.querySelector('input.fld-finish');
+    if(finFld) finFld.addEventListener('input', e=>{ row.finish = e.target.value; });
+
+    function refreshRowAmount(){
+      const amount = (row.qty||0)*(row.rate||0);
+      const margin = amount - (row.qty||0)*(row.cost||0);
+      tr.querySelector('.amount').textContent = fmt(amount);
+      const marginCell = tr.querySelector('.margin-cell');
+      if(marginCell) marginCell.textContent = fmt(margin);
+      document.getElementById('catSubtotalPill').textContent = fmt(categoryTotal(activeCat));
+      renderSummary();
+    }
+    tr.querySelector('.fld-qty').addEventListener('input', e=>{ row.qty = parseFloat(e.target.value)||0; refreshRowAmount(); });
+    tr.querySelector('.fld-rate').addEventListener('input', e=>{ row.rate = parseFloat(e.target.value)||0; refreshRowAmount(); });
+    const costFld = tr.querySelector('.fld-cost');
+    if(costFld) costFld.addEventListener('input', e=>{ row.cost = parseFloat(e.target.value)||0; refreshRowAmount(); });
+    tr.querySelector('.fld-remarks').addEventListener('input', e=>{ row.remarks = e.target.value; });
+    tr.querySelector('.rm-btn').addEventListener('click', ()=>{
+      lineItems[activeCat] = lineItems[activeCat].filter(r=>r.id!=id);
+      renderAll();
+    });
+  });
+}
+
+function addLineItem(){
+  const first = rateCard[activeCat][0];
+  const desc = first ? first.desc : '';
+  const material = first ? first.material : '';
+  const finish = first ? first.finish : '';
+  lineItems[activeCat].push({
+    id: rowSeq++,
+    custom: !first,
+    desc, material, finish,
+    rate: first ? first.rate : 0, cost: first ? (first.cost||0) : 0, qty:0, remarks:''
+  });
+  renderAll();
+}
+
+/* ---------- totals ---------- */
+function categoryTotal(cat){
+  return lineItems[cat].reduce((s,r)=> s + (r.qty||0)*(r.rate||0), 0);
+}
+function categoryCost(cat){
+  return lineItems[cat].reduce((s,r)=> s + (r.qty||0)*(r.cost||0), 0);
+}
+function getGstRate(){
+  const sel = document.getElementById('gstRateSelect').value;
+  if(sel === 'custom') return parseFloat(document.getElementById('gstRateCustom').value)||0;
+  return parseFloat(sel)||0;
+}
+function computeTotals(){
+  let subtotal = 0, totalCost = 0;
+  CATEGORIES.forEach(cat=>{ subtotal += categoryTotal(cat); totalCost += categoryCost(cat); });
+  const discType = document.getElementById('discountType').value;
+  const discVal = parseFloat(document.getElementById('discountValue').value)||0;
+  const discountAmount = discType === 'pct' ? subtotal*discVal/100 : discVal;
+  const afterDiscount = Math.max(0, subtotal - discountAmount);
+  const gstOn = document.getElementById('gstToggle').checked;
+  const gstRate = getGstRate();
+  const cgst = gstOn ? afterDiscount*(gstRate/2)/100 : 0;
+  const sgst = cgst;
+  const gst = cgst + sgst;
+  const grand = afterDiscount + gst;
+  const margin = afterDiscount - totalCost;
+  const marginPct = afterDiscount>0 ? (margin/afterDiscount*100) : 0;
+  return {subtotal, totalCost, discountAmount, afterDiscount, gstOn, gstRate, cgst, sgst, gst, grand, margin, marginPct};
+}
+
+/* ---------- summary ---------- */
+function renderSummary(){
+  const list = document.getElementById('summaryList');
+  let html = '';
+  CATEGORIES.forEach(cat=>{
+    html += `<div class="sum-row"><span>${cat}</span><span class="amt tabular">${fmt(categoryTotal(cat))}</span></div>`;
+  });
+  list.innerHTML = html;
+
+  const t = computeTotals();
+  document.getElementById('sumSubtotal').textContent = fmt(t.subtotal);
+
+  document.getElementById('discountRow').style.display = t.discountAmount>0 ? 'flex':'none';
+  document.getElementById('sumDiscount').textContent = fmtSigned(-t.discountAmount);
+
+  document.getElementById('cgstRow').style.display = t.gstOn ? 'flex':'none';
+  document.getElementById('sgstRow').style.display = t.gstOn ? 'flex':'none';
+  document.getElementById('cgstPct').textContent = (t.gstRate/2);
+  document.getElementById('sgstPct').textContent = (t.gstRate/2);
+  document.getElementById('sumCgst').textContent = fmt(t.cgst);
+  document.getElementById('sumSgst').textContent = fmt(t.sgst);
+  document.getElementById('sumGrand').textContent = fmt(t.grand);
+
+  document.getElementById('costSummaryBlock').style.display = showCostView ? 'block':'none';
+  document.getElementById('sumCost').textContent = fmt(t.totalCost);
+  document.getElementById('sumMargin').textContent = fmt(t.margin);
+  document.getElementById('sumMarginPct').textContent = (Math.round(t.marginPct*10)/10) + '%';
+}
+
+function renderAll(){
+  renderNav();
+  renderCatBody();
+  renderSummary();
+}
+
+/* ---------- rate card manager ---------- */
+function renderRateModal(){
+  const body = document.getElementById('rateModalBody');
+  let html = '';
+  CATEGORIES.forEach(cat=>{
+    html += `<div class="rate-cat-block" data-cat="${cat}">
+      <h4>${cat}</h4>
+      <table class="ratecard"><thead><tr>
+        <th style="width:28%;">Description</th><th style="width:26%;">Material</th>
+        <th style="width:17%;">Finish</th><th style="width:11%;">Rate ₹</th><th style="width:11%;">Cost ₹</th><th></th>
+      </tr></thead><tbody>`;
+    (rateCard[cat]||[]).forEach((r,i)=>{
+      html += `<tr data-i="${i}">
+        <td><input type="text" class="r-desc" value="${r.desc}"></td>
+        <td><input type="text" class="r-material" value="${r.material||''}"></td>
+        <td><input type="text" class="r-finish" value="${r.finish||''}"></td>
+        <td><input type="number" class="r-rate r-num" value="${r.rate}"></td>
+        <td><input type="number" class="r-cost r-num" value="${r.cost||0}"></td>
+        <td><button class="rm-btn r-del" title="Delete">✕</button></td>
+      </tr>`;
+    });
+    html += `</tbody></table>
+      <div style="margin-top:7px;"><button class="btn light small r-add" data-cat="${cat}">+ Add rate item</button></div>
+    </div>`;
+  });
+  body.innerHTML = html;
+
+  body.querySelectorAll('.r-add').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const cat = e.target.dataset.cat;
+      rateCard[cat].push({desc:'New item', material:'', finish:'', rate:0, cost:0});
+      renderRateModal();
+    });
+  });
+  body.querySelectorAll('.rate-cat-block').forEach(block=>{
+    const cat = block.dataset.cat;
+    block.querySelectorAll('tr[data-i]').forEach(tr=>{
+      const i = parseInt(tr.dataset.i);
+      tr.querySelector('.r-desc').addEventListener('input', e=> rateCard[cat][i].desc = e.target.value);
+      tr.querySelector('.r-material').addEventListener('input', e=> rateCard[cat][i].material = e.target.value);
+      tr.querySelector('.r-finish').addEventListener('input', e=> rateCard[cat][i].finish = e.target.value);
+      tr.querySelector('.r-rate').addEventListener('input', e=> rateCard[cat][i].rate = parseFloat(e.target.value)||0);
+      tr.querySelector('.r-cost').addEventListener('input', e=> rateCard[cat][i].cost = parseFloat(e.target.value)||0);
+      tr.querySelector('.r-del').addEventListener('click', ()=>{
+        rateCard[cat].splice(i,1);
+        renderRateModal();
+      });
+    });
+  });
+}
+
+/* ---------- save / load project ---------- */
+async function saveProject(){
+  const name = document.getElementById('metaProperty').value.trim() || document.getElementById('metaClient').value.trim();
+  if(!name){ toast('Add a client or property name first'); return; }
+  const payload = {
+    client: document.getElementById('metaClient').value,
+    property: document.getElementById('metaProperty').value,
+    preparedBy: document.getElementById('metaPreparedBy').value,
+    date: document.getElementById('metaDate').value,
+    terms: document.getElementById('metaTerms').value,
+    discountType: document.getElementById('discountType').value,
+    discountValue: document.getElementById('discountValue').value,
+    gstOn: document.getElementById('gstToggle').checked,
+    gstRateSelect: document.getElementById('gstRateSelect').value,
+    gstRateCustom: document.getElementById('gstRateCustom').value,
+    lineItems, savedAt: new Date().toISOString()
+  };
+  try{
+    const key = 'project:' + name.replace(/\s+/g,'_').toLowerCase();
+    const res = await window.storage.set(key, JSON.stringify(payload), true);
+    if(!res) throw new Error('failed');
+    toast('Project saved — visible to the whole team');
+  }catch(e){ toast('Could not save project — try again'); }
+}
+
+async function openLoadModal(){
+  const modal = document.getElementById('loadModal');
+  modal.classList.add('open');
+  const body = document.getElementById('loadModalBody');
+  body.innerHTML = 'Loading…';
+  try{
+    const res = await window.storage.list('project:', true);
+    const keys = (res && res.keys) || [];
+    if(keys.length === 0){
+      body.innerHTML = '<div style="color:var(--ink-soft);">No saved projects yet.</div>';
+      return;
+    }
+    body.innerHTML = keys.map(k=>`<div class="btn light" style="width:100%;text-align:left;margin-bottom:6px;" data-key="${k}">${k.replace('project:','').replace(/_/g,' ')}</div>`).join('');
+    body.querySelectorAll('[data-key]').forEach(el=>{
+      el.addEventListener('click', async ()=>{
+        try{
+          const r = await window.storage.get(el.dataset.key, true);
+          const data = JSON.parse(r.value);
+          document.getElementById('metaClient').value = data.client||'';
+          document.getElementById('metaProperty').value = data.property||'';
+          document.getElementById('metaPreparedBy').value = data.preparedBy||'';
+          document.getElementById('metaDate').value = data.date||'';
+          document.getElementById('metaTerms').value = data.terms || DEFAULT_TERMS;
+          document.getElementById('discountType').value = data.discountType || 'pct';
+          document.getElementById('discountValue').value = data.discountValue || 0;
+          document.getElementById('gstToggle').checked = !!data.gstOn;
+          document.getElementById('gstRateSelect').value = data.gstRateSelect || '18';
+          document.getElementById('gstRateCustom').value = data.gstRateCustom || 18;
+          document.getElementById('gstRateCustom').style.display = (data.gstRateSelect==='custom') ? 'inline-block':'none';
+          lineItems = data.lineItems || lineItems;
+          CATEGORIES.forEach(c=>{ if(!lineItems[c]) lineItems[c]=[]; });
+          activeCat = CATEGORIES[0];
+          modal.classList.remove('open');
+          renderAll();
+          toast('Project loaded');
+        }catch(e){ toast('Could not load that project'); }
+      });
+    });
+  }catch(e){
+    body.innerHTML = '<div style="color:var(--danger);">Could not reach storage — try again.</div>';
+  }
+}
+
+/* ---------- PDF export ---------- */
+function pdfHeader(doc, title){
+  const pageW = doc.internal.pageSize.getWidth();
+  doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(36,35,30);
+  doc.text('BAREBASE', 40, 46);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(90,85,70);
+  doc.text('202, 2nd Floor, Ahuja Chambers, Kumar Krupa Road, Bangalore 560 001', 40, 60);
+  doc.text('POC: Ridhi Bhinde  ·  +91 7411664532  ·  ridhi@barebase.in', 40, 72);
+  doc.setDrawColor(156,122,60); doc.setLineWidth(1.2); doc.line(40,82,pageW-40,82);
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(12.5); doc.setTextColor(36,35,30);
+  doc.text(title, 40, 102);
+
+  const client = document.getElementById('metaClient').value || '—';
+  const property = document.getElementById('metaProperty').value || '—';
+  const preparedBy = document.getElementById('metaPreparedBy').value || '—';
+  const date = document.getElementById('metaDate').value || '—';
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(50,48,42);
+  doc.text(`Client: ${client}`, 40, 118);
+  doc.text(`Property: ${property}`, 40, 130);
+  doc.text(`Prepared by: ${preparedBy}`, pageW-40, 118, {align:'right'});
+  doc.text(`Date: ${date}`, pageW-40, 130, {align:'right'});
+
+  return 148;
+}
+
+function ensureSpace(doc, y, needed){
+  const pageH = doc.internal.pageSize.getHeight();
+  if(y + needed > pageH - 50){ doc.addPage(); return 50; }
+  return y;
+}
+
+function buildPdf(mode){ // mode: 'client' | 'internal'
+  if(!window.jspdf){ toast('PDF library still loading — try again in a second'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p','pt','a4');
+  const pageW = doc.internal.pageSize.getWidth();
+  let y = pdfHeader(doc, mode==='client' ? 'TENTATIVE ESTIMATE' : 'INTERNAL COST SHEET');
+
+  let slNo = 1;
+  CATEGORIES.forEach((cat, ci)=>{
+    const rows = lineItems[cat];
+    if(rows.length === 0) return;
+    y = ensureSpace(doc, y, 40);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(124,94,40);
+    doc.text(`${ci+1}. ${cat.toUpperCase()}`, 40, y);
+    y += 6;
+
+    const head = mode === 'client'
+      ? [['Sl','Description','Material','Finish','Qty','Rate ₹','Amount ₹']]
+      : [['Sl','Description','Material','Finish','Qty','Rate ₹','Cost ₹','Amount ₹','Margin ₹']];
+
+    const body = rows.map(r=>{
+      const amt = (r.qty||0)*(r.rate||0);
+      const margin = amt - (r.qty||0)*(r.cost||0);
+      const base = [String(slNo++), r.desc||'', r.material||'', r.finish||'', String(r.qty||0), fmt(r.rate||0).replace('₹',''), fmt(amt).replace('₹','')];
+      if(mode === 'client') return base;
+      base.splice(6,0, fmt(r.cost||0).replace('₹',''));
+      base.push(fmt(margin).replace('₹',''));
+      return base;
+    });
+
+    doc.autoTable({
+      startY: y,
+      head, body,
+      theme:'grid',
+      styles:{fontSize:8, cellPadding:4, textColor:[36,35,30], lineColor:[216,209,191]},
+      headStyles:{fillColor:[239,234,221], textColor:[85,82,74], fontStyle:'bold'},
+      columnStyles: mode==='client'
+        ? {0:{cellWidth:22},4:{cellWidth:34,halign:'right'},5:{cellWidth:50,halign:'right'},6:{cellWidth:58,halign:'right'}}
+        : {0:{cellWidth:20},4:{cellWidth:28,halign:'right'},5:{cellWidth:42,halign:'right'},6:{cellWidth:42,halign:'right'},7:{cellWidth:50,halign:'right'},8:{cellWidth:50,halign:'right'}},
+      margin:{left:40,right:40},
+      didDrawPage: ()=>{}
+    });
+    y = doc.lastAutoTable.finalY + 8;
+    doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(90,85,70);
+    doc.text(`${cat} subtotal: ${fmt(categoryTotal(cat))}`, pageW-40, y, {align:'right'});
+    y += 18;
+  });
+
+  const t = computeTotals();
+  y = ensureSpace(doc, y, 130);
+  doc.setDrawColor(36,35,30); doc.setLineWidth(1);
+  doc.line(pageW-260, y, pageW-40, y);
+  y += 16;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(50,48,42);
+  doc.text('Subtotal', pageW-260, y); doc.text(fmt(t.subtotal), pageW-40, y, {align:'right'}); y += 15;
+  if(t.discountAmount>0){
+    doc.text('Discount', pageW-260, y); doc.text('−'+fmt(t.discountAmount), pageW-40, y, {align:'right'}); y += 15;
+  }
+  if(t.gstOn){
+    doc.text(`CGST @ ${t.gstRate/2}%`, pageW-260, y); doc.text(fmt(t.cgst), pageW-40, y, {align:'right'}); y += 15;
+    doc.text(`SGST @ ${t.gstRate/2}%`, pageW-260, y); doc.text(fmt(t.sgst), pageW-40, y, {align:'right'}); y += 15;
+  }
+  doc.setFont('helvetica','bold'); doc.setFontSize(11.5);
+  doc.text('Grand total', pageW-260, y+4); doc.text(fmt(t.grand), pageW-40, y+4, {align:'right'});
+  y += 26;
+
+  if(mode === 'internal'){
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(70,82,65);
+    doc.text('Internal cost', pageW-260, y); doc.text(fmt(t.totalCost), pageW-40, y, {align:'right'}); y += 15;
+    doc.setFont('helvetica','bold');
+    doc.text('Margin', pageW-260, y); doc.text(fmt(t.margin) + '  ('+(Math.round(t.marginPct*10)/10)+'%)', pageW-40, y, {align:'right'});
+    y += 26;
+  }
+
+  if(mode === 'client'){
+    const terms = document.getElementById('metaTerms').value || DEFAULT_TERMS;
+    y = ensureSpace(doc, y, 90);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(36,35,30);
+    doc.text('NOTES', 40, y); y += 14;
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(80,76,66);
+    const lines = doc.splitTextToSize(terms, pageW-80);
+    lines.forEach(line=>{
+      y = ensureSpace(doc, y, 14);
+      doc.text(line, 40, y);
+      y += 12;
+    });
+    y += 24;
+    y = ensureSpace(doc, y, 50);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    doc.text('For Kanchan Integrated Property Development Co (Barebase)', pageW-40, y, {align:'right'});
+    doc.text('Authorised Signatory', pageW-40, y+34, {align:'right'});
+  }
+
+  const filenameBase = (document.getElementById('metaProperty').value || document.getElementById('metaClient').value || 'BOQ').replace(/\s+/g,'_');
+  doc.save(`${filenameBase}_${mode === 'client' ? 'Client_Estimate' : 'Internal_Cost_Sheet'}.pdf`);
+  toast(mode === 'client' ? 'Client PDF downloaded' : 'Internal PDF downloaded');
+}
+
+/* ---------- wire up controls ---------- */
+document.getElementById('btnAddItem').addEventListener('click', addLineItem);
+document.getElementById('gstToggle').addEventListener('change', renderSummary);
+document.getElementById('gstRateSelect').addEventListener('change', e=>{
+  document.getElementById('gstRateCustom').style.display = (e.target.value==='custom') ? 'inline-block':'none';
+  renderSummary();
+});
+document.getElementById('gstRateCustom').addEventListener('input', renderSummary);
+document.getElementById('discountValue').addEventListener('input', renderSummary);
+document.getElementById('discountType').addEventListener('change', renderSummary);
+document.getElementById('costViewToggle').addEventListener('change', e=>{ showCostView = e.target.checked; renderAll(); });
+
+document.getElementById('btnManageRates').addEventListener('click', ()=>{
+  renderRateModal();
+  document.getElementById('rateModal').classList.add('open');
+});
+document.getElementById('closeRateModal').addEventListener('click', ()=>{
+  document.getElementById('rateModal').classList.remove('open');
+  renderAll();
+});
+document.getElementById('btnSaveRates').addEventListener('click', async ()=>{
+  await saveRateCardToStorage();
+  document.getElementById('rateModal').classList.remove('open');
+  renderAll();
+});
+document.getElementById('btnResetRates').addEventListener('click', ()=>{
+  if(confirm('Reset the rate card to Barebase defaults? This discards any custom rates.')){
+    rateCard = JSON.parse(JSON.stringify(DEFAULT_RATES));
+    renderRateModal();
+  }
+});
+
+document.getElementById('btnLoad').addEventListener('click', openLoadModal);
+document.getElementById('closeLoadModal').addEventListener('click', ()=> document.getElementById('loadModal').classList.remove('open'));
+document.getElementById('btnSave').addEventListener('click', saveProject);
+document.getElementById('btnClientPdf').addEventListener('click', ()=> buildPdf('client'));
+document.getElementById('btnInternalPdf').addEventListener('click', ()=> buildPdf('internal'));
+
+/* ---------- init ---------- */
+(async function init(){
+  document.getElementById('metaDate').valueAsDate = new Date();
+  document.getElementById('metaTerms').value = DEFAULT_TERMS;
+  await loadRateCardFromStorage();
+  renderAll();
+})();
+</script>
+</body>
+</html>

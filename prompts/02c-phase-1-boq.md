@@ -7,7 +7,8 @@ Totals, GST split and amount in words must match the formulas in product spec se
 
 Build, one PR per item:
 
-1. **Data model** for Boq → Room → Line → Version (product spec 17), with migrations.
+1. **Data model migration** from the imported schema to Boq → Room → Line → Version (product spec 17), migrating
+   every existing project, with a rollback. Existing sent and approved versions keep their maths (decision 6).
 2. **Build screen:** room sections, inline line editing with keyboard support, item picker, custom lines, rate
    override marker, quantity from dimensions with override, count, scope text, internal note, photo, autosave with the
    saved indicator, sticky summary panel, discount, GST with CGST/SGST or IGST by client state, cost and margin for

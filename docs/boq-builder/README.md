@@ -1,0 +1,330 @@
+# Barebase BOQ Studio
+
+An internal tool for building Bills of Quantities for Barebase projects — pulls
+from a shared rate card, calculates line-item and section totals, exports
+client-facing and internal cost-sheet PDFs, and hands the client a link they can
+approve line by line.
+
+Built as a real Next.js app with Postgres persistence and team auth, replacing
+the single-file prototype that relied on Claude's artifact storage.
+
+## Stack
+
+| Piece | Choice |
+|---|---|
+| Framework | Next.js 16 (App Router, Server Actions), React 19, TypeScript |
+| Database | PostgreSQL via Prisma |
+| Auth | Email + password, bcrypt hashes, signed JWT in an httpOnly cookie (`jose`) |
+| PDFs | `jspdf` + `jspdf-autotable` as npm dependencies, generated client-side |
+| Styling | Plain CSS ported from the "Warm Ledger" design, no framework |
+| Hosting | Vercel |
+
+## What's in it
+
+**Build BOQ** (`/projects/[id]/build`)
+- Cascading **Category → Description → Material → Finish** dropdowns off the
+  shared rate card, auto-filling rate, internal cost and unit. "Custom item"
+  fallback at every level for anything the rate card doesn't cover.
+- **Dimension-driven quantity**: the unit decides which inputs appear — SQFT
+  gives Length × Breadth, RFT a single length, CFT Length × Breadth × Height,
+  and Nos./Lumpsum/Day/Person a plain typed quantity. The quantity can always
+  be **typed over** the calculated one for an oddly-shaped area where the total
+  is already known; it's flagged "typed", and the dimensions stop driving it
+  until the box is cleared or a dimension is edited again.
+- One reusable **entry form** for adding: fill it, hit Enter in any field, it
+  collapses into a compact row and resets for the next item.
+- **Inline editing** of existing rows: the pencil opens that row in place with
+  the full cascade — including **Category**, which re-drives Description,
+  Material, Finish and the rate exactly as it does for a new item. Several rows
+  can be open at once, with a **Scope & notes** expander for the long-form
+  client-facing scope, the internal note and the reference photo — the same
+  scope text that feeds the Client PDF's Scope Notes appendix. Each row has its
+  own **✓ Save** and **Cancel** right
+  where you're working; a bar at the bottom of the screen additionally offers
+  **Save all N rows** / **Discard all** when several are open.
+- **Import from project**: pull sections or individual lines out of any other
+  project in the org, all at once or cherry-picked from a checklist. Items are
+  copied, never linked, so editing one afterwards can't touch the original.
+  Matching section names merge; the rest are added as new sections.
+- **Sections**: fixed ones first (Electrical Work, Wall Works, Other), then
+  rooms added from a dropdown with a Custom option. A section-jump dropdown
+  filters to one section — no tab strip that overflows at 7 rooms.
+- Long-form client-facing **scope of work** per item, plus a separate
+  internal-only note, plus a reference photo (compressed client-side).
+- Discount (₹ or %), GST toggle with 5/12/18/28/custom split into CGST/SGST,
+  and an admin-only **Cost & margin** toggle that's off by default and never
+  leaves the org.
+- **Client-facing column toggles** — Material, Finish, Qty and Rate per unit.
+  Per-project, and honoured identically by the Client View page, the Client PDF
+  and the Internal PDF: switch Rate off and it's gone from all three. Qty covers
+  the quantity, its unit and the dimension summary together, since a bare "SQFT"
+  with no number beside it tells a client nothing. The same controls appear in
+  the Build BOQ Summary panel and at the top of the Client View page, so you can
+  set them while looking at exactly what the client will get.
+- Autosaves as you work.
+
+**PDF export** — Client PDF (line-item detail, section subtotals, discount/GST,
+terms & exclusions, scope notes, reference-image appendix, signature block; no
+cost or margin anywhere) and Internal PDF (the same plus Cost, Margin and a
+margin summary).
+
+**Projects list** — every project with its client, version count, current value
+and status, plus **Duplicate** to clone one whole project (sections, items,
+terms, discount and GST) as a fresh Draft. The copy shares no rows with the
+original, and carries none of its versions, client links or approvals.
+
+**Versions** (`/projects/[id]`) — status-driven, not manual snapshots. One
+status per BOQ: **Draft → Sent to Client → Approved**. Full history with
+per-version totals, the ability to reopen any past version into the live BOQ,
+and an exportable audit log. Internal-only; the client never sees it.
+
+**Client View** — a read-only branded page. Items that are new or changed
+*since the version that client last approved* are highlighted; nothing else
+about the revision history is exposed.
+
+**Approvals & change orders** — each project gets client contacts with their
+own share link (no account, no login). Opening a link asks for the email address
+it was issued to before any of the estimate is fetched — a **basic access check,
+not authentication**: it stops a forwarded link opening for whoever receives it,
+but anyone with both the link and the address still gets in. A verified browser
+is remembered for 30 days via a signed pass in local storage, bound to that
+specific link, so **Revoke & reissue** on Client access invalidates every
+remembered device in one action while keeping the contact's approval history.
+Real protection is a one-time code emailed to the contact, which needs email
+sending (see Known limitations). A client can approve the whole estimate
+in one click or go line by line: **Approve / Reject / Request change**, plus a
+note on any line. Every line-level action saves on the click and confirms itself
+in place — a green tick and a "saved at" time that stays put. Approve-the-whole-
+estimate sits above the line items, is styled to look like the consequential
+action it is, and asks for confirmation naming how many of the client's own
+flagged lines it would clear. The bottom of the page is a separate **Done — send
+my review** step rather than a second copy of it: it saves nothing, since every
+line already did, but it gives the client an end to their journey and gives the
+team the one thing per-line verdicts can't — the difference between a client who
+hasn't started and one who is finished and waiting. Surfaced on Client Review and
+as a Finished column on Client access. Rejecting opens the note box by itself and asks what's wrong,
+because a rejection with no reason gives the team nothing to act on. A note is
+never read as a verdict — you can approve a line *and* flag something about it
+("fine, but use the lighter shade"), and leaving a note on a line you haven't
+decided on yet leaves it Pending rather than deciding for you. Each verdict and
+note is stored against that specific line **and that specific version**. A
+client who rejects a line on a version they'd previously approved un-approves
+it: the version drops back to Sent to Client and their approval baseline moves
+back to whatever they genuinely approved before, so an approved version can
+never sit there contradicted by a rejection inside it.
+
+**Client Review** (`/projects/[id]/review`) — the team's side of that, shaped
+like the BOQ rather than as a separate list of responses, so a rejection is read
+in the context of the section it sits in. Every line carries the client's
+verdict and their comment inline, coloured with the same highlight family the
+Client View uses for new and changed lines: red for rejected, amber for a change
+requested, a quiet rule for approved-with-a-note. It opens filtered to **Needs
+attention** — anything rejected, queried or commented on — with **Every line**
+one click away, and a rollup across the top.
+
+Crucially it's editable in place: every row is the same inline editor as Build
+BOQ, with the client's words still on screen while you change the finish or drop
+the quantity. Edits go to the live BOQ through the same autosave, so changing a
+line that's already approved raises a **Change Order** on the next version
+exactly as it would on Build BOQ — old → new, recorded automatically, never a
+silent overwrite. **Save version & send back** snapshots the reworked BOQ as a
+new version and returns it to the client, closing the loop. Lines the client
+reviewed that have since been deleted are listed separately rather than quietly
+dropped, and the tab carries a badge with the number of lines still needing
+attention so it's visible from anywhere in the project.
+
+Every action by either side lands in the audit trail.
+
+**Your account** (`/account`, from the chip in the top right) — everything that
+belongs to you rather than to the organisation, in one place: your name and
+email (the email is your sign-in, so changing it changes what you log in with),
+your password, a plain table of **what your role can and can't do** with the
+admin-only rows marked, the projects you started most recently, and sign-out.
+Your name is what gets stamped on versions and audit entries, so editing it here
+updates the top bar and everything downstream.
+
+**Rate Card & Settings** (`/settings`) — the 253-item default rate card across
+17 categories, editable in-place and shared team-wide (admin only), with
+letterhead and default terms. Each item carries a **default scope note** —
+boilerplate copied into a BOQ line's scope of work when the item is added, so
+common items aren't retyped. Copied, never referenced: hand-typed wording
+survives a cascade change, and editing the default later never rewrites scope
+text already saved on a BOQ, which a client may have approved. **Unit** is a dropdown rather
+than a free-text box, labelled with what each one does to the entry form —
+"SQFT — length × breadth", "Nos. — typed quantity" — so the dimension behaviour
+is visible at the point of choosing. It lists the standard units plus any the
+card already uses, and a **Custom unit…** option swaps the cell for a text box;
+whatever you type is offered on every other row immediately.
+
+**Bulk rate card edit** (admin only) — download the whole rate card as CSV, edit
+it in Excel, upload it back. Every row carries a stable **Item ID**; rows that
+still have it are matched on it and can have *any* field edited, so rewording a
+Description in Excel updates that item rather than losing track of it or adding
+a duplicate. Rows without an ID fall back to **Category + Description +
+Material + Finish** and are added as new when nothing matches — for those the
+four columns are the identity, so their wording is left alone. A row that
+carries an Item ID another row already used is the copy-a-row-in-Excel case: if
+it describes something different it's added as a new item with the reason shown,
+rather than being dropped as a duplicate. Nothing is written on upload: you get a preview first showing every
+update as old → new per field, every new item, and every row that couldn't be
+read — bad rows are listed with a reason and skipped, they don't block the rest.
+Only after you confirm is anything saved, and each update is re-checked against
+the value the preview was built from, so a colleague's edit made in the meantime
+is left alone and reported rather than silently overwritten.
+
+**Team** (`/team`, admin only) — list everyone with their role, add a member by
+setting their initial password directly, promote/demote between Admin and Team
+Member, reset a password, and deactivate or restore access. Deactivating blocks
+sign-in immediately (including any session already open) while keeping every
+project, version and audit entry that person authored. The last active Admin
+can't be demoted or deactivated, and you can't deactivate yourself.
+
+**Password fields** — every one of them, on sign-in, your account page and the
+Team page, is masked with a show/hide eye. The two Team-page fields (an initial
+password, and resetting someone's) used to be plain `type="text"` so the admin
+could read what they were typing; they're masked now with the eye there when you
+actually need to check it, since a password shouldn't sit readable on a screen
+other people can see.
+
+### Roles
+
+| Role | Can do |
+|---|---|
+| Admin | Everything, including internal cost and margin, the rate card, bulk import, organisation settings and the Team page |
+| Team member | Build and version BOQs, manage client contacts; can't see cost or margin, can't edit the rate card, can't reach `/team` |
+| Client contact | Read + approve, scoped to one project. Never sees cost, margin, internal notes or version history. |
+
+Role checks run server-side on every entry point — hiding a nav link is never
+the thing keeping someone out.
+
+**Internal cost and margin are admin-only**, and enforced by not sending the
+numbers rather than by hiding them. A team member's Build BOQ page, rate card
+and project-import payloads all arrive with `cost` zeroed, so there's nothing to
+find in devtools; the Cost & margin toggle and the Internal PDF button aren't
+rendered for them at all. Because their browser has no cost to send back,
+`saveBoq` ignores cost from a non-admin entirely: a line already on record keeps
+exactly the cost that's stored, and a new line — or one whose rate-card identity
+a member changed — has its cost resolved from the rate card server-side. A
+member can therefore build, edit and import freely without ever seeing margin
+and without erasing it. The one thing they can't do is set a cost on a bespoke
+item that isn't in the rate card; that stays at zero until an admin fills it in.
+
+## Running it locally
+
+```bash
+npm install
+cp .env.example .env          # then fill in DATABASE_URL and AUTH_SECRET
+npm run db:migrate            # apply migrations
+npm run db:seed               # create the org, first admin and default rate card
+npm run dev
+```
+
+`npm run db:seed` reads `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` from the
+environment. It's safe to re-run: the org and admin are upserted, and the rate
+card is only written when the org has none, so team edits are never stomped.
+
+### Windows on ARM
+
+Prisma has no Windows ARM64 engine — `windows` is its only Windows binary
+target, and it's x64. On an ARM64-native Node install that engine can't be
+loaded in-process, which surfaces as **"not a valid Win32 application"**.
+Adding `windows-arm64` to `binaryTargets` does not fix this: it isn't a target
+Prisma recognises, and `prisma generate` fails outright with *"Unknown binary
+target"* — which would break `npm install` (it runs in `postinstall`) and the
+Vercel build along with it.
+
+Pick whichever of these fits, in rough order of least friction:
+
+1. **Run the seed somewhere else.** It's a one-off against the production
+   database — any x64 machine, WSL2, or a CI shell will do. Nothing about the
+   deployed app cares which machine seeded it.
+2. **Use WSL2 for local dev.** Prisma ships proper `linux-arm64` engines, so
+   everything runs natively with no emulation.
+3. **Install the x64 build of Node.js** (via nvm-windows, or the x64 installer).
+   The x64 engine then matches the process loading it, and Windows emulates the
+   lot.
+4. **Switch to the binary engine**, which spawns the x64 engine as a separate
+   emulated process instead of loading it into Node. Put this in your local
+   `.env` — which is gitignored, so production keeps the faster library engine:
+
+   ```
+   PRISMA_CLIENT_ENGINE_TYPE=binary
+   PRISMA_CLI_QUERY_ENGINE_TYPE=binary
+   ```
+
+## Deploying to Vercel
+
+1. Import the repo in Vercel. Framework preset: **Next.js** (auto-detected).
+2. Attach a Postgres database — the Neon or Vercel Postgres integration sets
+   `DATABASE_URL` for you. Any Postgres works.
+3. Set the remaining environment variables (Production and Preview):
+
+   | Variable | Value |
+   |---|---|
+   | `DATABASE_URL` | Postgres connection string |
+   | `AUTH_SECRET` | `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+   | `APP_URL` | Your deployment URL, e.g. `https://boq.barebase.in`. Optional — falls back to Vercel's own URL. Used to build client share links. |
+
+4. Deploy. The build script runs `prisma migrate deploy` before `next build`, so
+   the schema is applied automatically.
+5. Seed the first admin once, from your machine against the production database:
+
+   ```bash
+   DATABASE_URL="<production url>" \
+   SEED_ADMIN_EMAIL="you@barebase.in" \
+   SEED_ADMIN_PASSWORD="<a real password>" \
+   SEED_ADMIN_NAME="Your Name" \
+   npm run db:seed
+   ```
+
+   Then sign in and add the rest of the team under Rate Card & Settings.
+
+Set `APP_URL` to a stable domain before sending clients links — share links are
+absolute and built from it.
+
+## Known limitations
+
+- **Concurrent editing is guarded, not merged.** Every autosave carries the
+  `updatedAt` the tab was opened with; if the BOQ has moved on — another tab, a
+  teammate, a restored version — the save is refused and the tab shows a reload
+  banner rather than overwriting. Nobody loses work, but there's no merge: the
+  second person reloads and redoes their edit.
+- **No email yet.** Share links are copied and sent by hand, approvals don't
+  notify anyone, and new team members are given their password directly by an
+  admin rather than invited. `APPROVALS_SPEC.md` §5 wants email on both sides —
+  the audit events are already recorded, so this is a delivery layer on top.
+- **Bulk edit is CSV, not `.xlsx`.** CSV opens and saves natively in Excel and
+  needs no parsing dependency; a real `.xlsx` reader would.
+- **53 rate card rows share a match key with another row.** Category +
+  Description + Material + Finish doesn't tell them apart — there are five
+  distinct "Accessories · Brand - EBCO/HETTICH" products, Loft at two heights,
+  and so on, all from the source sheets. Keep the Item ID column and the
+  importer matches them exactly; drop it and those rows are reported as
+  ambiguous and skipped rather than guessed at.
+- **Compare Quote is not built** (`BOQ_BUILDER_V2_SPEC.md` §5).
+- **Reference photos are stored as data URLs in Postgres**, downscaled to 480px
+  JPEG. Fine at this volume; move to blob storage if projects get photo-heavy.
+- **Rate-card gaps from the source sheets are carried over as-is**, not silently
+  patched (per `HANDOFF.md` §3): several Wardrobe finish variants have no rate
+  and are absent; Beds, Puja back-panels and Dining carry their full spec text
+  in "Finish" with "Material" blank.
+
+## Reference material
+
+| File | Purpose |
+|---|---|
+| `Barebase BOQ.dc.html` | Finished visual design (Claude Design, "Warm Ledger") — the reference for look and feel. |
+| `BOQ Redesign Directions.dc.html` | The three directions explored before Warm Ledger. |
+| `barebase-boq-tool.html` | Earlier working prototype — reference for interaction logic. |
+| `HANDOFF.md` | What the prototype did and the gaps this build closes. |
+| `APPROVALS_SPEC.md` | Client approvals spec — line-item status, change orders, audit trail. |
+| `BOQ_BUILDER_V2_SPEC.md` | Section/room restructure, versioning model, Compare Quote. |
+| `PDF_FONT_LICENSE.txt` | License for the DejaVu Sans subset embedded in PDFs. |
+
+### A note on the PDF font
+
+jsPDF's built-in Helvetica is WinAnsi-encoded and has no glyph for ₹ — the
+prototype's PDFs rendered it as a stray superscript and, because the width
+calculation was wrong, right-aligned subtotals ran off the page edge. This build
+embeds a subsetted DejaVu Sans (~22 KB per face, dynamically imported so it only
+loads on export) so amounts print correctly.

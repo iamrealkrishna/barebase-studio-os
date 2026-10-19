@@ -1,27 +1,34 @@
-# Prompt 00 · Set up the app and plan the build
+# Prompt 00 · Get the app running end to end, add the Studio OS shell, plan the build
 
-You are starting **Barebase Studio OS**, a new standalone application, in this repository. Read `CLAUDE.md` first,
-then `docs/decisions.md`, `docs/screens-and-journeys.md`, `docs/product-spec.md` and `docs/ui-ux-spec.md` in full,
-and look at every image in `docs/ui/screens/`, `docs/ui/reference/` and `docs/ui/diagrams/`. Don't look at or use any
-other repository.
+This repo is **Barebase Studio OS**. It starts from the BOQ Studio code, imported with its full history. Read
+`CLAUDE.md`, `docs/decisions.md`, `docs/boq-builder/existing-app-map.md`, `docs/screens-and-journeys.md`,
+`docs/product-spec.md` and `docs/ui-ux-spec.md`, and look at every image in `docs/ui/screens/`.
 
-Do these, in this order, and stop:
+Never touch the BOQ Studio repo (`barebase-boq-app`) or its database.
 
-1. **Scaffold the app** (Next.js 16 App Router, TypeScript, Prisma 6, the stack in `CLAUDE.md`). It must install,
-   build, lint and typecheck cleanly, with Vitest and Playwright wired up and one passing test each.
-2. **Foundations only:** `src/styles/tokens.css` from UI spec section 2, `src/lib/format.ts` with the formatter tests
-   from UI spec section 7, an empty `src/lib/calc.ts`, and the two shells (global sidebar and project sidebar exactly
-   as the last section of `docs/screens-and-journeys.md` describes, with the top bar).
-3. **Every route as a placeholder page** from `docs/screens-and-journeys.md`, inside the right shell, each showing its
-   title and a link to its mock-up image, so the whole navigation can be clicked through. No business logic yet.
-4. **`docs/PLAN.md`** with: the target Prisma schema (product spec section 17 plus the 11A and 11B tables); the route
-   map; phase task lists for Phases 0 to 5, PR-sized (1 to 3 days each), in build order, each linked to its spec
-   section, screens and acceptance checks, with each of the 10 journeys assigned to the phase that completes it;
-   risks; and "Questions for Krishna" at the top, only things that block Phase 0 or 1 and aren't already answered in
-   `docs/decisions.md`.
-5. **`CLAUDE.md`:** fill in the Commands section.
+Do these in order, on one branch `setup/end-to-end-base`, and stop:
 
-The kit (CLAUDE.md, docs/, prompts/) is already on `main`. Do all of the work above on a branch
-`setup/foundations-and-plan` and open one PR titled "Setup: scaffold, shells, routes and build plan". Then stop
-and tell Krishna what you need from him (Neon database URLs, Vercel project, Resend key, Blob token) as a short
-checklist.
+1. **Run it end to end.** Install, typecheck, build, and run the app against the staging database Krishna gives you
+   (a copy of BOQ Studio's production data, see decision 2). Then prove, with Playwright, that everything BOQ
+   Studio does still works here, as a journey test: sign in · forgot and change password · Team (add, deactivate) ·
+   rate card (edit, CSV import preview and export) · create a project · build a BOQ (rooms, items, custom item,
+   dimensions, count, discount, GST, scope, notes, photos) · cost and margin hidden from non-admins on the server ·
+   save a version · client and internal PDFs · client link with email check · client approves and requests changes
+   line by line · change orders appear · client review screen · history and audit export. Fix anything broken.
+   Every project already in the copied data must open and show the same totals as in BOQ Studio.
+2. **The Studio OS shell around it.** Global sidebar (Home · Insights · Leads · Projects · Finance · Team, Org
+   Settings at the bottom), project sidebar (Overview · Files · BOQ · Finance · Home budget · Milestones & DPR with
+   its three sub-pages · Snags), the top bar with "n to approve" and the bell, all in the tokens of UI spec section 2.
+   The existing BOQ, Team, rate card, client review and history screens move inside this shell, still working.
+3. **Every other screen as a placeholder** from `docs/screens-and-journeys.md`, at its route, inside the right shell,
+   showing its title and its mock-up image, so the whole product can be clicked through from sign-in.
+4. **`docs/PLAN.md`:** the schema migration plan from the imported schema to product spec section 17 (plus 11A and
+   11B), with data migrations for the existing projects and rollbacks; the route map with redirects from the old
+   routes; Phases 0 to 5 as PR-sized tasks (1 to 3 days) in build order, each linked to its spec section, screens
+   and acceptance checks, with the 10 journeys assigned to the phase that finishes them; the go-live plan (final copy
+   of BOQ Studio's data, switch-over day, BOQ Studio made read-only); risks; and "Questions for Krishna" at the top,
+   only things that block Phase 0 or 1 and aren't answered in `docs/decisions.md`.
+5. **`CLAUDE.md`:** correct the Commands section if anything changed.
+
+Open one PR titled "Setup: end-to-end base, Studio OS shell and build plan", with screenshots at 1440 px and 375 px.
+Then stop and give Krishna a short checklist of what you need (see the README's "Before you start").

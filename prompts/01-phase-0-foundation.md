@@ -5,6 +5,11 @@ and 9. Update the Phase 0 task list in `docs/PLAN.md` first, then work through i
 
 Scope:
 
+0. **Safety first, one small PR each, before anything else** (details in `docs/boq-builder/existing-app-map.md`):
+   deleting a project becomes a soft delete, Admin only, checked on the server, and restorable; only a client can
+   approve a BOQ version (the server refuses it from staff); preview builds and tests refuse to run migrations or
+   clean-up against the production database; money moves from `Float` to `Decimal(14,2)` with a data migration.
+
 1. **Accounts and sign-in.** No public sign-up. Accounts are created by an Admin only, by
    invite email with a set-password link (`/invite/[token]`, valid 7 days). Add password reset by email
    (`/reset/[token]`, valid 30 minutes) and change-password on Profile. Restrict Google sign-in to `@barebase.in`
