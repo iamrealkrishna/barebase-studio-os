@@ -433,7 +433,7 @@ See the image in section 1.
 - Rooms as sections, each with item count, subtotal and "+ Add item". Lines show name, then category · material · finish in quiet text, then quantity @ rate and amount on the right.
 - Dark **summary panel** on the right stays visible while scrolling: totals per room, subtotal, discount, GST, grand total, client-facing column toggles.
 - Clicking a line edits it in place. Tab and Enter move between cells; Enter on the last cell adds a new line.
-- Behaviour to keep from BOQ Studio: count on a line ("Wardrobe, count of 2"), quantity override marker, import from another project.
+- Also: count on a line ("Wardrobe, count of 2"), quantity override marker, import from another project.
 
 **Build notes · BOQ builder**
 
@@ -446,7 +446,7 @@ See the image in section 1.
 | States | "Saving…" / "All changes saved" / "Couldn't save, retrying" indicator · read-only banner when the version is Sent or Approved ("Sent on 20 Sep. Edit to create v4") · lock banner when someone else is editing · empty room shows "+ Add item" only |
 | Keyboard | Tab / Shift+Tab across cells · Enter on last cell adds a line · Ctrl/Cmd+K opens the item picker · Delete on a selected line removes it with Undo |
 | Permissions | Cost toggle, cost column and Internal PDF only for cost viewers; edit controls hidden for read-only roles |
-| Done when | A 60-line, 8-room BOQ edits without lag on a mid-range laptop; totals match BOQ Studio to the paisa; refresh mid-edit loses nothing that showed "saved" |
+| Done when | A 60-line, 8-room BOQ edits without lag on a mid-range laptop; totals match product spec section 19 to the paisa; refresh mid-edit loses nothing that showed "saved" |
 
 ### 5.5 Project Finance
 

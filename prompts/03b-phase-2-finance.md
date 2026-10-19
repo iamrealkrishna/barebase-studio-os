@@ -20,7 +20,7 @@ Build:
 7. **Vendors & bills sub-tab** (product spec 11, UI spec 5.8): per-vendor ledger for the project with POs and bills, reconciling with the Summary tab.
 
 Done when: every acceptance check in product spec section 11 passes; dashboard totals equal the ledger; the GST export
-opens in Excel with correct CGST, SGST and IGST columns. After this phase, the cutover gate applies: new projects
+opens in Excel with correct CGST, SGST and IGST columns. After this phase, new projects
 can start here while RDash finishes jobs already running.
 
 **Also in this phase (added 18 Oct):** product spec 11B and UI spec 5.12 to 5.15: proforma creator, PO creator,

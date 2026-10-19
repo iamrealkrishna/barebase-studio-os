@@ -1,6 +1,6 @@
 # Decisions
 
-Answers Krishna has given so far. They override the defaults in product spec section 23. Copied from the BOQ Studio plan (PR #13, 19 Oct 2026); decisions 1 and 2 were changed when the build moved to this repo. The "Questions for Krishna (kit v2)" below were all accepted with their defaults on 19 Oct; treat them as decisions 9 to 18.
+Answers Krishna has given so far. They override the defaults in product spec section 23. The "Questions for Krishna (kit v2)" below were all accepted with their defaults on 19 Oct; treat them as decisions 9 to 18.
 
 ## Decisions from Krishna (15 Oct 2026)
 
@@ -8,18 +8,17 @@ These answer the kickoff questions and override the defaults that were listed th
 
 | # | Question | Answer |
 | --- | --- | --- |
-| 1 | Base codebase | **Superseded 19 Oct: build in this new repo (barebase-studio-os).** BOQ Studio stays live until cutover; port its BOQ code; minERP is retired |
-| 2 | Live data | **Superseded 19 Oct:** BOQ Studio projects and rate card are imported into this app at cutover, with a full rehearsal on staging first |
-| 3 | Staging | Neon branch **"staging"** created from production. Vercel Production → production `DATABASE_URL`; Vercel Preview → staging. Preview builds must never migrate production, and tests must never run against production (task P0-0c) |
+| 1 | Codebase | **A new, standalone app in this repo**, built from scratch. No other codebase is used; minERP is retired |
+| 2 | Existing data | **Start fresh.** No data import from any other system. The rate card is entered, or imported by CSV, in the app |
+| 3 | Staging | Neon branch **"staging"** created from production. Vercel Production → production `DATABASE_URL`; Vercel Preview → staging. Preview builds must never migrate production, and tests must never run against production |
 | 4 | Email | **Resend**, sending from `studio@barebase.in`. Krishna adds the DNS records |
 | 5 | Roles | Krishna Admin · Harish Admin · Ridhi COO · Mansi Design lead · Keertan Designer · Anamika Pre-sales · Ananya Pre-sales. Krishna adds the Finance users himself |
-| 6 | Old BOQ maths | **Agreed.** Sent and approved versions keep their current maths. Only new drafts use the spec's maths |
+| 6 | BOQ maths | The formulas in product spec section 19 apply to every BOQ version |
 | 7 | Google sign-in | **After Phase 1** |
 | 8 | File storage | **Vercel Blob** |
 
 Product spec section 23 decisions still use their defaults. Decisions 1, 2, 8, 9, 10 and 16 are needed in
-Phase 1. Decision 16 is answered by decision 1: there's no minERP import, and live BOQ Studio projects
-migrate in place.
+Phase 1. Decision 16 is answered by decision 2: start fresh, no import.
 
 Decisions 17 to 19 (added with Home budget) also use their defaults: the design lead sees the project vendor
 ledger without bank details · the client can mark their purchases ordered or delivered from the portal · seven

@@ -9,7 +9,7 @@ Build:
 1. **Milestones** from a template, each covering BOQ lines; value-weighted progress for milestones and the project;
    automatic Delayed; link to client payment stages (completion marks the stage Due and notifies Finance).
 2. **Progress updates** per line (slider, typed %, or quantity) with photos and history.
-3. **Tasks:** keep minERP's board; add milestone link, priority, checklist, attachments, comments, My tasks on Home.
+3. **Tasks:** build the board; add milestone link, priority, checklist, attachments, comments, My tasks on Home.
 4. **DPR** on the phone: auto-pulled progress, photos, work done, manpower prefilled, blockers (notify lead designer),
    tomorrow's plan, share with client; offline draft queue; DPR PDF and weekly summary PDF; calendar of filed days.
 5. **Snags:** raise with photo, assign with a fix-by date, Open → Fixed (after photo required) → Verified → Closed,

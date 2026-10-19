@@ -3,11 +3,10 @@
 Barebase's one internal platform: leads, projects, BOQs, vendors and money, site work (milestones, DPR, snags),
 handover and a client portal. Barebase is an architecture, interiors and construction studio in Bengaluru.
 
-**This is a new repository, built from scratch.** The specs were first written for an older tool called minERP, and
-a first attempt started inside BOQ Studio (`iamrealkrishna/barebase-boq-app`). Wherever the specs say "keep minERP's
-X" or "minERP today", read it as "build X here". BOQ Studio stays live and untouched until cutover; its BOQ builder,
-rate card, client review link and PDFs are the best working code we have, so **port them from that repo** instead of
-rewriting them (see `docs/boq-studio-plan-reference.md`, section 1, for what exists there and file paths).
+**This is a new, standalone application, built from scratch.** The BOQ builder is one feature of it, built from the
+specs like every other module. It has no connection to any other Barebase app or repository: don't read, copy from or
+change any other repo, and don't plan any data import. The specs were first written for an older tool called minERP;
+wherever they say "keep minERP's X" or "minERP today", read it as "build X here".
 
 ## Read before any work
 

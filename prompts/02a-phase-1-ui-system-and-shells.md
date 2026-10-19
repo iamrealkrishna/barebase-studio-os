@@ -16,7 +16,7 @@ Build, in this order, one PR per group:
 4. **Shells:** AuthShell, AppShell (sidebar with Home, Leads, Projects, Finance, Team, Settings; top bar with search,
    approvals count, notifications, profile; collapses to icons below 1280 px; bottom bar on phones), ProjectShell
    (project sidebar, breadcrumb, stage bar), ClientShell. Wire up the full route map from UI spec section 3 with
-   placeholder pages and redirects from the old minERP URLs.
+   placeholder pages (some may already exist from the set-up PR).
 
 Done when: the gallery and shells match the reference images at 1440 px and 375 px; visual snapshots are committed; axe reports
 no serious issues; there are no raw hex values outside the tokens file.

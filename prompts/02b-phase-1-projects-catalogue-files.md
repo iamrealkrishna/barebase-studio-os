@@ -15,7 +15,7 @@ Build:
    and so on.
 4. **Item catalogue** (product spec 7): rename Rate to Selling rate and Price to Cost price; add GST %, HSN, default
    scope, image, active flag, item code; margin column for cost viewers; bulk rate change by %; CSV import with
-   preview (new, changed, unchanged, errors) and export; rate history. Offer an import of the BOQ Studio rate card CSV.
+   preview (new, changed, unchanged, errors) and export; rate history.
 5. **Files** (product spec 9): default folders, upload with versions, Draft → Approved internally → Shared with
    client, design freeze linked to the current BOQ version, comments, signed download links.
 6. **Home v1** (UI spec 5.1) with the cards whose data exists so far.

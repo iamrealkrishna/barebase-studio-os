@@ -11,7 +11,6 @@ We are turning minERP into Barebase's one internal platform: leads, projects, BO
 **What it builds on.**
 
 - **minERP** (erp.fabrum.org) is the codebase. Keep its stack, item catalogue, BOQ versions, project members, task board, client review link and history log.
-- **BOQ Studio** (barebase-boq-app on Vercel) is the reference for feel and for commercial features minERP lacks: GST, discount, cost price and margin, custom items, scope text, PDFs, change orders. Port these; do not reinvent them.
 - **RDash** (what Barebase uses today) is the reference for breadth. We copy what the team actually uses and fix what it gets wrong. The full teardown deck is the background reading.
 
 **How each module section is laid out.** What it is for · who uses it · screens · fields · rules · what the user sees when things go wrong · acceptance checks. Sections 17 to 21 hold the shared data model, permissions, formulas, design system and quality bar that every module follows.
@@ -212,7 +211,7 @@ Admin and Design lead edit items and rates. Everyone else views. Only cost viewe
 
 ## 8. BOQ
 
-The BOQ is where the job is priced, agreed with the client and later executed against. It must feel exactly as quick as BOQ Studio: pick a room, add items, see totals update as you type.
+The BOQ is where the job is priced, agreed with the client and later executed against. It must feel instant: pick a room, add items, see totals update as you type.
 
 ### Layout of the Build screen
 
@@ -286,7 +285,7 @@ Per BOQ, toggles for what the client sees: material, finish, measurements, quant
 
 - **Client PDF:** letterhead, project and client details, version and date, room-by-room lines with the visible columns, room subtotals, discount, tax breakdown, grand total in figures and words, terms and exclusions, signature block.
 - **Internal PDF:** the same plus cost price, margin per line and per room, overrides and custom lines flagged.
-- Port the layout and fonts from BOQ Studio; it is already approved by the team.
+- Layout and fonts as in the mock-ups.
 
 ### Productivity features
 
@@ -299,7 +298,7 @@ Per BOQ, toggles for what the client sees: material, finish, measurements, quant
 ### Acceptance checks
 
 - [ ] A 60-line, 8-room BOQ can be built without leaving the Build screen.
-- [ ] Totals, GST split and amount in words match BOQ Studio's results for the same inputs to the paisa.
+- [ ] Totals, GST split and amount in words match the formulas in section 19 for the same inputs to the paisa.
 - [ ] A sent version cannot be edited by any user, including via the API.
 - [ ] Changing an approved line without a reason is blocked; with a reason it creates a change order.
 - [ ] The client PDF contains no cost or note data (checked by searching the PDF text).
@@ -934,7 +933,7 @@ The same formula applies to a milestone (its lines), a room (its lines) and the 
 
 ## 20. UX and design system
 
-The tool should look and feel like BOQ Studio's "Warm Ledger" design: calm, paper-like, serious about numbers. Simplicity is a requirement, not a nice-to-have; every screen is reviewed against the rules below before it ships.
+The tool should look and feel like the "Warm Ledger" design: calm, paper-like, serious about numbers. Simplicity is a requirement, not a nice-to-have; every screen is reviewed against the rules below before it ships.
 
 ### Design tokens
 
@@ -1006,7 +1005,7 @@ No embedded BI dashboards. Charts are drawn natively from the app's own queries.
 - A test that requests every client-facing endpoint and fails if cost, margin, notes or vendor rates appear.
 - Every pull request is reviewed and merged by Krishna. Each release has a short changelog in plain words.
 - Error tracking (e.g. Sentry) with alerts on new errors in production.
-- A written user guide per module, updated with each release (BOQ Studio's guide is the model).
+- A written user guide per module, updated with each release.
 
 ## 22. Build phases and acceptance
 
@@ -1017,7 +1016,7 @@ Phases run in order; each ships to staging, is tested by the team for one week, 
 | Phase | Exit check (all must pass) |
 | --- | --- |
 | 0 Foundation and fixes | No public sign-up; every user on their own login; a designer's API responses contain no cost data; History shows India time; staging and production databases separate |
-| 1 Projects and BOQ | Five real projects built end to end by the design team; client PDF matches BOQ Studio totals to the paisa; one BOQ sent, reviewed and revised through the client link |
+| 1 Projects and BOQ | Five real projects built end to end by the design team; client PDF totals match a hand check to the paisa; one BOQ sent, reviewed and revised through the client link |
 | 2 Money | One month of real vendor payments and claims run through approvals in parallel with RDash, totals matching; no payment recorded without full approval; CA accepts the GST export |
 | 3 Site and close-out | Two live projects tracked with daily DPRs for two weeks; one project snagged and handed over with client sign-off |
 | 4 Leads and client portal | All Meta and WhatsApp leads land on the board for two weeks with no misses; one client uses the portal for progress and payments |
@@ -1046,7 +1045,7 @@ These choices change what gets built. The spec uses the default shown until Kris
 | 13 | Do contractors get upload-only access? | No | Phase 3 |
 | 14 | Warranty period after handover | 12 months | Phase 3 |
 | 15 | Run RDash in parallel until projects in flight finish? | Yes; new projects start here after Phase 2 | Phase 2 |
-| 16 | Import the BOQ Studio rate card and live projects, or start fresh? | Import the rate card; finish live BOQs in BOQ Studio | Phase 1 |
+| 16 | Import data from another system, or start fresh? | Start fresh (decided) | — |
 
 **Added 15 Oct with Home budget**
 

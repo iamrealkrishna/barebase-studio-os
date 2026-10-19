@@ -3,15 +3,11 @@
 Read `CLAUDE.md`, `docs/PLAN.md`, product spec sections 8 and 19, UI spec sections 4 (BOQ flow and status machine) and
 5.4 with its build notes. Match `docs/ui/reference/04-boq-builder.png` closely.
 
-BOQ Studio (github.com/iamrealkrishna/barebase-boq-app) already implements much of this behaviour and has been used
-by the team. If you have access, read its `src/lib/boq.ts`, `src/lib/pdf.ts`, `src/lib/versions.ts`,
-`src/actions/approvals.ts` and `APPROVALS_SPEC.md`, and port the logic rather than reinventing it. Totals must match BOQ
-Studio to the paisa for the same inputs.
+Totals, GST split and amount in words must match the formulas in product spec section 19 to the paisa, with unit tests.
 
 Build, one PR per item:
 
-1. **Data model migration** to Boq → Room → Line → Version (product spec 17), migrating existing minERP BOQs
-   (categories become default room names). Include a rollback.
+1. **Data model** for Boq → Room → Line → Version (product spec 17), with migrations.
 2. **Build screen:** room sections, inline line editing with keyboard support, item picker, custom lines, rate
    override marker, quantity from dimensions with override, count, scope text, internal note, photo, autosave with the
    saved indicator, sticky summary panel, discount, GST with CGST/SGST or IGST by client state, cost and margin for
@@ -22,7 +18,7 @@ Build, one PR per item:
    change / reject with comments, submit review, Client Review screen with inline editing, next version shows only
    changes.
 5. **Change orders:** automatic on any change to an approved line, reason required, ₹ impact.
-6. **PDFs:** client PDF and internal PDF as product spec section 8 describes (port BOQ Studio's layout).
+6. **PDFs:** client PDF and internal PDF as product spec section 8 describes (layout as in the mock-ups).
 7. **Import lines from another project; duplicate a project's BOQ.**
 
 Done when: every acceptance check in product spec section 8 passes; the client PDF text contains no cost or note
