@@ -35,9 +35,9 @@ select,input,textarea{font-family:inherit;color:var(--ink)}
 .btn.small{padding:4px 12px;font-size:12px}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 
-.layout{display:grid;grid-template-columns:1fr 300px;gap:0;min-height:calc(100vh - 56px)}
-@media (max-width:900px){.layout{grid-template-columns:1fr}.summary{border:none !important}}
-.main{padding:22px 26px 40px;background:var(--paper)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:0;min-height:calc(100vh - 56px)}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}.summary{border:none !important}}
+.main{padding:22px 26px 40px;background:var(--paper);min-width:0}
 .section-switch-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
 .section-switch-bar select{
   font-family:var(--font-serif),serif;font-size:17px;color:var(--ink);
@@ -201,7 +201,7 @@ table.ratecard input.r-num{text-align:right;font-family:var(--font-mono),monospa
 #toast.show{opacity:1}
 
 .proj-head-row{display:flex;align-items:center;justify-content:space-between;margin:2px 0 18px}
-.proj-title{font-family:var(--font-serif),serif;font-size:26px}
+.proj-title{font-family:var(--font-serif),serif;font-size:26px;font-weight:400;margin:0}
 .proj-table{background:var(--card);border:1px solid var(--line);border-radius:6px;overflow:hidden;box-shadow:0 1px 3px rgba(33,31,26,.05)}
 .proj-thead{display:flex;gap:14px;padding:9px 18px;border-bottom:1px solid var(--line);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--chip)}
 .proj-row{display:flex;gap:14px;align-items:center;padding:13px 18px;border-bottom:1px solid var(--line-soft);font-size:13px;cursor:pointer}
@@ -608,3 +608,6 @@ tr.dup-row td:first-child{box-shadow:inset 3px 0 0 #C2724F}
 /* A button that reads as a link, for an action inside a sentence. */
 .link-button{background:none;border:0;padding:0;font:inherit;color:var(--brass);text-decoration:underline;cursor:pointer}
 .link-button:hover{color:var(--brass-bright)}
+
+/* Studio OS shell: on a phone, wide tables scroll inside themselves so the page never scrolls sideways (UI spec 7). */
+@media (max-width:700px){table.ratecard,.mini-table{display:block;overflow-x:auto;max-width:100%}.build-context{flex-wrap:wrap}.build-context .bc-field{flex:1 1 100% !important;min-width:0}}

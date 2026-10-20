@@ -21,7 +21,7 @@ const saveButton = (page: Page) => page.locator('button:has-text("Save rate card
 
 async function openRateCard(page: Page) {
   await login(page);
-  await page.goto("/settings");
+  await page.goto("/settings/rate-card");
   await page.waitForSelector("table.ratecard");
 }
 
@@ -121,7 +121,7 @@ test.describe("Rate card unsaved-changes warning", () => {
       await expect(banner(page)).toHaveCount(0);
     } finally {
       // Put the rate card back exactly as it was — this is a shared record.
-      await page.goto("/settings");
+      await page.goto("/settings/rate-card");
       await page.waitForSelector("table.ratecard");
       await page.locator("table.ratecard input").nth(1).fill(original);
       await page.waitForTimeout(300);

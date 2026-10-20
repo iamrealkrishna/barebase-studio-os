@@ -35,6 +35,13 @@ async function main() {
     process.exit(1);
   }
 
+  // Tests never run against production, so neither does their clean-up.
+  const host = new URL(process.env.DATABASE_URL).hostname;
+  if (process.env.PRODUCTION_DATABASE_HOST && host === process.env.PRODUCTION_DATABASE_HOST) {
+    console.error(`DATABASE_URL points at the production database (${host}). Clean-up only runs on staging or a local database.`);
+    process.exit(1);
+  }
+
   console.log(dryRun ? "DRY RUN — nothing will be deleted.\n" : "Deleting test records.\n");
 
   // ------------------------------------------------------------- projects

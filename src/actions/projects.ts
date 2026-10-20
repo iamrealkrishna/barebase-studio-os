@@ -43,7 +43,7 @@ export async function createProject(formData: FormData): Promise<void> {
   });
 
   revalidatePath("/projects");
-  redirect(`/projects/${project.id}/build`);
+  redirect(`/projects/${project.id}/boq`);
 }
 
 export async function deleteProject(formData: FormData): Promise<void> {
@@ -75,7 +75,7 @@ export async function updateProjectMeta(input: ProjectMetaInput): Promise<{ ok: 
       terms: input.terms,
     },
   });
-  revalidatePath(`/projects/${input.projectId}`);
+  revalidatePath(`/projects/${input.projectId}/boq/versions`);
   return { ok: result.count > 0 };
 }
 
@@ -104,7 +104,7 @@ export async function updateClientColumns(
     },
   });
 
-  revalidatePath(`/projects/${projectId}/client-view`);
+  revalidatePath(`/projects/${projectId}/boq/client-view`);
   return { ok: result.count > 0 };
 }
 
@@ -324,7 +324,7 @@ export async function saveVersion(
   // value back so the builder's next autosave doesn't read as a conflict.
   const saved = await prisma.project.findUnique({ where: { id: projectId }, select: { updatedAt: true } });
 
-  revalidatePath(`/projects/${projectId}`);
+  revalidatePath(`/projects/${projectId}/boq/versions`);
   return { ok: true, number: version.number, updatedAt: saved?.updatedAt.toISOString() };
 }
 
@@ -384,6 +384,6 @@ export async function restoreVersion(formData: FormData): Promise<void> {
     });
   }, BULK_TX);
 
-  revalidatePath(`/projects/${projectId}`);
-  redirect(`/projects/${projectId}/build`);
+  revalidatePath(`/projects/${projectId}/boq/versions`);
+  redirect(`/projects/${projectId}/boq`);
 }

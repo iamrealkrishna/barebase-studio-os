@@ -3,12 +3,12 @@
 Playwright, driving the real app in a real browser. Nothing is mocked: each
 test signs in, clicks through the UI, and checks what the database gave back.
 
-99 tests across sixteen areas — auth, Team admin, BOQ building, the rate card
+Over 120 tests across eighteen areas — auth, Team admin, BOQ building, the rate card
 CSV round-trip, duplicate/import, Client View (14 of them), GST on the Client
 PDF, PDF layout, line-item counts, role restrictions, a mixed BOQ through both
 PDFs, pre-count version compatibility, diff accuracy, the rate card's
 unsaved-changes warning, committing a CSV import, and rate card item
-identity.
+identity, plus the Studio OS journey and navigation tests.
 
 Plus `unit-rate-card-identity.ts`, a plain script of 24 checks over the
 functions that decide when two rate card rows are the same item. Run it with
@@ -34,40 +34,34 @@ npm run test:e2e -- --debug                        # step through
 npx playwright show-report                         # after a run
 ```
 
-## Running it against production
+## Running it against staging, never production
+
+Tests create projects, team members and client links, so they **never run
+against production** (decisions.md, decision 3). The guard in
+`playwright.config.ts` refuses a remote `E2E_BASE_URL` unless you declare it as
+staging, and refuses the production address outright when
+`PRODUCTION_APP_URL` is set:
 
 ```bash
-E2E_BASE_URL="https://your-deployment.vercel.app" \
+E2E_TARGET=staging \
+E2E_BASE_URL="https://<the staging deployment>.vercel.app" \
 E2E_EMAIL="you@barebase.in" \
-E2E_PASSWORD="<your real password>" \
+E2E_PASSWORD="<your staging password>" \
 npm run test:e2e
 ```
 
-Then clean up (see below). Read the rest of this section first.
+Then clean up (see below). Everything a run creates is named
+`PLAYWRIGHT TEST …`:
 
-**It writes to the live database.** Everything it creates is named
-`PLAYWRIGHT TEST …` so you can find it, and the cleanup script removes it, but
-the records are real while they exist. In particular:
-
-- **~25 projects** are created, with sections, line items and versions.
-- **One team member** is created, promoted, demoted and left **deactivated**
-  (so an interrupted run can't leave a working login behind). The cleanup
-  script deletes them.
-- **One client contact** with a live share link is created. Deleting the project
-  removes it.
-- **The rate card is not written to by default.** The CSV spec exports, uploads
-  a modified copy, asserts the preview describes the right changes, then
-  cancels — and the last test in that file re-exports to prove the card is
-  byte-for-byte unchanged.
-- Two specs *can* write to it, and both are opt-in or self-restoring.
-  `15-rate-card-import-commit.spec.ts` only runs with
-  `E2E_ALLOW_RATE_WRITES=1`; `14-rate-card-dirty.spec.ts` saves one field and
-  restores it in a `finally`. Leave the flag unset against production.
-- **Your own admin account is only read.** Nothing changes its password, role or
-  details.
-
-Run it against a preview deployment first if you'd rather not have test rows in
-production at all.
+- **About 30 projects**, with sections, line items and versions.
+- **Two team members**, left **deactivated** so an interrupted run can't leave
+  a working login behind. The cleanup script deletes them.
+- **Client contacts** with live share links. Deleting the project removes them.
+- **The rate card is restored.** The CSV spec previews an import and cancels;
+  `14-rate-card-dirty.spec.ts` and `20-studio-journey.spec.ts` save one field
+  and put it back in a `finally`; `15` and `16` only write with
+  `E2E_ALLOW_RATE_WRITES=1`.
+- **Your own admin account is only read.**
 
 ## Cleaning up afterwards
 
@@ -76,14 +70,14 @@ function and shouldn't grow one for this. It needs the database directly:
 
 ```bash
 # See what would go, change nothing:
-DATABASE_URL="<the app's DATABASE_URL>" npx tsx tests/cleanup.ts --dry-run
+DATABASE_URL="<the staging DATABASE_URL>" npx tsx tests/cleanup.ts --dry-run
 
 # Actually delete:
-DATABASE_URL="<the app's DATABASE_URL>" npx tsx tests/cleanup.ts
+DATABASE_URL="<the staging DATABASE_URL>" npx tsx tests/cleanup.ts
 ```
 
-On Vercel the connection string is under Project → Settings → Environment
-Variables → `DATABASE_URL`.
+With `PRODUCTION_DATABASE_HOST` set, the script refuses to run against the
+production database.
 
 What it removes:
 
@@ -127,6 +121,8 @@ and tearing a hole in the audit trail. Deactivate them on `/team` instead.
 | `14-rate-card-dirty.spec.ts` | The "unsaved changes" warning, checked in both directions — it must appear on a real edit and not on an undone one |
 | `15-rate-card-import-commit.spec.ts` | Committing a CSV import and the refresh that follows. **Writes to the rate card** — opt in with `E2E_ALLOW_RATE_WRITES=1`, and don't against production |
 | `16-rate-card-identity.spec.ts` | Typable fields with existing spellings suggested, duplicating a row, and the guard that stops a save adding a clash. Two of its tests **write to the rate card** and need the same opt-in |
+| `20-studio-journey.spec.ts` | Everything BOQ Studio does in one journey, inside the Studio OS shell: sign in, Team, admin password reset, own password change, rate card edit, export and import preview, a BOQ with rooms, custom item, count, scope, note, photo, discount and GST, cost hidden from a member, versions, both PDFs, the client link, line-by-line answers, Client Review, whole-estimate approval, a change order, and the audit export |
+| `21-navigation.spec.ts` | Every placeholder screen (title, phase, mock-up), every imported screen inside the shell, no sideways scroll at 1440 and 375 px, sidebar, top bar and phone bottom bar links, and the redirects from old routes |
 
 ### A note on the Client View tests
 
@@ -186,14 +182,16 @@ primary key, so fixed ids would collide with rows left by the previous run.
 One worker, `fullyParallel: false`. The rate card is a single shared record and
 the app guards concurrent BOQ edits with an optimistic-concurrency check, so
 parallel workers would fight each other and produce flakes that say nothing
-about the app. Against production it also keeps the blast radius to one thing at
-a time. The whole suite takes about two and a half minutes.
+about the app. The whole suite takes about four minutes.
 
 ## Environment variables
 
 | Variable | Default | Used for |
 |---|---|---|
-| `E2E_BASE_URL` | `http://localhost:3000` | Which deployment to drive |
+| `E2E_BASE_URL` | `http://localhost:3000` | Which deployment to drive: local or staging |
+| `E2E_TARGET` | — | Must be `staging` for any non-local `E2E_BASE_URL` |
+| `PRODUCTION_APP_URL` | — | If set, the suite refuses to run against this address |
+| `PRODUCTION_DATABASE_HOST` | — | If set, the cleanup script refuses this database host |
 | `E2E_EMAIL` | `krishna@barebase.in` | Admin sign-in |
 | `E2E_PASSWORD` | `barebase123` | Admin sign-in |
 | `E2E_RUN_ID` | last 6 digits of the timestamp | Suffix on created records, so re-runs don't collide |

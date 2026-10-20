@@ -159,7 +159,7 @@ export default async function AccountPage() {
               {recentProjects.map((project) => (
                 <tr key={project.id}>
                   <td>
-                    <Link href={`/projects/${project.id}/build`}>
+                    <Link href={`/projects/${project.id}/boq`}>
                       <b>{project.name}</b>
                     </Link>
                   </td>

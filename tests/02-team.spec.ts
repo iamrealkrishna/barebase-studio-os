@@ -50,7 +50,7 @@ test.describe("Team admin", () => {
     await expect(page).toHaveURL(/\/projects/);
 
     // The Team link is admin-only in the nav...
-    await expect(page.locator('.page-toggle a:has-text("Team")')).toHaveCount(0);
+    await expect(page.locator('aside nav a:has-text("Team")')).toHaveCount(0);
     // ...and the page itself refuses them server-side, not just cosmetically.
     await page.goto("/team");
     await expect(page).toHaveURL(/\/projects/);
@@ -69,7 +69,7 @@ test.describe("Team admin", () => {
 
   test("the promotion actually took effect for that user", async ({ page }) => {
     await login(page, MEMBER_EMAIL, MEMBER_PASSWORD);
-    await expect(page.locator('.page-toggle a:has-text("Team")')).toBeVisible();
+    await expect(page.locator('aside nav a:has-text("Team")')).toBeVisible();
     await page.goto("/team");
     await expect(page).toHaveURL(/\/team/);
     await expect(page.locator("text=Team members")).toBeVisible();

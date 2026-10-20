@@ -57,7 +57,7 @@ test.describe("Roles across every page", () => {
 
   test("an admin gets the cost toggle and the Internal PDF on Build BOQ", async ({ page }) => {
     await login(page);
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".sec-block");
     await expect(page.locator(".cost-toggle")).toHaveCount(1);
     // Two of each: the top bar and the summary panel both carry PDF buttons.
@@ -68,7 +68,7 @@ test.describe("Roles across every page", () => {
 
   test("an admin can actually edit the rate card", async ({ page }) => {
     await login(page);
-    await page.goto("/settings");
+    await page.goto("/settings/rate-card");
     await page.waitForSelector("table.ratecard");
     await expect(page.locator(".flash.err")).toHaveCount(0);
     expect(
@@ -104,7 +104,7 @@ test.describe("Roles across every page", () => {
 
   test("a team member gets no cost controls, and no cost figure in the page at all", async ({ page }) => {
     await login(page, MEMBER_EMAIL, MEMBER_PASSWORD);
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".sec-block");
 
     await expect(page.locator(".cost-toggle")).toHaveCount(0);
@@ -123,7 +123,7 @@ test.describe("Roles across every page", () => {
 
   test("a team member sees the rate card read-only, with a banner saying why", async ({ page }) => {
     await login(page, MEMBER_EMAIL, MEMBER_PASSWORD);
-    await page.goto("/settings");
+    await page.goto("/settings/rate-card");
     await page.waitForSelector("table.ratecard");
 
     await expect(page.locator(".flash.err")).toContainText("admin-only");
@@ -140,7 +140,7 @@ test.describe("Roles across every page", () => {
     await page.goto(`/projects/${projectId}/review`);
     expect(new URL(page.url()).pathname).toContain("/review");
 
-    await page.goto(`/projects/${projectId}`);
+    await page.goto(`/projects/${projectId}/boq/versions`);
     await expect(page.locator("text=Version history")).toBeVisible();
     expect(await page.content(), "a margin figure appeared on a member's versions page").not.toContain(
       "Margin",

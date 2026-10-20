@@ -24,6 +24,18 @@ Decisions 17 to 19 (added with Home budget) also use their defaults: the design 
 ledger without bank details · the client can mark their purchases ordered or delivered from the portal · seven
 default client categories with 3% contingency.
 
+## Decisions from Krishna (20 Oct 2026)
+
+Answers to the five questions in the first set-up PR (barebase-studio-os PR #2).
+
+| # | Question | Answer |
+| --- | --- | --- |
+| 20 | Who sees cost price and margin | **Admins and the Design lead** (Mansi, and anyone else made Design lead). Designers, Pre-sales and Site supervisors don't. The "see cost" permission follows this, on the server |
+| 21 | File folders | **The 9 folders from the Files mock-up** (`docs/ui/screens/Files.png`): 2D Layout / Adaptation, 2D Raw Files, 3D Layout / Adaptation, 3D Raw Files, Client Facing Documents, Vendor Facing Documents, Production Drawings, Site Photos, Handover |
+| 22 | Error tracking | **Sentry** |
+| 23 | First Admin | **Krishna (krishna@barebase.in)**. Harish is Admin too |
+| 24 | Web address | **The `*.vercel.app` address** for now. Krishna picks a domain later; `APP_URL` changes then |
+
 ---
 
 ## Questions for Krishna (kit v2, 19 Oct 2026)

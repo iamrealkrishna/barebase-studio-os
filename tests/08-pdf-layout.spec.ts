@@ -47,13 +47,13 @@ test.describe("PDF layout", () => {
 
     // The project name is what prints as "Property:", so set it to the address
     // that first showed the overlap.
-    await page.goto(`/projects/${projectId}`);
+    await page.goto(`/projects/${projectId}/boq/versions`);
     await page.fill("#pd-name", LONG_PROPERTY);
     await page.fill("#pd-prepared", "Ananya Krishnamurthy");
     await page.click('button:has-text("Save project details")');
     await page.waitForTimeout(1500);
 
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".sec-block");
     await addItem(page, { category: "Civil & Infra Works", desc: "Painting", l: 10, b: 12 });
     await waitForSaved(page);
@@ -89,13 +89,13 @@ test.describe("PDF layout", () => {
     await login(page);
     const projectId = await createProject(page, testName("PDF Sweep"), LONG_CLIENT);
 
-    await page.goto(`/projects/${projectId}`);
+    await page.goto(`/projects/${projectId}/boq/versions`);
     await page.fill("#pd-name", LONG_PROPERTY);
     await page.fill("#pd-prepared", "Ananya Krishnamurthy");
     await page.click('button:has-text("Save project details")');
     await page.waitForTimeout(1500);
 
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".sec-block");
     await addItem(page, { category: "Civil & Infra Works", desc: "Painting", l: 10, b: 12 });
     await addItem(page, { category: "Electrical Works", desc: "Switches & Sockets", l: 6 });
@@ -119,12 +119,12 @@ test.describe("PDF layout", () => {
     await login(page);
     const projectId = await createProject(page, testName("PDF Internal"), LONG_CLIENT);
 
-    await page.goto(`/projects/${projectId}`);
+    await page.goto(`/projects/${projectId}/boq/versions`);
     await page.fill("#pd-name", LONG_PROPERTY);
     await page.click('button:has-text("Save project details")');
     await page.waitForTimeout(1500);
 
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".sec-block");
     await addItem(page, { category: "Civil & Infra Works", desc: "Painting", l: 10, b: 12 });
     await waitForSaved(page);
@@ -138,7 +138,7 @@ test.describe("PDF layout", () => {
     await login(page);
     const projectId = await createProject(page, testName("PDF Unbroken"));
 
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".sec-block");
     await addItem(page, { category: "Civil & Infra Works", desc: "Painting", l: 10, b: 12 });
 

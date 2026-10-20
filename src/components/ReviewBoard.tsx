@@ -191,7 +191,7 @@ export default function ReviewBoard({
       }
       if (result.updatedAt) adoptUpdatedAt(result.updatedAt);
       toast(`Saved as V${result.number} — back with the client`);
-      router.push(`/projects/${projectId}/client-view`);
+      router.push(`/projects/${projectId}/boq/client-view`);
     } finally {
       setSending(false);
     }
@@ -265,7 +265,7 @@ export default function ReviewBoard({
               Once you save a version as <b>Sent to Client</b> and a contact opens their link, their line-by-line
               verdicts and comments show up here — laid over the BOQ, editable in place.
             </p>
-            <Link className="btn light small" href={`/projects/${projectId}/build`}>
+            <Link className="btn light small" href={`/projects/${projectId}/boq`}>
               ← Back to Build BOQ
             </Link>
           </div>

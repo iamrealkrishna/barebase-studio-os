@@ -130,7 +130,7 @@ test.describe("A version from before counts existed", () => {
   test("write a pre-count version straight into the database", async ({ page }) => {
     await login(page);
     projectId = await createProject(page, projectName);
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".sec-block");
     await addItem(page, { category: "Civil & Infra Works", desc: "Painting", l: 5, b: 5 });
     await waitForSaved(page);
@@ -153,7 +153,7 @@ test.describe("A version from before counts existed", () => {
 
   test("the Versions page totals it exactly as it was", async ({ page }) => {
     await login(page);
-    await page.goto(`/projects/${projectId}`);
+    await page.goto(`/projects/${projectId}/boq/versions`);
     await page.waitForSelector(".version-row");
 
     const row = page.locator(".version-row").filter({ hasText: "V1" }).first();
@@ -171,7 +171,7 @@ test.describe("A version from before counts existed", () => {
 
   test("its lines still read correctly, with no phantom count", async ({ page }) => {
     await login(page);
-    await page.goto(`/projects/${projectId}`);
+    await page.goto(`/projects/${projectId}/boq/versions`);
     await page.waitForSelector(".version-row");
 
     const html = await page.content();
@@ -219,12 +219,12 @@ test.describe("A version from before counts existed", () => {
     // LineItem rows, so a missing count would be written to the database here
     // as a real zero rather than defaulting on read.
     await login(page);
-    await page.goto(`/projects/${projectId}`);
+    await page.goto(`/projects/${projectId}/boq/versions`);
     await page.waitForSelector(".version-row");
 
     const row = page.locator(".version-row").filter({ hasText: "V1" }).first();
     await row.locator('button:has-text("Open")').click();
-    await page.waitForURL("**/build", { timeout: 45_000 });
+    await page.waitForURL("**/boq", { timeout: 45_000 });
     await page.waitForSelector(".compact-row");
 
     const rows = await page.locator(".compact-row").allInnerTexts();

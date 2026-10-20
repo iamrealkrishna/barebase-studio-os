@@ -62,7 +62,7 @@ test.describe("Building a BOQ", () => {
     );
 
     // Survives a reload — this is the database, not component state.
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await expect(page.locator(".compact-row")).toHaveCount(2);
     expect(money(await page.locator(".sum-row.total .amt").innerText())).toBeCloseTo(expectedSubtotal, 2);
   });

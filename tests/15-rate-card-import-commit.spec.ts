@@ -47,7 +47,7 @@ test.describe("Committing a rate card CSV import", () => {
 
   test("a committed import appears in the table without a reload", async ({ page }) => {
     await login(page);
-    await page.goto("/settings");
+    await page.goto("/settings/rate-card");
     await page.waitForSelector("table.ratecard");
 
     original = await downloadCsv(page);
@@ -91,7 +91,7 @@ test.describe("Committing a rate card CSV import", () => {
     page,
   }) => {
     await login(page);
-    await page.goto("/settings");
+    await page.goto("/settings/rate-card");
     await page.waitForSelector("table.ratecard");
 
     const field = page.locator("table.ratecard input").nth(1);
@@ -125,7 +125,7 @@ test.describe("Committing a rate card CSV import", () => {
 
   test("put the rate card back exactly as it was", async ({ page }) => {
     await login(page);
-    await page.goto("/settings");
+    await page.goto("/settings/rate-card");
     await page.waitForSelector("table.ratecard");
 
     // Find the imported row and delete it, then save.

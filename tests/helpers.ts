@@ -56,9 +56,9 @@ export async function createProject(page: Page, name: string, client = `${PREFIX
   await page.fill("#np-name", name);
   await page.fill("#np-client", client);
   await page.click('button:has-text("Create project")');
-  await page.waitForURL("**/build", { timeout: 45_000 });
+  await page.waitForURL("**/boq", { timeout: 45_000 });
   await page.waitForSelector(".sec-block");
-  const id = page.url().match(/projects\/([^/]+)\/build/)?.[1];
+  const id = page.url().match(/projects\/([^/]+)\/boq/)?.[1];
   if (!id) throw new Error(`Could not read a project id out of ${page.url()}`);
   return id;
 }
@@ -135,7 +135,7 @@ export async function addSection(page: Page, room: string) {
 
 /** Snapshot the live BOQ as a version and mark it Sent to Client. */
 export async function sendToClient(page: Page, projectId: string) {
-  await page.goto(`/projects/${projectId}/build`);
+  await page.goto(`/projects/${projectId}/boq`);
   await page.waitForSelector(".sec-block");
   await waitForSaved(page);
   await page.click('button:has-text("Save version & continue to Client View")');
@@ -144,7 +144,7 @@ export async function sendToClient(page: Page, projectId: string) {
 
 /** Create a client contact and return the share link they'd be sent. */
 export async function addClientContact(page: Page, projectId: string, name: string, email: string) {
-  await page.goto(`/projects/${projectId}`);
+  await page.goto(`/projects/${projectId}/boq/versions`);
   await page.fill("#cc-name", name);
   await page.fill("#cc-email", email);
   await page.click('button:has-text("Create review link")');

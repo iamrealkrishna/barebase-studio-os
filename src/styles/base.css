@@ -1,0 +1,20 @@
+/*
+ * Studio OS base styles, on the tokens. Loaded after tokens.css and before the imported
+ * BOQ Studio stylesheet (src/app/globals.css), which keeps its own look until P0-3 moves it
+ * onto the tokens.
+ */
+
+/* Visible brass focus ring on every control (UI spec 7, Accessibility). */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--bb-focus);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
