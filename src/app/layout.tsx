@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Instrument_Sans, Instrument_Serif } from "next/font/google";
 
+import "@/styles/tokens.css";
+import "@/styles/base.css";
 import "./globals.css";
 
 const sans = Instrument_Sans({
@@ -26,13 +28,13 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Barebase BOQ Studio",
-  description: "Bills of quantities, client estimates and approvals for Barebase projects.",
+  title: { default: "Barebase Studio OS", template: "%s · Barebase" },
+  description: "Barebase's one place for leads, projects, BOQs, money, site work and handover.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${serif.variable} ${mono.variable}`}>
+    <html lang="en-IN" className={`${sans.variable} ${serif.variable} ${mono.variable}`}>
       <body>{children}</body>
     </html>
   );

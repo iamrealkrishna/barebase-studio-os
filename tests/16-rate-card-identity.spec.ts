@@ -24,7 +24,7 @@ const saveBtn = (page: Page) => page.locator('button:has-text("Save rate card")'
 
 async function openRateCard(page: Page) {
   await login(page);
-  await page.goto("/settings");
+  await page.goto("/settings/rate-card");
   await page.waitForSelector("table.ratecard");
 }
 
@@ -194,7 +194,7 @@ test.describe("Rate card: suggestions, duplicate, and the duplicate guard", () =
         page.locator("table.ratecard tbody tr").first().locator("input.r-num").first(),
       ).toHaveValue(String(Number(original) + 1));
     } finally {
-      await page.goto("/settings");
+      await page.goto("/settings/rate-card");
       await page.waitForSelector("table.ratecard");
       await page.locator(".cat-filter select").first().selectOption({ value: "False Ceiling" });
       await page.waitForTimeout(400);

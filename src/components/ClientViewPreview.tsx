@@ -88,7 +88,7 @@ export default function ClientViewPreview({
                 ? ` Highlights are measured against approved V${approvedVersionNumber}.`
                 : " Nothing has been approved yet, so nothing is highlighted."}
             </span>
-            <Link href={`/projects/${projectId}`} className="btn small" style={{ whiteSpace: "nowrap" }}>
+            <Link href={`/projects/${projectId}/boq/versions`} className="btn small" style={{ whiteSpace: "nowrap" }}>
               Manage client access →
             </Link>
           </div>
@@ -117,7 +117,7 @@ export default function ClientViewPreview({
               {shareLinks.length === 0 ? (
                 <div className="mini-empty">
                   No client contacts yet. Add one on{" "}
-                  <Link href={`/projects/${projectId}`}>Versions &amp; Approvals</Link> to generate a share link.
+                  <Link href={`/projects/${projectId}/boq/versions`}>Versions &amp; Approvals</Link> to generate a share link.
                 </div>
               ) : (
                 shareLinks.map((link) => (

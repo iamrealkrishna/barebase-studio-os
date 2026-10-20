@@ -69,7 +69,7 @@ export default async function ProjectsPage() {
   return (
     <div className="settings-wrap">
       <div className="proj-head-row">
-        <span className="proj-title">Projects</span>
+        <h1 className="proj-title">Projects</h1>
       </div>
 
       <NewProjectForm />
@@ -90,7 +90,7 @@ export default async function ProjectsPage() {
           </div>
           {rows.map((row, i) => (
             <div key={row.id} className="proj-row">
-              <Link href={`/projects/${row.id}/build`} className="proj-row-main" style={{ color: "inherit" }}>
+              <Link href={`/projects/${row.id}/boq`} className="proj-row-main" style={{ color: "inherit" }}>
                 <span className="pc-num tabular">{i + 1}</span>
                 <span className="pc-name">{row.name}</span>
                 <span className="pc-client">{row.client}</span>

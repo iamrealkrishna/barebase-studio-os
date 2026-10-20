@@ -51,13 +51,13 @@ test.describe("A BOQ with every kind of line, through both PDFs", () => {
     await login(page);
     projectId = await createProject(page, testName("Mixed"), LONG_CLIENT);
 
-    await page.goto(`/projects/${projectId}`);
+    await page.goto(`/projects/${projectId}/boq/versions`);
     await page.fill("#pd-name", LONG_PROPERTY);
     await page.fill("#pd-prepared", "Ananya Krishnamurthy");
     await page.click('button:has-text("Save project details")');
     await page.waitForTimeout(1500);
 
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".sec-block");
 
     // 1. Dimension-driven, will get a count of 3.
@@ -92,7 +92,7 @@ test.describe("A BOQ with every kind of line, through both PDFs", () => {
 
   test("set a count of 3 on the first line, and a long scope note", async ({ page }) => {
     await login(page);
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".compact-row");
 
     await page.locator('.compact-row button[title="Edit this row"]').first().click();
@@ -114,7 +114,7 @@ test.describe("A BOQ with every kind of line, through both PDFs", () => {
 
   test("the on-screen subtotal is the sum of the four lines", async ({ page }) => {
     await login(page);
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".compact-row");
 
     const amounts = (await page.locator(".compact-row .cr-amt").allInnerTexts()).map((t) => money(t)!);
@@ -129,7 +129,7 @@ test.describe("A BOQ with every kind of line, through both PDFs", () => {
 
   test("the Client PDF: nothing overlaps, nothing leaves the page", async ({ page }) => {
     await login(page);
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".compact-row");
 
     const layout = pdfLayout(await downloadPdf(page, "Client PDF"));
@@ -140,7 +140,7 @@ test.describe("A BOQ with every kind of line, through both PDFs", () => {
 
   test("the Client PDF: counts, quantities and totals are all right", async ({ page }) => {
     await login(page);
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".compact-row");
 
     const rowAmounts = (await page.locator(".compact-row .cr-amt").allInnerTexts()).map((t) => money(t)!);
@@ -174,7 +174,7 @@ test.describe("A BOQ with every kind of line, through both PDFs", () => {
 
   test("the Internal PDF: same layout guarantees, plus cost and margin", async ({ page }) => {
     await login(page);
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".compact-row");
 
     const layout = pdfLayout(await downloadPdf(page, "Internal PDF"));
@@ -188,7 +188,7 @@ test.describe("A BOQ with every kind of line, through both PDFs", () => {
 
   test("the client's own view shows the count and the same total", async ({ page }) => {
     await login(page);
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".compact-row");
     const rowAmounts = (await page.locator(".compact-row .cr-amt").allInnerTexts()).map((t) => money(t)!);
     const expectedSubtotal = rowAmounts.reduce((a, b) => a + b, 0);

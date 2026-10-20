@@ -114,7 +114,7 @@ test.describe("Client View", () => {
     }
 
     // The client's browser has no Barebase session, so internal routes bounce.
-    for (const route of ["/settings", "/projects", "/team", `/projects/${projectId}/build`]) {
+    for (const route of ["/settings", "/projects", "/team", `/projects/${projectId}/boq`]) {
       const response = await client.goto(route);
       expect(new URL(client.url()).pathname, `${route} should not open for a client`).toBe("/login");
       expect(response?.status()).toBeLessThan(400);
@@ -155,7 +155,7 @@ test.describe("Client View", () => {
     expect(await client.locator(".cv-row .d2").first().innerText()).not.toContain(material);
 
     // Both PDFs honour the same setting.
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".sec-block");
     const clientPdf = await downloadPdfText(page, "Client PDF");
     expect(clientPdf).not.toContain(material);
@@ -183,7 +183,7 @@ test.describe("Client View", () => {
   test("no cost or margin figure appears on the client's page", async ({ page }) => {
     // Read the real internal cost off the admin's Internal PDF...
     await login(page);
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".sec-block");
     await page.locator(".cost-toggle input").check();
     await page.waitForTimeout(600);
@@ -279,7 +279,7 @@ test.describe("Client View", () => {
 
   test("every client action left an audit entry naming the item", async ({ page }) => {
     await login(page);
-    await page.goto(`/projects/${projectId}`);
+    await page.goto(`/projects/${projectId}/boq/versions`);
     await page.waitForSelector(".audit-row");
 
     const entries = await page.locator(".audit-row").allInnerTexts();

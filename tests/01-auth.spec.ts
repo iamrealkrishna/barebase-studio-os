@@ -9,7 +9,8 @@ import { ADMIN, login } from "./helpers";
  */
 const PROTECTED = [
   { path: "/projects", what: "the projects list" },
-  { path: "/settings", what: "rate card & settings" },
+  { path: "/settings", what: "Org Settings" },
+  { path: "/settings/rate-card", what: "the rate card" },
   { path: "/team", what: "the Team admin page" },
   { path: "/account", what: "your account page" },
   { path: "/", what: "the root" },
@@ -40,7 +41,7 @@ test.describe("Auth", () => {
   test("the seeded admin can sign in", async ({ page }) => {
     await login(page);
     await expect(page).toHaveURL(/\/projects/);
-    await expect(page.locator(".user-chip")).toBeVisible();
+    await expect(page.locator(`aside a[href="/account"]`)).toBeVisible();
   });
 
   test("a wrong password is refused", async ({ page }) => {
@@ -57,11 +58,11 @@ test.describe("Auth", () => {
 
     await page.reload();
     await expect(page).toHaveURL(/\/projects/);
-    await expect(page.locator(".user-chip")).toBeVisible();
+    await expect(page.locator(`aside a[href="/account"]`)).toBeVisible();
 
     // A cold navigation, not a client-side route change.
-    await page.goto("/settings");
-    await expect(page).toHaveURL(/\/settings/);
+    await page.goto("/settings/rate-card");
+    await expect(page).toHaveURL(/\/settings\/rate-card/);
     await expect(page.locator("table.ratecard")).toBeVisible();
   });
 

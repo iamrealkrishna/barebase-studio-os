@@ -86,10 +86,23 @@ These rules are never relaxed, even temporarily, even behind a flag.
 
 ## Commands
 
-<!-- Claude: fill these in from package.json during setup and keep them current. -->
-- Install: `TBD` · Dev: `TBD` · Unit tests: `TBD` · E2E: `TBD` · Lint and typecheck: `TBD`
-- Migrations: `TBD` · Seed: `TBD` (seed reproduces the mock-up world: Villa Prakruthi for R. Iyengar, contract
-  ₹8,34,675 excl. GST, BOQ v3; plus Hebbal Business Loft, Ashvin Court, Terrace Residency)
+- Install: `npm install` (Node 22+; its postinstall runs `prisma generate`). Playwright's browser once:
+  `npx playwright install chromium`
+- Dev: `npm run dev` (needs `DATABASE_URL`, `AUTH_SECRET` and `APP_URL` in `.env`; see `.env.example`)
+- Unit tests: `npm test` (Vitest over `src/**/*.test.ts`, plus `tests/unit-rate-card-identity.ts`)
+- E2E: `npm run test:e2e`, against a running app at `E2E_BASE_URL` (default `http://localhost:3000`; sign in with
+  `E2E_EMAIL`/`E2E_PASSWORD`). Local or staging only: a remote URL needs `E2E_TARGET=staging`, and production is
+  refused. Then `npx tsx tests/cleanup.ts` against the same database. See `tests/README.md`
+- Lint and typecheck: `npm run lint` (ESLint, then the "tokens only" check) and `npm run typecheck`
+- Build: `npm run build` is the Vercel build: it runs `scripts/migrate-on-deploy.mjs`, which migrates only on
+  Vercel and refuses a Preview pointed at `PRODUCTION_DATABASE_HOST`. Locally use `npm run build:local`, then
+  `npm run start`
+- Migrations: create with `npm run db:migrate:dev -- --name <change>` against a local database; apply with
+  `npm run db:migrate` (`prisma migrate deploy`). Never `prisma db push` on a shared database. Before and after a
+  data migration on staging, compare `npx tsx scripts/project-totals.ts` output
+- Seed: `npm run db:seed` (reads `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `SEED_ADMIN_NAME`, `SEED_ORG_NAME`;
+  upserts the org, the first Admin and the default rate card). The mock-up world (Villa Prakruthi for R. Iyengar,
+  contract ₹8,34,675 excl. GST, BOQ v3; plus Hebbal Business Loft, Ashvin Court, Terrace Residency) comes in P0-5
 
 ## People (for seed data and roles)
 
