@@ -22,12 +22,13 @@ card, the BOQ builder, versions, the client link and PDFs already work. Studio O
 
 ### Before you start (Krishna)
 
-1. **Neon:** create a new project "barebase-studio-os". Restore BOQ Studio's production database into it (Neon:
-   create the project from a branch or point-in-time copy of BOQ Studio's database, or `pg_dump` / `pg_restore`).
-   That is this app's production database. Then create a branch "staging" from it.
-2. **Vercel:** import this repo as a new project. Production → the new production `DATABASE_URL`; Preview → the
-   staging one. New `AUTH_SECRET`. Nothing shared with BOQ Studio's Vercel project.
-3. **Resend** API key (studio@barebase.in) and a **Vercel Blob** token, when Phase 0 asks for them.
+Follow **`docs/SETUP.md`** step by step. In short:
+
+1. **Neon:** a new project "barebase-studio-os" made from a copy of BOQ Studio's production data (BOQ Studio's
+   database is only read), plus a "staging" branch.
+2. **Vercel:** a new project for this repo. Production on the Neon production branch, Preview on staging, its own
+   `AUTH_SECRET`. Nothing shared with BOQ Studio's Vercel project.
+3. **Resend** (studio@barebase.in), **Vercel Blob** and **Sentry**, when Phase 0 asks for them.
 
 ### Then
 

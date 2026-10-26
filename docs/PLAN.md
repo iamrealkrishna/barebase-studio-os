@@ -5,8 +5,9 @@ Written 20 Oct 2026 by the set-up session (`prompts/00-kickoff.md`), for the bas
 `docs/decisions.md` (decisions 20 to 24 were added with this PR). Tick tasks here as their PRs merge, and note
 anything deferred.
 
-**Status:** set-up PR open. BOQ Studio's features work end to end inside the Studio OS shell, every other screen is
-a placeholder, and this plan is written. Phase 0 starts after it merges, with the four safety fixes (P0-0a to P0-0d).
+**Status:** set-up PR (#3) merged. Decisions 25 to 27 are in, with internal notes now private and the 10-character
+password rule, and `docs/SETUP.md` walks through the accounts. Phase 0 starts with the four safety fixes (P0-0a to
+P0-0d) once the Neon and Vercel set-up in `docs/SETUP.md` is done.
 
 ---
 
@@ -15,15 +16,7 @@ a placeholder, and this plan is written. Phase 0 starts after it merges, with th
 Only things that block Phase 0 or Phase 1 and aren't already answered in `docs/decisions.md`. Until you answer,
 the default shown is what gets built.
 
-1. **Internal notes and team members.** In BOQ Studio, every team member sees a line's internal note; only cost and
-   margin are Admin-only. CLAUDE.md lists internal notes as cost-private, and decision 20 says Designers, Pre-sales
-   and Site supervisors don't see cost. *Default:* from P0-9, internal notes are stripped on the server for anyone
-   without "see cost", like cost price. A Designer then can't read or edit notes the Design lead wrote.
-2. **Existing team members' roles.** M1 below gives the people named in decision 5 their roles. Anyone else in BOQ
-   Studio's user table is mapped ADMIN → Admin and MEMBER → Designer. *Default:* as stated; tell me if someone else
-   should get a different role before P0-8.
-3. **Password minimum.** BOQ Studio's minimum is 8 characters; the spec says 10. *Default:* existing passwords keep
-   working, and the next password anyone sets (change, reset or invite) needs 10.
+None open. Questions 1 to 3 from the set-up PR are answered as decisions 25 to 27 (26 Oct 2026).
 
 Mock-up versus spec points that don't block Phase 0 or 1 are listed under Risks, with the default each one follows.
 
@@ -76,7 +69,7 @@ next phase's first PR drops it.
 | M0 | Soft delete for projects | P0-0a | Add `Project.deletedAt`, `deletedById`. Every project query filters `deletedAt IS NULL` | Drop the two columns (no row was hard-deleted) |
 | M2 | Money to Decimal | P0-0d | For `RateItem.rate`, `cost`; `Project.discountValue`, `gstRate`; `LineItem.rate`, `cost`, `qty`, `dimL`, `dimB`, `dimH`: add `*_dec` (money `Decimal(14,2)`, quantities and dimensions `Decimal(14,3)`, rates `Decimal(5,2)`), copy with `ROUND(x::numeric, n)`, compare per-project totals (script), then swap names in a second migration. Snapshots are JSON and stay as they were (decision 6) | Before the swap: drop the `*_dec` columns. After: the Float columns are kept as `*_float` for one release; swapping the names back restores them |
 | M9 | Audit widen | P0-5 | Add `orgId`, `entityType`, `entityId`, `actorId`, `before`, `after`; `projectId` optional. Backfill `orgId` from the project, `entityType = 'project'` | Drop the columns; old rows are untouched |
-| M1 | Roles | P0-8 | Add the `OrgRole` enum and `User.orgRole`. Set roles by email for decisions 5, 20 and 23 (Krishna and Harish Admin, Ridhi COO, Mansi Design lead, Keertan Designer, Anamika and Ananya Pre-sales). Anyone else: ADMIN → Admin, MEMBER → Designer. Keep `role` for one release. Add `ProjectMember`, backfilled with every active user on every project (BOQ Studio had no membership, so nobody loses access) | Drop `orgRole` and `ProjectMember`; `role` is untouched |
+| M1 | Roles | P0-8 | Add the `OrgRole` enum and `User.orgRole`. Set roles by email for decisions 5, 20, 23 and 26 (Krishna and Harish Admin, Ridhi COO, Mansi Design lead, Keertan Designer, Anamika and Ananya Pre-sales). Anyone else: ADMIN → Admin, MEMBER → Designer (decision 26). Keep `role` for one release. Add `ProjectMember`, backfilled with every active user on every project (BOQ Studio had no membership, so nobody loses access) | Drop `orgRole` and `ProjectMember`; `role` is untouched |
 | M1b | Auth tokens | P0-7 | Add `AuthToken` (invite, reset, sign-in link; hashed), `RateLimitHit`; `User.passwordHash` nullable for invited users | Drop the tables; existing passwords are untouched |
 | M3 | Boq split | P1-14 | Create one `Boq` per project; copy discount, GST, client columns, terms, prepared by, quote date; point `Section` and `Version` at `boqId` | BOQ columns stay on `Project` until verified, so rollback drops `Boq` and `boqId` |
 | M4 | Clients | P1-5 | One `Client` per distinct trimmed `clientName` in the org; set `Project.clientId` | Clear `clientId`, drop `Client`; `clientName` is kept |
@@ -186,7 +179,8 @@ Then the rest of Phase 0:
 
 - [ ] **P0-1 Environments and the data check.** Neon production (a copy of BOQ Studio's production data, decision 2)
   and the `staging` branch wired to Vercel Production and Preview; Sentry (decision 22) with separate environments;
-  `APP_URL` on the `*.vercel.app` address (decision 24). **First: the existing-data check.** Run
+  `APP_URL` on the `*.vercel.app` address (decision 24), following `docs/SETUP.md`; Preview client links built
+  from the Preview's own address (`src/lib/app-url.ts` falls back to the production address today). **First: the existing-data check.** Run
   `scripts/project-totals.ts` on the copy, compare it with the same projects in BOQ Studio (the Projects list's
   "Current value" and each version's total), and open ten projects of different sizes in both apps side by side.
   AC: every project's totals match BOQ Studio to the paisa; a test error reaches Sentry from staging only.
@@ -206,21 +200,24 @@ Then the rest of Phase 0:
   R. Iyengar, ₹8,34,675 excl. GST, v3, plus the other three projects) without touching copied data. AC: every write
   helper records who, when, before and after; seed is repeatable.
 - [ ] **P0-6 Sign in.** Has today: email and password, httpOnly jose cookie checked against `User.active` on every
-  request, sign out. Add: 5 wrong tries locks 15 minutes, "Are you a client?" link, minimum 10 for new passwords
-  (question 3), the Login mock-up's layout. AC: the sixth wrong password is refused with the time left; existing
-  sessions keep working.
+  request, sign out, and the 10-character minimum for new and changed passwords (decision 27). Add: 5 wrong tries
+  locks 15 minutes, "Are you a client?" link, the Login mock-up's layout. AC: the sixth wrong password is refused
+  with the time left; existing sessions keep working.
 - [ ] **P0-7 Email, invites, reset, sign-in link** (M1b). Resend from `studio@barebase.in`; Team's "Add member"
   becomes an invite (`/invite/[token]`, 7 days); "Forgot password" on sign-in (`/reset/[token]`, 30 minutes);
-  "Email me a sign-in link" (15 minutes); each single use. Has today: change password on `/account` and an Admin
+  "Email me a sign-in link" (15 minutes); each single use. Staging holds real addresses, so outside Vercel
+  Production email goes only to `@barebase.in` addresses (`docs/SETUP.md`, E3). Has today: change password on `/account` and an Admin
   resetting a password from Team (kept for Admins). AC: a used or expired link is refused; reset invalidates the
   old password; the journey test's forgot-password step uses the emailed link on staging.
 - [ ] **P0-8 Roles and permissions** (M1). `can(user, action, resource)` with the PS 18 matrix (and 11A rows) as
   data; seven org roles; `ProjectMember`; `requireCan`; membership filters in queries; refusals return 404. Replaces
   `requireAdmin` and every `role === "ADMIN"` check. Decision 20: "see cost" for Admin and Design lead. AC (unit):
   every cell of the matrix for every role; a non-member Designer gets 404 on a project by URL.
-- [ ] **P0-9 Cost serializer and safety tests.** Has today: `loadBoq`, the rate card and imports zero `cost` for
-  non-admins, and `toClientSnapshot` strips cost and note for clients. Centralise it: one `stripCost(user, data)` for
-  cost price, margin, budget, order rates and **internal notes** (question 1), used by every page, action and route.
+- [ ] **P0-9 Cost serializer and safety tests.** Has today: `src/lib/cost-privacy.ts` strips cost and internal notes
+  (decision 25) from every BOQ snapshot a non-cost user receives (BOQ, Client Review, import, `loadBoq`), `saveBoq`
+  keeps the stored cost and note, `toClientSnapshot` strips both for clients, and test 22 checks it. Extend it: one
+  `stripCost(user, data)` for cost price, margin, budget, order rates and internal notes on every page, action and
+  route, behind `can()`.
   A Playwright suite that signs in as a Designer and requests every route and action, and one for every `/c/[token]`
   response, failing on any cost key. AC: PS 22 exit check "a Designer's API responses contain no cost data"; the
   Design lead sees cost and margin.
@@ -581,8 +578,8 @@ snapshot.
    look right but aren't on the tokens; the token check lists them as legacy until P0-15 empties the list.
 4. **Two apps in use at once** until switch-over. Anything entered into Studio OS production before the final copy
    is overwritten by it. Until switch-over day, staging and production here are for trying things only.
-5. **Vercel Blob has no true private files.** Every download goes through `/api/files/[id]`, which checks `can()` and
-   the file state, then redirects to a short-lived URL (P0-12). Line photos are data URLs in the database until M7.
+5. **File privacy.** Vercel Blob now has private stores (`docs/SETUP.md`, F1); P0-12 uses them, and every download
+   still goes through `/api/files/[id]`, which checks `can()` and the file state before handing out a short-lived link. Line photos are data URLs in the database until M7.
 6. **Prisma 6 audit warning** (`deepmerge-ts` through the CLI's config loader). Build-time only, not reachable by
    users. Upgrade to Prisma 7 in its own PR later.
 7. **Mock-up sample numbers disagree with each other** (Villa Prakruthi ₹8,34,675 on its BOQ, ₹21,74,268 on the

@@ -283,7 +283,7 @@ test.describe("Studio journey: everything BOQ Studio does, end to end", () => {
     expect(grand).toBeCloseTo(taxBase + cgst + sgst, 1);
   });
 
-  test("cost and margin never reach a member's browser", async ({ page }) => {
+  test("cost, margin and internal notes never reach a member's browser", async ({ page }) => {
     await login(page, MEMBER_EMAIL, MEMBER_OWN_PASSWORD);
     await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".compact-row");
@@ -292,10 +292,9 @@ test.describe("Studio journey: everything BOQ Studio does, end to end", () => {
     await expect(page.locator('button:has-text("Internal PDF")')).toHaveCount(0);
 
     // Checked against the HTML the server sent, not what is visible. Internal
-    // notes still reach team members, as in BOQ Studio; hiding them from anyone
-    // without "see cost" is a Phase 0 task (docs/PLAN.md, P0-9).
+    // notes are cost-private too (decision 25).
     const html = await page.content();
-    for (const word of ["Internal cost", "Cost ₹"]) {
+    for (const word of ["Internal cost", "Cost ₹", INTERNAL_NOTE]) {
       expect(html, `"${word}" reached a member's browser`).not.toContain(word);
     }
   });

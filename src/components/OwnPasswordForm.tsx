@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 
 import { changeOwnPassword, type PasswordState } from "@/actions/account";
 import PasswordInput from "@/components/PasswordInput";
+import { MIN_PASSWORD_LENGTH } from "@/lib/password";
 
 function Submit() {
   const { pending } = useFormStatus();
@@ -28,7 +29,7 @@ export default function OwnPasswordForm() {
   return (
     <div className="settings-section">
       <h3>
-        Your password <span className="note">— at least 8 characters</span>
+        Your password <span className="note">— at least {MIN_PASSWORD_LENGTH} characters</span>
       </h3>
 
       {state.error ? <div className="flash err">{state.error}</div> : null}
@@ -42,11 +43,11 @@ export default function OwnPasswordForm() {
           </div>
           <div className="f">
             <label htmlFor="pw-next">New password</label>
-            <PasswordInput id="pw-next" name="next" autoComplete="new-password" minLength={8} required />
+            <PasswordInput id="pw-next" name="next" autoComplete="new-password" minLength={MIN_PASSWORD_LENGTH} required />
           </div>
           <div className="f">
             <label htmlFor="pw-confirm">Confirm new password</label>
-            <PasswordInput id="pw-confirm" name="confirm" autoComplete="new-password" minLength={8} required />
+            <PasswordInput id="pw-confirm" name="confirm" autoComplete="new-password" minLength={MIN_PASSWORD_LENGTH} required />
           </div>
           <Submit />
         </div>
