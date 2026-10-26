@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # CI has its own throwaway Postgres. It never connects to staging or production.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: studio_ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CI: "true"
+      DATABASE_URL: "postgresql://ci:ci@localhost:5432/studio_ci"
+      APP_URL: "http://localhost:3000"
+      E2E_BASE_URL: "http://localhost:3000"
+      SEED_ADMIN_EMAIL: "krishna@barebase.in"
+      SEED_ADMIN_PASSWORD: "barebase123"
+      SEED_ADMIN_NAME: "Krishna"
+      SEED_ORG_NAME: "Barebase"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # A fresh signing secret per run, never stored anywhere.
+      - run: echo "AUTH_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npx prisma migrate deploy
+      - run: npm run db:seed
+      - run: npm run build:local
+      - run: npx playwright install --with-deps chromium
+      - name: Start the app
+        run: |
+          npm run start -- -p 3000 > server.log 2>&1 &
+          npx --yes wait-on@8.0.3 --timeout 60000 http://localhost:3000/login
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            server.log
+          retention-days: 7

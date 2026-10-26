@@ -87,7 +87,7 @@ export async function saveRateCard(entries: RateEntry[]): Promise<RateCardResult
     });
   }, BULK_TX);
 
-  revalidatePath("/settings");
+  revalidatePath("/settings/rate-card");
   return { ok: true };
 }
 
@@ -102,6 +102,6 @@ export async function resetRateCard(): Promise<RateCardResult> {
     });
   }, BULK_TX);
 
-  revalidatePath("/settings");
+  revalidatePath("/settings/rate-card");
   return { ok: true };
 }

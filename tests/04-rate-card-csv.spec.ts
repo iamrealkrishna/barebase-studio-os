@@ -27,7 +27,7 @@ test.describe("Rate card CSV", () => {
 
   test("export carries an Item ID column", async ({ page }) => {
     await login(page);
-    await page.goto("/settings");
+    await page.goto("/settings/rate-card");
     await page.waitForSelector("table.ratecard");
 
     const download = page.waitForEvent("download", { timeout: 60_000 });
@@ -56,7 +56,7 @@ test.describe("Rate card CSV", () => {
 
   test("the preview describes an ID-matched edit before anything is written", async ({ page }) => {
     await login(page);
-    await page.goto("/settings");
+    await page.goto("/settings/rate-card");
     await page.waitForSelector("table.ratecard");
 
     // Change the rate on the first row, keeping its Item ID — the matching
@@ -98,7 +98,7 @@ test.describe("Rate card CSV", () => {
 
   test("a row with a blank Item ID previews as a new item", async ({ page }) => {
     await login(page);
-    await page.goto("/settings");
+    await page.goto("/settings/rate-card");
     await page.waitForSelector("table.ratecard");
 
     const added = `,PLAYWRIGHT TEST Category,PLAYWRIGHT TEST Item,Ply,Duco,SQFT,410,220,Boilerplate scope`;
@@ -123,7 +123,7 @@ test.describe("Rate card CSV", () => {
 
   test("a bad row is reported with a reason, and doesn't block the rest", async ({ page }) => {
     await login(page);
-    await page.goto("/settings");
+    await page.goto("/settings/rate-card");
     await page.waitForSelector("table.ratecard");
 
     const file = path.join(tmp, "rates-bad.csv");
@@ -154,7 +154,7 @@ test.describe("Rate card CSV", () => {
 
   test("cancelling really did leave the rate card alone", async ({ page }) => {
     await login(page);
-    await page.goto("/settings");
+    await page.goto("/settings/rate-card");
     await page.waitForSelector("table.ratecard");
 
     const download = page.waitForEvent("download", { timeout: 60_000 });

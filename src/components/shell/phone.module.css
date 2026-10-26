@@ -1,0 +1,67 @@
+/* Phone-first frames: client portal and site screens (designed at 390 px, UI spec 7). */
+
+.phone {
+  min-height: 100vh;
+  max-width: var(--bb-phone-max);
+  margin: 0 auto;
+  background: var(--bb-paper);
+  display: flex;
+  flex-direction: column;
+}
+
+.letterhead {
+  display: flex;
+  align-items: center;
+  gap: var(--bb-space-3);
+  padding: var(--bb-space-3);
+  background: var(--bb-card);
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: var(--bb-mark);
+  height: var(--bb-mark);
+  border-radius: var(--bb-radius-sm);
+  background: var(--bb-brass);
+  color: var(--bb-white);
+  font-family: var(--bb-font-serif);
+  font-weight: 700;
+}
+
+.brand {
+  margin: 0;
+  font-family: var(--bb-font-serif);
+  font-weight: 700;
+}
+
+.sub {
+  margin: 0;
+  font-size: var(--bb-text-sm);
+  color: var(--bb-text-quiet);
+}
+
+.tabs {
+  padding: 0 var(--bb-space-3);
+  background: var(--bb-card);
+}
+
+.siteHeader {
+  padding: var(--bb-space-3);
+  background: var(--bb-ink);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bb-space-2);
+  min-height: var(--bb-touch);
+  color: var(--bb-line);
+  font-size: var(--bb-text-sm);
+  text-decoration: none;
+}
+
+.body {
+  flex: 1;
+  padding: var(--bb-space-3);
+}

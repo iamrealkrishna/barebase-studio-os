@@ -35,7 +35,7 @@ export async function addClientContact(formData: FormData): Promise<void> {
     action: `Gave ${name} (${email}) access to this BOQ`,
   });
 
-  revalidatePath(`/projects/${projectId}`);
+  revalidatePath(`/projects/${projectId}/boq/versions`);
 }
 
 export async function revokeClientContact(formData: FormData): Promise<void> {
@@ -57,7 +57,7 @@ export async function revokeClientContact(formData: FormData): Promise<void> {
     action: `Revoked ${contact.name}'s access link`,
   });
 
-  revalidatePath(`/projects/${projectId}`);
+  revalidatePath(`/projects/${projectId}/boq/versions`);
 }
 
 /**
@@ -92,8 +92,8 @@ export async function reissueClientLink(formData: FormData): Promise<void> {
     action: `Reissued ${contact.name}'s review link — the previous one no longer works`,
   });
 
-  revalidatePath(`/projects/${projectId}`);
-  revalidatePath(`/projects/${projectId}/client-view`);
+  revalidatePath(`/projects/${projectId}/boq/versions`);
+  revalidatePath(`/projects/${projectId}/boq/client-view`);
 }
 
 /** Manual status override on a version — the design's per-row status dropdown. */
@@ -131,7 +131,7 @@ export async function setVersionStatus(formData: FormData): Promise<void> {
     });
   });
 
-  revalidatePath(`/projects/${projectId}`);
+  revalidatePath(`/projects/${projectId}/boq/versions`);
 }
 
 // ---------------------------------------------------------------- client side
@@ -298,8 +298,8 @@ export async function submitItemApproval(input: {
   });
 
   revalidatePath(`/c/${input.token}`);
-  revalidatePath(`/projects/${access.project.id}`);
-  revalidatePath(`/projects/${access.project.id}/review`);
+  revalidatePath(`/projects/${access.project.id}/boq/versions`);
+  revalidatePath(`/projects/${access.project.id}/boq/review`);
   return { ok: true };
 }
 
@@ -377,8 +377,8 @@ export async function submitItemComment(input: {
   });
 
   revalidatePath(`/c/${input.token}`);
-  revalidatePath(`/projects/${access.project.id}`);
-  revalidatePath(`/projects/${access.project.id}/review`);
+  revalidatePath(`/projects/${access.project.id}/boq/versions`);
+  revalidatePath(`/projects/${access.project.id}/boq/review`);
   return { ok: true, status: existing?.status ?? "PENDING" };
 }
 
@@ -444,8 +444,8 @@ export async function approveWholeVersion(input: {
   });
 
   revalidatePath(`/c/${input.token}`);
-  revalidatePath(`/projects/${access.project.id}`);
-  revalidatePath(`/projects/${access.project.id}/review`);
+  revalidatePath(`/projects/${access.project.id}/boq/versions`);
+  revalidatePath(`/projects/${access.project.id}/boq/review`);
   return { ok: true };
 }
 
@@ -498,8 +498,8 @@ export async function submitClientReview(input: {
     });
   });
 
-  revalidatePath(`/projects/${access.project.id}`);
-  revalidatePath(`/projects/${access.project.id}/review`);
+  revalidatePath(`/projects/${access.project.id}/boq/versions`);
+  revalidatePath(`/projects/${access.project.id}/boq/review`);
   return { ok: true };
 }
 

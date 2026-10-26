@@ -36,17 +36,17 @@ export default function ProjectBar({
       </div>
 
       <nav className="page-toggle" style={{ background: "var(--ink)" }}>
-        {tab("build", `/projects/${projectId}/build`, "Build BOQ")}
-        {tab("clientview", `/projects/${projectId}/client-view`, "Client View")}
+        {tab("build", `/projects/${projectId}/boq`, "Build BOQ")}
+        {tab("clientview", `/projects/${projectId}/boq/client-view`, "Client View")}
         {tab(
           "review",
-          `/projects/${projectId}/review`,
+          `/projects/${projectId}/boq/review`,
           <>
             Client Review
             {reviewFlag ? <span className="tab-flag">{reviewFlag}</span> : null}
           </>,
         )}
-        {tab("versions", `/projects/${projectId}`, "Versions & Approvals")}
+        {tab("versions", `/projects/${projectId}/boq/versions`, "Versions & Approvals")}
       </nav>
 
       <div className="topbar-actions">{right}</div>

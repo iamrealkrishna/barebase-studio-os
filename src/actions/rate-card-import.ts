@@ -380,6 +380,6 @@ export async function commitRateCardImport(plan: ImportPlan): Promise<CommitResu
     return { ok: false, updated: 0, inserted: 0, conflicts: [], error: "Could not apply the import — nothing was changed." };
   }
 
-  revalidatePath("/settings");
+  revalidatePath("/settings/rate-card");
   return { ok: true, updated, inserted, conflicts };
 }

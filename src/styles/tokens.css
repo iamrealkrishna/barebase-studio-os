@@ -1,0 +1,48 @@
+/*
+ * Design tokens: the only place a colour, font size or spacing value is written.
+ * Copied from UI spec section 2 ("Tokens as code"). Everything else uses var(--bb-*).
+ * `npm run lint` fails on a hex colour, font size or px spacing anywhere else.
+ */
+:root {
+  /* colour */
+  --bb-brass: #9C7A3C;      --bb-brass-dark: #7C5E28;  --bb-brass-tint: #F3E6C7;
+  --bb-ink: #24231E;        --bb-ink-2: #3A372F;       /* sidebar active item */
+  --bb-paper: #F4F1E8;      --bb-card: #FBF9F3;        --bb-white: #FFFFFF;
+  --bb-line: #D8D1BF;       --bb-line-soft: #ECE6D6;
+  --bb-text: #24231E;       --bb-text-quiet: #7A7466;  --bb-text-label: #8A8474;
+  --bb-green: #465241;      --bb-green-tint: #DDE2D6;
+  --bb-red: #A8452F;        --bb-red-tint: #F0DCD5;
+  --bb-blue-text: #3B4757;  --bb-blue-tint: #E2E6EC;
+  --bb-grey-text: #5E5A4F;  --bb-grey-tint: #ECE8DD;
+
+  /* type */
+  --bb-font-serif: Cambria, Georgia, serif;
+  --bb-font-sans: system-ui, -apple-system, "Segoe UI", Calibri, Arial, sans-serif;
+  --bb-text-xs: 11px;  --bb-text-sm: 12px;  --bb-text-md: 14px;
+  --bb-text-lg: 20px;  --bb-text-xl: 28px;  --bb-text-num-xl: 30px;
+
+  /* spacing (8-point) */
+  --bb-space-1: 4px;  --bb-space-2: 8px;   --bb-space-3: 16px;
+  --bb-space-4: 24px; --bb-space-5: 32px;  --bb-space-6: 48px;
+
+  /* shape and depth */
+  --bb-radius-sm: 8px;  --bb-radius-md: 12px;  --bb-radius-pill: 999px;
+  --bb-shadow-pop: 0 8px 24px rgba(36, 35, 30, 0.12);  /* menus, dialogs only */
+  --bb-focus: 0 0 0 2px var(--bb-paper), 0 0 0 4px var(--bb-brass);
+
+  /* layout */
+  --bb-sidebar: 240px;  --bb-sidebar-collapsed: 64px;
+  --bb-topbar: 68px;    --bb-content-max: 1200px;  --bb-sheet: 520px;
+
+  /*
+   * Added during setup, not in UI spec section 2. Each is a size the shell
+   * needs that section 2 doesn't name; values come from the mock-ups.
+   */
+  --bb-touch: 44px;          /* minimum touch target (UI spec 7, Mobile) */
+  --bb-bottombar: 64px;      /* phone bottom bar height (reference 00-app-shell) */
+  --bb-phone-max: 480px;     /* phone-first screens (DPR, snag, client portal) */
+  --bb-search: 370px;        /* top bar search field (mock-ups) */
+  --bb-mark: 32px;           /* the "B" brand mark */
+  --bb-avatar: 28px;         /* Avatar default size (UI spec 2, Component API) */
+  --bb-icon-nav: 20px;       /* Lucide size in navigation (UI spec 9) */
+}

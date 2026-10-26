@@ -1,10 +1,13 @@
 import { redirect } from "next/navigation";
 
+import LoginForm from "@/components/LoginForm";
 import { getSessionUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
+export default async function LoginPage() {
   const user = await getSessionUser();
-  redirect(user ? "/projects" : "/login");
+  if (user) redirect("/projects");
+
+  return <LoginForm />;
 }

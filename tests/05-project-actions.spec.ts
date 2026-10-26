@@ -40,10 +40,10 @@ test.describe("Project actions", () => {
     const modal = page.locator(".modal");
     await modal.locator('input[name="name"]').fill(copyName);
     await modal.locator('button[type="submit"]').click();
-    await page.waitForURL("**/build", { timeout: 45_000 });
+    await page.waitForURL("**/boq", { timeout: 45_000 });
     await page.waitForSelector(".sec-block");
 
-    const copyId = page.url().match(/projects\/([^/]+)\/build/)![1];
+    const copyId = page.url().match(/projects\/([^/]+)\/boq/)![1];
     expect(copyId).not.toBe(sourceId);
 
     const after = await rowSummaries(page);
@@ -51,11 +51,11 @@ test.describe("Project actions", () => {
     expect(money(await page.locator(".sum-row.total .amt").innerText())).toBeCloseTo(beforeTotal!, 2);
 
     // A fresh Draft with no history of its own.
-    await page.goto(`/projects/${copyId}`);
+    await page.goto(`/projects/${copyId}/boq/versions`);
     await expect(page.locator(".no-versions")).toBeVisible();
 
     // And genuinely a copy: editing it doesn't touch the source.
-    await page.goto(`/projects/${copyId}/build`);
+    await page.goto(`/projects/${copyId}/boq`);
     await page.locator('.compact-row button[title="Edit this row"]').first().click();
     await page.waitForSelector(".compact-row.editing-row");
     await page.locator(".compact-row.editing-row .item-field.dim input").last().fill("31337");
@@ -63,7 +63,7 @@ test.describe("Project actions", () => {
     await page.waitForTimeout(1500);
     await waitForSaved(page);
 
-    await page.goto(`/projects/${sourceId}/build`);
+    await page.goto(`/projects/${sourceId}/boq`);
     await page.waitForSelector(".compact-row");
     expect(await rowSummaries(page), "the source is untouched").toEqual(before);
   });

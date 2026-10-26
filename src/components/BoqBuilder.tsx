@@ -228,7 +228,7 @@ export default function BoqBuilder({
       // would see its own change as somebody else's.
       if (result.updatedAt) adoptUpdatedAt(result.updatedAt);
       toast(`Saved as V${result.number} — sent to client`);
-      router.push(`/projects/${projectId}/client-view`);
+      router.push(`/projects/${projectId}/boq/client-view`);
     } finally {
       setSending(false);
     }

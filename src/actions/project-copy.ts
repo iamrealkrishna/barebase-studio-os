@@ -197,5 +197,5 @@ export async function duplicateProject(formData: FormData): Promise<void> {
   }, BULK_TX);
 
   revalidatePath("/projects");
-  redirect(`/projects/${copy.id}/build`);
+  redirect(`/projects/${copy.id}/boq`);
 }

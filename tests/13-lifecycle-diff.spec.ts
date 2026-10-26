@@ -47,7 +47,7 @@ test.describe("Lifecycle end to end, and diff accuracy", () => {
   test("build a project with three lines and send it", async ({ page }) => {
     await login(page);
     projectId = await createProject(page, testName("Lifecycle"));
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".sec-block");
 
     await addItem(page, { category: "Civil & Infra Works", desc: "Painting", l: 10, b: 10 });
@@ -151,7 +151,7 @@ test.describe("Lifecycle end to end, and diff accuracy", () => {
   test("after a single edit, the diff flags that line and nothing else", async ({ page }) => {
     // Change exactly one line — the first — and send it.
     await login(page);
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".compact-row");
     const target = page.locator(".compact-row").filter({ hasText: "Painting" }).first();
     await target.locator('button[title="Edit this row"]').click();
@@ -193,7 +193,7 @@ test.describe("Lifecycle end to end, and diff accuracy", () => {
 
   test("adding a line marks it New, and only it", async ({ page }) => {
     await login(page);
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".compact-row");
     await addItem(page, { category: "Civil & Infra Works", desc: "Painting", l: 2, b: 3 });
     await waitForSaved(page);
@@ -207,7 +207,7 @@ test.describe("Lifecycle end to end, and diff accuracy", () => {
 
   test("changing a count on an already-approved line raises a change order", async ({ page }) => {
     await login(page);
-    await page.goto(`/projects/${projectId}/build`);
+    await page.goto(`/projects/${projectId}/boq`);
     await page.waitForSelector(".compact-row");
 
     // The first line is the one the client approved.
