@@ -1,5 +1,5 @@
 import ReviewBoard from "@/components/ReviewBoard";
-import type { BoqSnapshot } from "@/lib/boq";
+import { canSeeCost as userCanSeeCost, snapshotFor } from "@/lib/cost-privacy";
 import { prisma } from "@/lib/db";
 import { getProjectPageData, toSnapshot } from "@/lib/project-page";
 import { parseSnapshot } from "@/lib/serialize";
@@ -7,21 +7,11 @@ import { currentClientVersion, latestApprovedVersion } from "@/lib/versions";
 
 export const dynamic = "force-dynamic";
 
-/** Internal cost is admin-only — see the Build BOQ page for the full reasoning. */
-function withoutCost(snapshot: BoqSnapshot): BoqSnapshot {
-  return {
-    ...snapshot,
-    sections: snapshot.sections.map((section) => ({
-      ...section,
-      items: section.items.map((item) => ({ ...item, cost: 0 })),
-    })),
-  };
-}
-
 export default async function ReviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { user, project } = await getProjectPageData(id);
-  const canSeeCost = user.role === "ADMIN";
+  // Cost and internal notes stay on the server for non-cost users (decisions 20 and 25).
+  const canSeeCost = userCanSeeCost(user);
 
   // The version the client is actually looking at — the newest one they've been
   // sent. Approvals are recorded against that exact version, never the live BOQ.
@@ -56,7 +46,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
       projectId={project.id}
       projectName={project.name}
       canSeeCost={canSeeCost}
-      initialSnapshot={canSeeCost ? live : withoutCost(live)}
+      initialSnapshot={snapshotFor(user, live)}
       initialUpdatedAt={project.updatedAt.toISOString()}
       rateEntries={rateItems.map((item) => ({
         id: item.id,
@@ -69,9 +59,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
         cost: canSeeCost ? item.cost : 0,
         defaultScope: item.defaultScope,
       }))}
-      approvedSnapshot={
-        approvedSnapshot ? (canSeeCost ? approvedSnapshot : withoutCost(approvedSnapshot)) : null
-      }
+      approvedSnapshot={approvedSnapshot ? snapshotFor(user, approvedSnapshot) : null}
       approvedVersionNumber={approved?.number ?? null}
       reviewedVersion={
         reviewed

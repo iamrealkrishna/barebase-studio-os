@@ -60,6 +60,8 @@ type Props = {
   entries: RateEntry[];
   categories: string[];
   showCost: boolean;
+  /** Internal notes are cost-private (decision 25); see InlineItemRow. */
+  showNotes: boolean;
   onError: (message: string) => void;
 };
 
@@ -72,6 +74,7 @@ export default function EntryForm({
   entries,
   categories,
   showCost,
+  showNotes,
   onError,
 }: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
@@ -436,14 +439,16 @@ export default function EntryForm({
         />
       </div>
 
-      <div className="item-row item-note-row">
-        <textarea
-          rows={1}
-          value={draft.note}
-          placeholder="Internal note — never shown to the client (e.g. “changed on site”)"
-          onChange={(e) => patch({ note: e.target.value })}
-        />
-      </div>
+      {showNotes ? (
+        <div className="item-row item-note-row">
+          <textarea
+            rows={1}
+            value={draft.note}
+            placeholder="Internal note — never shown to the client (e.g. “changed on site”)"
+            onChange={(e) => patch({ note: e.target.value })}
+          />
+        </div>
+      ) : null}
 
       <div className="item-foot">
         <div className="img-cell">

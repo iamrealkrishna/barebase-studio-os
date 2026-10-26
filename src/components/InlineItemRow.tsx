@@ -37,6 +37,7 @@ export default function InlineItemRow({
   entries,
   categories,
   showCost,
+  showNotes,
   diffKind,
   diffChanges,
   tone,
@@ -54,6 +55,8 @@ export default function InlineItemRow({
   entries: RateEntry[];
   categories: string[];
   showCost: boolean;
+  /** Internal notes are cost-private (decision 25): the server strips them, so a non-cost user isn't offered the box. */
+  showNotes: boolean;
   diffKind: "new" | "changed" | "unchanged";
   diffChanges: FieldChange[];
   /** Extra class on the row — the Client Review screen colours by verdict. */
@@ -109,7 +112,7 @@ export default function InlineItemRow({
           </div>
           <div className="sub-line">
             {[categoryLabel(row.category), spec, dimText].filter(Boolean).join(" · ")}
-            {row.note ? ` · note: ${row.note}` : ""}
+            {showNotes && row.note ? ` · note: ${row.note}` : ""}
           </div>
           {annotation}
         </div>
@@ -383,7 +386,7 @@ export default function InlineItemRow({
               long way from here when you're part-way down a long BOQ. */}
           <div className="inline-edit-actions">
             <button className="cv-mini-btn" onClick={() => setShowDetails(!showDetails)}>
-              {showDetails ? "Hide scope & notes" : row.description || row.note || row.image ? "Scope & notes •" : "Scope & notes"}
+              {showDetails ? "Hide scope & notes" : row.description || (showNotes && row.note) || row.image ? "Scope & notes •" : "Scope & notes"}
             </button>
             <button className="cv-mini-btn" title="Discard this row's edits" onClick={onDiscard}>
               Cancel
@@ -400,10 +403,12 @@ export default function InlineItemRow({
               <label>Scope of work — what the client reads</label>
               <textarea rows={2} value={row.description} onChange={(e) => patch({ description: e.target.value })} />
             </div>
-            <div className="item-field" style={{ flex: "1 1 100%" }}>
-              <label>Internal note — never shown to the client</label>
-              <textarea rows={1} value={row.note} onChange={(e) => patch({ note: e.target.value })} />
-            </div>
+            {showNotes ? (
+              <div className="item-field" style={{ flex: "1 1 100%" }}>
+                <label>Internal note — never shown to the client</label>
+                <textarea rows={1} value={row.note} onChange={(e) => patch({ note: e.target.value })} />
+              </div>
+            ) : null}
             <div className="img-cell">
               {row.image ? (
                 <>

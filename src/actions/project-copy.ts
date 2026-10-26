@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { recordAudit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth";
 import { computeQty, type BoqSnapshot } from "@/lib/boq";
+import { snapshotFor } from "@/lib/cost-privacy";
 import { BULK_TX, prisma } from "@/lib/db";
 import { toLineItemData, toSnapshot } from "@/lib/serialize";
 import { loadProject, projectInclude } from "@/lib/versions";
@@ -90,19 +91,10 @@ export async function getProjectForImport(projectId: string): Promise<BoqSnapsho
   const project = await loadProject(projectId, user.orgId);
   if (!project) return null;
 
-  const snapshot = toSnapshot(project);
-  if (user.role === "ADMIN") return snapshot;
-
-  // Internal cost never reaches a team member's browser, here included. The
-  // imported lines come back through saveBoq, which resolves their cost from
-  // the rate card server-side rather than trusting these zeros.
-  return {
-    ...snapshot,
-    sections: snapshot.sections.map((section) => ({
-      ...section,
-      items: section.items.map((item) => ({ ...item, cost: 0 })),
-    })),
-  };
+  // Cost and internal notes never reach a non-cost user's browser, here
+  // included. The imported lines come back through saveBoq, which resolves
+  // their cost from the rate card server-side rather than trusting these zeros.
+  return snapshotFor(user, toSnapshot(project));
 }
 
 /** Clone a whole project — sections, items and settings — as a new project. */

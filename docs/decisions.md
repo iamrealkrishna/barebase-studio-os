@@ -36,6 +36,16 @@ Answers to the five questions in the first set-up PR (barebase-studio-os PR #2).
 | 23 | First Admin | **Krishna (krishna@barebase.in)**. Harish is Admin too |
 | 24 | Web address | **The `*.vercel.app` address** for now. Krishna picks a domain later; `APP_URL` changes then |
 
+## Decisions from Krishna (26 Oct 2026)
+
+Answers to the three questions in `docs/PLAN.md` after the set-up PR (#3).
+
+| # | Question | Answer |
+| --- | --- | --- |
+| 25 | Internal notes | **Hidden from anyone who can't see cost.** Removed on the server exactly like cost price, and from every client-portal response, with a test. Done in the PR after #3: `src/lib/cost-privacy.ts`, `tests/22-private-notes-passwords.spec.ts` |
+| 26 | Roles for existing people | Krishna and Harish **Admin** · Ridhi **COO** and approver · Mansi **Design lead** (sees cost, decision 20) · Keertan **Designer** · Anamika and Ananya **Pre-sales** · everyone else in BOQ Studio **Designer**, or **Admin** if they are Admin today. Applied by migration M1 in P0-8 |
+| 27 | Password length | **At least 10 characters** for every new or changed password (add member, admin reset, change your own, and later invite and reset links). Existing passwords keep working: sign-in never checks length |
+
 ---
 
 ## Questions for Krishna (kit v2, 19 Oct 2026)

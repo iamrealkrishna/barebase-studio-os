@@ -1,5 +1,5 @@
 import BoqBuilder from "@/components/BoqBuilder";
-import type { BoqSnapshot } from "@/lib/boq";
+import { canSeeCost as userCanSeeCost, snapshotFor } from "@/lib/cost-privacy";
 import { prisma } from "@/lib/db";
 import { getProjectPageData, toSnapshot } from "@/lib/project-page";
 import { parseSnapshot } from "@/lib/serialize";
@@ -7,26 +7,12 @@ import { latestApprovedVersion, reviewAttentionCount } from "@/lib/versions";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Internal cost is admin-only, so a team member's page payload carries none of
- * it — hiding the column client-side would still ship the numbers to their
- * browser. `saveBoq` refuses cost from a non-admin, so these zeros can't be
- * written back over the real figures.
- */
-function withoutCost(snapshot: BoqSnapshot): BoqSnapshot {
-  return {
-    ...snapshot,
-    sections: snapshot.sections.map((section) => ({
-      ...section,
-      items: section.items.map((item) => ({ ...item, cost: 0 })),
-    })),
-  };
-}
-
 export default async function BuildPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { user, project, letterhead } = await getProjectPageData(id);
-  const canSeeCost = user.role === "ADMIN";
+  // Cost and internal notes never reach the browser of someone who can't see
+  // cost (decisions 20 and 25); `saveBoq` keeps the stored values.
+  const canSeeCost = userCanSeeCost(user);
 
   const [rateItems, approved, reviewFlag] = await Promise.all([
     prisma.rateItem.findMany({
@@ -45,7 +31,7 @@ export default async function BuildPage({ params }: { params: Promise<{ id: stri
       projectId={project.id}
       canSeeCost={canSeeCost}
       reviewFlag={reviewFlag}
-      initialSnapshot={canSeeCost ? live : withoutCost(live)}
+      initialSnapshot={snapshotFor(user, live)}
       initialUpdatedAt={project.updatedAt.toISOString()}
       rateEntries={rateItems.map((item) => ({
         id: item.id,
@@ -59,9 +45,7 @@ export default async function BuildPage({ params }: { params: Promise<{ id: stri
         defaultScope: item.defaultScope,
       }))}
       letterhead={letterhead}
-      approvedSnapshot={
-        approvedSnapshot ? (canSeeCost ? approvedSnapshot : withoutCost(approvedSnapshot)) : null
-      }
+      approvedSnapshot={approvedSnapshot ? snapshotFor(user, approvedSnapshot) : null}
       approvedVersionNumber={approved?.number ?? null}
     />
   );

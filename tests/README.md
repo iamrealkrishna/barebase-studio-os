@@ -3,7 +3,7 @@
 Playwright, driving the real app in a real browser. Nothing is mocked: each
 test signs in, clicks through the UI, and checks what the database gave back.
 
-Over 120 tests across eighteen areas — auth, Team admin, BOQ building, the rate card
+Over 130 tests across nineteen areas — auth, Team admin, BOQ building, the rate card
 CSV round-trip, duplicate/import, Client View (14 of them), GST on the Client
 PDF, PDF layout, line-item counts, role restrictions, a mixed BOQ through both
 PDFs, pre-count version compatibility, diff accuracy, the rate card's
@@ -123,6 +123,7 @@ and tearing a hole in the audit trail. Deactivate them on `/team` instead.
 | `16-rate-card-identity.spec.ts` | Typable fields with existing spellings suggested, duplicating a row, and the guard that stops a save adding a clash. Two of its tests **write to the rate card** and need the same opt-in |
 | `20-studio-journey.spec.ts` | Everything BOQ Studio does in one journey, inside the Studio OS shell: sign in, Team, admin password reset, own password change, rate card edit, export and import preview, a BOQ with rooms, custom item, count, scope, note, photo, discount and GST, cost hidden from a member, versions, both PDFs, the client link, line-by-line answers, Client Review, whole-estimate approval, a change order, and the audit export |
 | `21-navigation.spec.ts` | Every placeholder screen (title, phase, mock-up), every imported screen inside the shell, no sideways scroll at 1440 and 375 px, sidebar, top bar and phone bottom bar links, and the redirects from old routes |
+| `22-private-notes-passwords.spec.ts` | Internal notes never reach a member's browser or a client, a member's save keeps a note they never saw, and new or changed passwords need 10 characters while older passwords still sign in (decisions 25 and 27) |
 
 ### A note on the Client View tests
 

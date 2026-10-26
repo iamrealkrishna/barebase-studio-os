@@ -5,6 +5,7 @@ import type { User } from "@prisma/client";
 
 import { hashPassword, requireAdmin, type SessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { MIN_PASSWORD_LENGTH } from "@/lib/password";
 
 export type TeamFormState = { ok?: string; error?: string };
 
@@ -38,7 +39,9 @@ async function addMember(admin: SessionUser, formData: FormData): Promise<TeamFo
   if (!name) return { error: "Name is required." };
   if (!email) return { error: "Email is required." };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "That doesn't look like an email address." };
-  if (password.length < 8) return { error: "Set a starting password of at least 8 characters." };
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return { error: `Set a starting password of at least ${MIN_PASSWORD_LENGTH} characters.` };
+  }
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -108,7 +111,9 @@ async function changeActive(admin: SessionUser, formData: FormData): Promise<Tea
 
 async function resetPassword(admin: SessionUser, formData: FormData): Promise<TeamFormState> {
   const password = String(formData.get("password") ?? "");
-  if (password.length < 8) return { error: "New password must be at least 8 characters." };
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return { error: `New password must be at least ${MIN_PASSWORD_LENGTH} characters.` };
+  }
 
   const target = await findMember(admin, formData);
   if (!target) return { error: "That team member no longer exists." };

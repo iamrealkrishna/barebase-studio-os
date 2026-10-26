@@ -388,6 +388,7 @@ export default function BoqBuilder({
                       entries={rateEntries}
                       categories={categories}
                       showCost={showCost}
+                      showNotes={canSeeCost}
                       onError={toast}
                     />
                   ) : null}
@@ -416,6 +417,7 @@ export default function BoqBuilder({
                             entries={rateEntries}
                             categories={categories}
                             showCost={showCost}
+                            showNotes={canSeeCost}
                             diffKind={entry?.kind ?? "unchanged"}
                             diffChanges={entry?.changes ?? []}
                             onStartEdit={() => startEdit(item)}

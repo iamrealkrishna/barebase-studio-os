@@ -379,6 +379,7 @@ export default function ReviewBoard({
                           entries={rateEntries}
                           categories={categories}
                           showCost={showCost}
+                          showNotes={canSeeCost}
                           diffKind={entry?.kind ?? "unchanged"}
                           diffChanges={entry?.changes ?? []}
                           tone={tone}

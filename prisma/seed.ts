@@ -10,6 +10,7 @@ import bcrypt from "bcryptjs";
 
 import { DEFAULT_RATE_CARD } from "../src/lib/default-rate-card";
 import { DEFAULT_TERMS } from "../src/lib/boq";
+import { MIN_PASSWORD_LENGTH } from "../src/lib/password";
 
 const prisma = new PrismaClient();
 
@@ -38,6 +39,11 @@ async function main() {
   console.log(`Organisation: ${org.name} (${org.id})`);
 
   if (email && password) {
+    // Only a new admin's password is set here, so only then does the length rule apply.
+    const exists = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+    if (!exists && password.length < MIN_PASSWORD_LENGTH) {
+      throw new Error(`SEED_ADMIN_PASSWORD must be at least ${MIN_PASSWORD_LENGTH} characters.`);
+    }
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await prisma.user.upsert({
       where: { email },

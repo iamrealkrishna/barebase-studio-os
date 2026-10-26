@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { hashPassword, requireUser, verifyPassword } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { MIN_PASSWORD_LENGTH } from "@/lib/password";
 
 export type ProfileState = { ok?: string; error?: string };
 
@@ -52,7 +53,9 @@ export async function changeOwnPassword(_prev: PasswordState, formData: FormData
   const next = String(formData.get("next") ?? "");
   const confirm = String(formData.get("confirm") ?? "");
 
-  if (next.length < 8) return { error: "New password must be at least 8 characters." };
+  if (next.length < MIN_PASSWORD_LENGTH) {
+    return { error: `New password must be at least ${MIN_PASSWORD_LENGTH} characters.` };
+  }
   if (confirm !== next) return { error: "The two new passwords don't match." };
   if (next === current) return { error: "That's the password you already have." };
 

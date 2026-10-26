@@ -6,6 +6,7 @@ import { useFormStatus } from "react-dom";
 import { teamAction, type TeamFormState } from "@/actions/team";
 import PasswordInput from "@/components/PasswordInput";
 import { fmtDate } from "@/lib/boq";
+import { MIN_PASSWORD_LENGTH } from "@/lib/password";
 
 export type TeamMember = {
   id: string;
@@ -144,7 +145,7 @@ export default function TeamManager({
               <PasswordInput
                 name="password"
                 autoComplete="new-password"
-                minLength={8}
+                minLength={MIN_PASSWORD_LENGTH}
                 required
                 autoFocus
                 placeholder="New password (min 8)"
@@ -202,9 +203,9 @@ export default function TeamManager({
                   id="tm-password"
                   name="password"
                   autoComplete="new-password"
-                  minLength={8}
+                  minLength={MIN_PASSWORD_LENGTH}
                   required
-                  placeholder="min 8 characters"
+                  placeholder={`min ${MIN_PASSWORD_LENGTH} characters`}
                 />
               </div>
               <div className="f" style={{ flex: "0 0 160px" }}>

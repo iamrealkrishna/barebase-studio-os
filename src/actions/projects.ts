@@ -7,6 +7,7 @@ import type { BoqStatus, Prisma } from "@prisma/client";
 import { recordAudit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth";
 import { DEFAULT_TERMS, FIXED_SECTIONS, type BoqItem } from "@/lib/boq";
+import { canSeeCost, snapshotFor } from "@/lib/cost-privacy";
 import { BULK_TX, prisma } from "@/lib/db";
 import { findRateRow, type RateEntry } from "@/lib/rate-card";
 import { toLineItemData } from "@/lib/serialize";
@@ -123,7 +124,9 @@ export async function loadBoq(projectId: string): Promise<LoadedBoq | null> {
   const project = await loadProject(projectId, user.orgId);
   if (!project) return null;
   const { toSnapshot } = await import("@/lib/serialize");
-  return { snapshot: toSnapshot(project), updatedAt: project.updatedAt.toISOString() };
+  // The builder reloads through here after a save conflict, so it strips cost
+  // and internal notes for non-cost users exactly as the page does.
+  return { snapshot: snapshotFor(user, toSnapshot(project)), updatedAt: project.updatedAt.toISOString() };
 }
 
 export type SaveBoqInput = {
@@ -168,20 +171,22 @@ export type SaveBoqResult = {
  * holding a stale snapshot — a replayed router-cache payload, a second tab, a
  * colleague mid-edit — would otherwise wipe work it never saw.
  *
- * Internal cost is admin-only and never reaches a team member's browser, so a
- * member's payload carries zeros. Those are discarded rather than written —
- * see `resolveCost`.
+ * Internal cost and internal notes never reach the browser of someone who
+ * can't see cost, so their payload carries zeros and blanks. Those are
+ * discarded rather than written — see `resolveCost` and `resolveNote`.
  */
 export async function saveBoq(input: SaveBoqInput): Promise<SaveBoqResult> {
   const user = await requireUser();
-  const canSetCost = user.role === "ADMIN";
+  const canSetCost = canSeeCost(user);
 
   const project = await prisma.project.findFirst({
     where: { id: input.projectId, orgId: user.orgId },
     include: {
       sections: {
         include: {
-          items: { select: { id: true, category: true, name: true, material: true, finish: true, cost: true } },
+          items: {
+            select: { id: true, category: true, name: true, material: true, finish: true, cost: true, note: true },
+          },
         },
       },
     },
@@ -237,6 +242,18 @@ export async function saveBoq(input: SaveBoqInput): Promise<SaveBoqResult> {
     return row?.cost ?? previous?.cost ?? 0;
   };
 
+  /**
+   * What to store as this line's internal note (decision 25).
+   *
+   * Someone who can't see cost never received the note, so the blank they send
+   * back must not erase it: an existing line keeps its stored note, and a new
+   * line starts without one.
+   */
+  const resolveNote = (item: BoqItem, sent: string): string => {
+    if (canSetCost) return sent;
+    return stored.get(item.id)?.note ?? "";
+  };
+
   await prisma.$transaction(async (tx) => {
     await tx.project.update({
       where: { id: project.id },
@@ -269,7 +286,8 @@ export async function saveBoq(input: SaveBoqInput): Promise<SaveBoqResult> {
       keptSectionIds.push(row.id);
 
       for (const [itemPosition, item] of section.items.entries()) {
-        const data = { ...toLineItemData(item, itemPosition), cost: resolveCost(item) };
+        const sent = toLineItemData(item, itemPosition);
+        const data = { ...sent, cost: resolveCost(item), note: resolveNote(item, sent.note) };
         if (knownItemIds.has(item.id)) {
           await tx.lineItem.update({ where: { id: item.id }, data: { ...data, sectionId: row.id } });
           keptItemIds.push(item.id);
