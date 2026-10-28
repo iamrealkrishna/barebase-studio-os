@@ -91,6 +91,9 @@ test.describe("Project actions", () => {
     // Options read "<name> — <client> · N items", so match on the text rather
     // than an exact label (selectOption takes no regex).
     const chooser = picker.locator("select").first();
+    // The picker fetches its project list after it opens, so wait for the
+    // source to arrive before reading the options.
+    await expect(chooser.locator("option", { hasText: sourceName })).toHaveCount(1, { timeout: 30_000 });
     const optionValues = await chooser.locator("option").evaluateAll((nodes, name) =>
       nodes
         .filter((node) => node.textContent?.includes(name as string))

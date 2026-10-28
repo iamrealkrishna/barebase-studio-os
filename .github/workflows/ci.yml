@@ -39,8 +39,13 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # A fresh signing secret per run, never stored anywhere.
-      - run: echo "AUTH_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+      # A fresh signing secret per run, never stored anywhere. Masked first, so
+      # the job log shows *** wherever it would appear (CLAUDE.md: no secrets in logs).
+      - name: Generate AUTH_SECRET
+        run: |
+          secret="$(openssl rand -hex 32)"
+          echo "::add-mask::$secret"
+          echo "AUTH_SECRET=$secret" >> "$GITHUB_ENV"
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
